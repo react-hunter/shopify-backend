@@ -50,6 +50,7 @@ exports.addUser = (req, res, next) => {
 exports.saveUser = (req, res, next) => {
     var user = new User();
     user.email = req.body.email;
+    user.active = 'no';
     user.profile.name = req.body.name;
     user.partnerClient.name = req.body.clientName;
     user.partnerClient.domain = req.body.domain;
@@ -106,7 +107,6 @@ exports.updateUser = (req, res, next) => {
         }
 
         user.email = req.body.email;
-        user.active = 'no';
         user.profile.name = req.body.name;
 
         user.partnerClient.name = req.body.clientName;
