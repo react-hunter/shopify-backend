@@ -26,19 +26,19 @@ exports.index = (req, res, next) => {
 
 exports.addUser = (req, res, next) => {
     var user = new User();
-    if(req.query.email) {
+    if (req.query.email) {
         user.email = req.query.email;
     }
-    if(req.query.name) {
+    if (req.query.name) {
         user.name = req.query.name;
     }
-    if(req.query.clientName) {
+    if (req.query.clientName) {
         user.clientName = req.query.clientName;
     }
-    if(req.query.domain) {
+    if (req.query.domain) {
         user.domain = req.query.domain;
     }
-    if(req.query.connectors) {
+    if (req.query.connectors) {
         user.connectors = req.query.connectors;
     }
     res.render('admin/user/userAdd', {
@@ -55,7 +55,7 @@ exports.saveUser = (req, res, next) => {
     user.partnerClient.domain = req.body.domain;
     user.partnerClient.connectors = req.body.connectors;
     user.type = 'readonly';
-    if(req.body.password != '') {
+    if (req.body.password != '') {
         user.password = req.body.password;
     }
     if (req.body.password != req.body.confirmpassword) {
@@ -75,7 +75,7 @@ exports.saveUser = (req, res, next) => {
         return next();
     }
 
-    user.save((err) => {
+    user.save(err => {
         if (err) {
             return next(err);
         }
@@ -122,7 +122,7 @@ exports.updateUser = (req, res, next) => {
                 return next();
             }
         } else {
-            user.save((err) => {
+            user.save(err => {
                 if (err) {
                     return next(err);
                 }
