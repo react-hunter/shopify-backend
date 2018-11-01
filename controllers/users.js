@@ -6,6 +6,8 @@ const url = require('url');
 /**
  * GET /
  * Users Page.
+ * Input: none
+ * Output: users data
  */
 exports.index = (req, res, next) => {
     User.find({
@@ -24,6 +26,12 @@ exports.index = (req, res, next) => {
     });
 };
 
+/**
+ * GET /
+ * Input: none
+ * Output: Inputed data
+ * functionality: Redirect to User Add page with previous inputed
+ */
 exports.addUser = (req, res, next) => {
     var user = new User();
     if (req.query.email) {
@@ -47,6 +55,12 @@ exports.addUser = (req, res, next) => {
     });
 };
 
+/**
+ * GET /
+ * Input: User Data
+ * Output: None
+ * Functionality: Save user data into db with inputed data.
+ */
 exports.saveUser = (req, res, next) => {
     var user = new User();
     user.email = req.body.email;
@@ -87,6 +101,12 @@ exports.saveUser = (req, res, next) => {
     });
 };
 
+/**
+ * GET /
+ * Input: userId
+ * Output: users data
+ * Functionality: With user data by userId, redirect to user page.
+ */
 exports.getUser = (req, res, next) => {
     User.findById(req.params.userId, (err, user) => {
         if (err) {
@@ -100,6 +120,12 @@ exports.getUser = (req, res, next) => {
     });
 };
 
+/**
+ * GET /
+ * Input: userId and updated User Data
+ * Output: none
+ * Functionality: Update user data by inputed data.
+ */
 exports.updateUser = (req, res, next) => {
     User.findById(req.body.userId, (err, user) => {
         if (err) {
@@ -133,6 +159,12 @@ exports.updateUser = (req, res, next) => {
     });
 };
 
+/**
+ * GET /
+ * Input: userId
+ * Output: None
+ * Functionality: Activate User. In a word, active field to 'yes'
+ */
 exports.activateUser = (req, res, next) => {
     User.findById(req.params.userId, (err, user) => {
         if (err) {
@@ -150,6 +182,12 @@ exports.activateUser = (req, res, next) => {
     });
 };
 
+/**
+ * GET /
+ * Input: userId
+ * Output: None
+ * Functionality: Deactivate User. In a word, active field to 'no'
+ */
 exports.deactivateUser = (req, res, next) => {
     User.findById(req.params.userId, (err, user) => {
         if (err) {
@@ -165,7 +203,12 @@ exports.deactivateUser = (req, res, next) => {
         });
     });
 };
-
+/**
+ * GET /
+ * Input: userId
+ * Output: None
+ * Functionality: Delete User data by userId.
+ */
 exports.deleteUser = (req, res, next) => {
     User.deleteOne({
         _id: req.params.userId

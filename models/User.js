@@ -50,14 +50,6 @@ userSchema.pre('save', function save(next) {
   });
 });
 
-userSchema.pre('remove', function remove(next) {
-
-});
-
-userSchema.pre('update', function update(next) {
-  
-});
-
 /**
  * Helper method for validating user's password.
  */
