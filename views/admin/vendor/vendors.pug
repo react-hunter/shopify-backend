@@ -1,0 +1,31 @@
+extends ../../layout
+
+block content
+  .pb-2.mt-2.mb-4.border-bottom
+    div.title-wrapper
+      h3.content-title Vendors Page
+      a.manage-button(href="vendors/add") Add Vendor
+  table#vendors-table.table.table-bordered.table-sm
+    thead
+      tr
+        th Vender Name
+        th Email Address
+        th Type
+        th Actions
+    tbody
+      if vendors
+        for vendor in vendors
+          tr
+            td
+              a(href="/vendors/" + vendor._id)= vendor.profile.name
+            td= vendor.email
+            td Vendor
+            td
+              - var vendorId = vendor._id;
+              a(href="/vendors/" + vendorId) Edit&nbsp;&nbsp;&nbsp;
+              if vendor.active=='yes'
+                a(href="/vendors/disable/" + vendorId, onclick="if(!confirm('Are you sure to disable this vendor?')) return false;") Disable&nbsp;&nbsp;&nbsp;
+              else
+                a(href="/vendors/enable/" + vendorId) Enable&nbsp;&nbsp;&nbsp;
+              a(href="/vendors/delete/" + vendorId, onclick="if(!confirm('Are you sure to delete this vendor?')) return false;") Delete
+

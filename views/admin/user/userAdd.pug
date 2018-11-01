@@ -1,0 +1,47 @@
+extends ../../layout
+
+block content
+  .pb-2.mt-2.mb-4.border-bottom
+    h3 Add new user
+
+  form(action='/users/add', method='POST')
+    input(type='hidden', name='_csrf', value=_csrf)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='email') Email
+      .col-md-7
+        input.form-control(type='email', name='email', id='email', value=userData.email)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='name') Name
+      .col-md-7
+        input.form-control(type='text', name='name', id='name', value=userData.name)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='password') Password
+      .col-md-7
+        input.form-control(type='password', name='password', id='password')
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='confirmpassword') Confirm Password
+      .col-md-7
+        input.form-control(type='password', name='confirmpassword', id='confirmpassword')
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='clientName') Client Name
+      .col-md-7
+        input.form-control(type='text', name='clientName', id='clientName', value=userData.clientName)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='domain') Domain
+      .col-md-7
+        input.form-control(type='text', name='domain', id='domain', value=userData.domain)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='connectors') Connectors
+      .col-md-7
+        select.form-control(name='connectors', id='connectors')
+          option(value='productin', selected= userData.connectors == 'productin') Shopify Products Inbound
+          option(value='productout', selected= userData.connectors == 'productout') Shopify Products Outbound
+          option(value='orderin', selected= userData.connectors == 'orderin') Shopify Order Inbound
+          option(value='orderout', selected= userData.connectors == 'orderout') Shopify Order Outbound
+          option(value='inventory', selected= userData.connectors == 'inventory') Shopify Inventory
+          option(value='refund', selected= userData.connectors == 'refund') Shopify Refund
+    .form-group
+      .offset-sm-3.col-md-7.pl-2
+        button.btn.btn.btn-primary(type='submit')
+          i.fas.fa-pencil-alt.fa-sm
+          | Add User

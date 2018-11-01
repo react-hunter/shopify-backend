@@ -1,0 +1,30 @@
+extends ../../layout
+
+block content
+  .pb-2.mt-2.mb-4.border-bottom
+    div.title-wrapper
+      h3.content-title Connectors Page
+      a.manage-button(href="/vendors/" + vendorId + '/connectors/add') Add Connector
+  table#connectors-table.table.table-bordered.table-sm
+    thead
+      tr
+        th Connector Name
+        th SFTP Location
+        th Actions
+    tbody
+      if connectors.length > 0
+        for connector in connectors
+          tr
+            td= connector.name
+            td= 'vendor/' + connector.kwiLocation
+            td
+              - var connectorId = connector._id;
+              a(href="/vendors/" + vendorId + "/connectors/" + connectorId) Edit&nbsp;&nbsp;&nbsp;
+              if connector.active=='yes'
+                a(href="/vendors/" + vendorId + "/connectors/inactivate/" + connectorId, onclick="if(!confirm('Are you sure to inactivate this connector?')) return false;") Inactivate&nbsp;&nbsp;&nbsp;
+              else
+                a(href="/vendors/" + vendorId + "/connectors/activate/" + connectorId) Activate&nbsp;&nbsp;&nbsp;
+              a(href="/vendors/" + vendorId + "/connectors/delete/" + connectorId, onclick="if(!confirm('Are you sure to delete this connector?')) return false;") Delete
+      else
+        tr
+          td(colspan="3", class="nodata") There are no connectors for this vendor yet.

@@ -1,0 +1,27 @@
+extends ../../layout
+
+block content
+  .pb-2.mt-2.mb-4.border-bottom
+    h3 Add new Connector
+
+  form(action='/vendors/' + vendorId + '/connectors/add', method='POST')
+    input(type='hidden', name='_csrf', value=_csrf)
+    input(type='hidden', name='vendorId', value=vendorId)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='name') Name
+      .col-md-7
+        input.form-control(type='text', name='name', id='name', value=connectorData.name)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='kwiLocation') KWI Location
+      .col-md-7
+        select.form-control(name='kwiLocation', id='kwiLocation')
+          option(value='product', selected= connectorData.kwiLocation == 'product') vendor/product
+          option(value='order', selected= connectorData.kwiLocation == 'order') vendor/order
+          option(value='inventory', selected= connectorData.kwiLocation == 'inventory') vendor/inventory
+          option(value='ship', selected= connectorData.kwiLocation == 'ship') vendor/ship
+          option(value='refund', selected= connectorData.kwiLocation == 'refund') vendor/refund
+    .form-group
+      .offset-sm-3.col-md-7.pl-2
+        button.btn.btn.btn-primary(type='submit')
+          i.fas.fa-pencil-alt.fa-sm
+          | Add Connector

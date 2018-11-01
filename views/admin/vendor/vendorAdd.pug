@@ -1,0 +1,45 @@
+extends ../../layout
+
+block content
+  .pb-2.mt-2.mb-4.border-bottom
+    h3 Add new vendor
+
+  form(action='/vendors/add', method='POST')
+    input(type='hidden', name='_csrf', value=_csrf)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='email') Email
+      .col-md-7
+        input.form-control(type='email', name='email', id='email', value=vendorData.email)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='name') Name
+      .col-md-7
+        input.form-control(type='text', name='name', id='name', value=vendorData.name)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='password') Account Password
+      .col-md-7
+        input.form-control(type='password', name='password', id='password')
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='confirmpassword') Confirm Account Password
+      .col-md-7
+        input.form-control(type='password', name='confirmpassword', id='confirmpassword')
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='apiKey') API Key
+      .col-md-7
+        input.form-control(type='text', name='apiKey', id='apiKey', value=vendorData.apiKey)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='apiPassword') API Password
+      .col-md-7
+        input.form-control(type='text', name='apiPassword', id='apiPassword', value=vendorData.apiPassword)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='sftpUsername') SFTP Username
+      .col-md-7
+        input.form-control(type='text', name='sftpUsername', id='sftpUsername', value=vendorData.sftpUsername)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='sftpPassword') SFTP Password
+      .col-md-7
+        input.form-control(type='text', name='sftpPassword', id='sftpPassword', value=vendorData.sftpPassword)
+    .form-group
+      .offset-sm-3.col-md-7.pl-2
+        button.btn.btn.btn-primary(type='submit')
+          i.fas.fa-pencil-alt.fa-sm
+          | Add Vendor

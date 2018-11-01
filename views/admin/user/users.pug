@@ -1,0 +1,29 @@
+extends ../../layout
+
+block content
+  .pb-2.mt-2.mb-4.border-bottom
+    div.title-wrapper
+      h3.content-title Users Page
+      a.manage-button(href="users/add") Add User
+  table#users-table.table.table-bordered.table-sm
+    thead
+      tr
+        th User Name
+        th Email Address
+        th Type
+        th Actions
+    tbody
+      if users
+        for eachuser in users
+          tr
+            td= eachuser.profile.name
+            td= eachuser.email
+            td #{eachuser.type.toUpperCase()}
+            td 
+              - var userId = eachuser._id;
+              a(href="/users/" + userId) Edit&nbsp;&nbsp;&nbsp;
+              if eachuser.active=='yes'
+                a(href="/users/deactivate/" + userId, onclick="if(!confirm('Are you sure to deactivate this user?')) return false;") Deactivate&nbsp;&nbsp;&nbsp;
+              else
+                a(href="/users/activate/" + userId) Activate&nbsp;&nbsp;&nbsp;
+              a(href="/users/delete/" + userId, onclick="if(!confirm('Are you sure to delete this user?')) return false;") Delete
