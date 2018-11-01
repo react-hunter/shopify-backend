@@ -17,7 +17,7 @@ public/js/lib/popper.min*
 
 # API keys and secrets
 .env
-package-locak.json
+package-lock.json
 # Dependency directory
 node_modules
 bower_components
