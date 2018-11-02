@@ -16,7 +16,6 @@ public/js/lib/jquery.min*
 public/js/lib/popper.min*
 
 # API keys and secrets
-.env
 package-lock.json
 # Dependency directory
 node_modules
