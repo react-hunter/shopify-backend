@@ -27,3 +27,7 @@ bower_components
 *.iml
 modules.xml
 *.ipr
+
+# Upload folder
+uploads/*
+!uploads/.gitkeep
