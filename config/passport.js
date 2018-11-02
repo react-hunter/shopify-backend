@@ -36,11 +36,25 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, don
  * Login Required middleware.
  */
 exports.isAuthenticated = (req, res, next) => {
+  console.log('req: ', req.user);
   if (req.isAuthenticated()) {
     return next();
   }
   res.redirect('/login');
 };
+
+exports.isAdmin = (req, res, next) => {
+  if(req.isAuthenticated()) {
+    
+    if(req.user.type == 'superadmin') {
+      return next();
+    }
+    req.flash('info', {
+      msg: 'To access this page, you should be superadmin.'
+    });
+  }
+  res.redirect('/login');
+}
 
 /**
  * Authorization Required middleware.

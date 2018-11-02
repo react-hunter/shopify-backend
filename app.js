@@ -154,32 +154,32 @@ app.get('/systemstatus', passportConfig.isAuthenticated, systemstatusController.
 app.get('/reports', passportConfig.isAuthenticated, reportsController.index);
 
 // User management
-app.get('/users', passportConfig.isAuthenticated, usersController.index);
-app.get('/users/add', passportConfig.isAuthenticated, usersController.addUser);
-app.post('/users/add', passportConfig.isAuthenticated, usersController.saveUser);
-app.get('/users/:userId', passportConfig.isAuthenticated, usersController.getUser);
-app.post('/users/update', passportConfig.isAuthenticated, usersController.updateUser);
-app.get('/users/delete/:userId', passportConfig.isAuthenticated, usersController.deleteUser);
-app.get('/users/activate/:userId', passportConfig.isAuthenticated, usersController.activateUser);
-app.get('/users/deactivate/:userId', passportConfig.isAuthenticated, usersController.deactivateUser);
+app.get('/users', passportConfig.isAdmin, usersController.index);
+app.get('/users/add', passportConfig.isAdmin, usersController.addUser);
+app.post('/users/add', passportConfig.isAdmin, usersController.saveUser);
+app.get('/users/:userId', passportConfig.isAdmin, usersController.getUser);
+app.post('/users/update', passportConfig.isAdmin, usersController.updateUser);
+app.get('/users/delete/:userId', passportConfig.isAdmin, usersController.deleteUser);
+app.get('/users/activate/:userId', passportConfig.isAdmin, usersController.activateUser);
+app.get('/users/deactivate/:userId', passportConfig.isAdmin, usersController.deactivateUser);
 // Vendor management
-app.get('/vendors', passportConfig.isAuthenticated, vendorsController.index);
-app.get('/vendors/add', passportConfig.isAuthenticated, vendorsController.addVendor);
-app.post('/vendors/add', passportConfig.isAuthenticated, vendorsController.saveVendor);
-app.get('/vendors/:vendorId', passportConfig.isAuthenticated, vendorsController.getVendor);
-app.post('/vendors/update', passportConfig.isAuthenticated, vendorsController.updateVendor);
-app.get('/vendors/delete/:vendorId', passportConfig.isAuthenticated, vendorsController.deleteVendor);
-app.get('/vendors/enable/:vendorId', passportConfig.isAuthenticated, vendorsController.enableVendor);
-app.get('/vendors/disable/:vendorId', passportConfig.isAuthenticated, vendorsController.disableVendor);
+app.get('/vendors', passportConfig.isAdmin, vendorsController.index);
+app.get('/vendors/add', passportConfig.isAdmin, vendorsController.addVendor);
+app.post('/vendors/add', passportConfig.isAdmin, vendorsController.saveVendor);
+app.get('/vendors/:vendorId', passportConfig.isAdmin, vendorsController.getVendor);
+app.post('/vendors/update', passportConfig.isAdmin, vendorsController.updateVendor);
+app.get('/vendors/delete/:vendorId', passportConfig.isAdmin, vendorsController.deleteVendor);
+app.get('/vendors/enable/:vendorId', passportConfig.isAdmin, vendorsController.enableVendor);
+app.get('/vendors/disable/:vendorId', passportConfig.isAdmin, vendorsController.disableVendor);
 // Connector management. Connectors belongs a vendor.
-app.get('/vendors/:vendorId/connectors', passportConfig.isAuthenticated, connectorsController.listConnector);
-app.get('/vendors/:vendorId/connectors/add', passportConfig.isAuthenticated, connectorsController.addConnector);
-app.post('/vendors/:vendorId/connectors/add', passportConfig.isAuthenticated, connectorsController.saveConnector);
-app.get('/vendors/:vendorId/connectors/:connectorId', passportConfig.isAuthenticated, connectorsController.getConnector);
-app.post('/vendors/:vendorId/connectors/update', passportConfig.isAuthenticated, connectorsController.updateConnector);
-app.get('/vendors/:vendorId/connectors/delete/:connectorId', passportConfig.isAuthenticated, connectorsController.deleteConnector);
-app.get('/vendors/:vendorId/connectors/activate/:connectorId', passportConfig.isAuthenticated, connectorsController.activateConnector);
-app.get('/vendors/:vendorId/connectors/inactivate/:connectorId', passportConfig.isAuthenticated, connectorsController.inactivateConnector);
+app.get('/vendors/:vendorId/connectors', passportConfig.isAdmin, connectorsController.listConnector);
+app.get('/vendors/:vendorId/connectors/add', passportConfig.isAdmin, connectorsController.addConnector);
+app.post('/vendors/:vendorId/connectors/add', passportConfig.isAdmin, connectorsController.saveConnector);
+app.get('/vendors/:vendorId/connectors/:connectorId', passportConfig.isAdmin, connectorsController.getConnector);
+app.post('/vendors/:vendorId/connectors/update', passportConfig.isAdmin, connectorsController.updateConnector);
+app.get('/vendors/:vendorId/connectors/delete/:connectorId', passportConfig.isAdmin, connectorsController.deleteConnector);
+app.get('/vendors/:vendorId/connectors/activate/:connectorId', passportConfig.isAdmin, connectorsController.activateConnector);
+app.get('/vendors/:vendorId/connectors/inactivate/:connectorId', passportConfig.isAdmin, connectorsController.inactivateConnector);
 
 // To test some code.
 app.get('/testcode', testcodeController.index);

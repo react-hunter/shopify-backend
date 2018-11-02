@@ -7,21 +7,32 @@
       span.sr-only Toggle navigation
       span.navbar-toggler-icon
     .collapse.navbar-collapse
-      ul.nav.navbar-nav
-        li.nav-item(class=(title === 'System Status') ? 'active' : undefined)
-          a.nav-link(href='/systemstatus') System Status
-        li.nav-item(class=(title === 'Reports') ? 'active' : undefined)
-          a.nav-link(href='/reports') Reports
-        li.nav-item(class=(title === 'Vendors') ? 'active' : undefined)
-          a.nav-link(href='/vendors') Vendors
-        li.nav-item(class=(title === 'Users') ? 'active' : undefined)
-          a.nav-link(href='/users') Users
+      if user && user.type=='superadmin'
+        ul.nav.navbar-nav
+          li.nav-item(class=(title === 'System Status') ? 'active' : undefined)
+            a.nav-link(href='/systemstatus') System Status
+          li.nav-item(class=(title === 'Reports') ? 'active' : undefined)
+            a.nav-link(href='/reports') Reports
+          li.nav-item(class=(title === 'Vendors') ? 'active' : undefined)
+            a.nav-link(href='/vendors') Vendors
+          li.nav-item(class=(title === 'Users') ? 'active' : undefined)
+            a.nav-link(href='/users') Users
+      else if user && user.type=='vendor'
+        ul.nav.navbar-nav
+          li.nav-item(class=(title === 'product') ? 'active' : undefined)
+            a.nav-link(href='/product') Product
+          li.nav-item(class=(title === 'inventory') ? 'active' : undefined)
+            a.nav-link(href='/inventory') Inventory
+          li.nav-item(class=(title === 'order') ? 'active' : undefined)
+            a.nav-link(href='/order') Order
+          li.nav-item(class=(title === 'Users') ? 'active' : undefined)
+            a.nav-link(href='/refund') Refund
       ul.nav.navbar-nav.ml-auto
         if !user
           li.nav-item(class=(title === 'Login') ? 'active' : undefined)
             a.nav-link(href='/login') Login
-          li.nav-item(class=(title === 'Create Account') ? 'active' : undefined)
-            a.nav-link(href='/signup') Create Account
+          //- li.nav-item(class=(title === 'Create Account') ? 'active' : undefined)
+          //-   a.nav-link(href='/signup') Create Account
         else
           li.dropdown(class=(title === 'Account Management') ? 'active' : undefined).nav-item
             a.dropdown-toggle.nav-link(href='#', data-toggle='dropdown')
