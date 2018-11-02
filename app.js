@@ -40,6 +40,11 @@ const vendorsController = require('./controllers/vendors');
 const usersController = require('./controllers/users');
 const connectorsController = require('./controllers/connectors');
 
+const productController = require('./controllers/feeds/product');
+const inventoryController = require('./controllers/feeds/inventory');
+const orderController = require('./controllers/feeds/order');
+const refundController = require('./controllers/feeds/refund');
+
 const testcodeController = require('./controllers/testcode');
 
 /**
@@ -180,7 +185,11 @@ app.post('/vendors/:vendorId/connectors/update', passportConfig.isAdmin, connect
 app.get('/vendors/:vendorId/connectors/delete/:connectorId', passportConfig.isAdmin, connectorsController.deleteConnector);
 app.get('/vendors/:vendorId/connectors/activate/:connectorId', passportConfig.isAdmin, connectorsController.activateConnector);
 app.get('/vendors/:vendorId/connectors/inactivate/:connectorId', passportConfig.isAdmin, connectorsController.inactivateConnector);
-
+// Call to feeds
+app.get('/product', passportConfig.isVendor, productController.index);
+app.get('/inventory', passportConfig.isVendor, inventoryController.index);
+app.get('/order', passportConfig.isVendor, orderController.index);
+app.get('/refund', passportConfig.isVendor, refundController.index);
 // To test some code.
 app.get('/testcode', testcodeController.index);
 

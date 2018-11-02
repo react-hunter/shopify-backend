@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  h1 Content Commerce Product List
+  p.lead Test for Shopify Product API.
+  hr
+  .row
+    each product in products
+      .col-md-6
+        a.product-title(href='https://badidas.myshopify.com/products/' + product.handle, target="_blank") 
+          h2 #{ product.title }
+        .product-body
+          if product.description.replace(/(<([^>]+)>)/ig, "").length > 50
+            p= product.description.replace(/(<([^>]+)>)/ig, "").substr(0, 200) + '...'
+          else 
+            p= product.description.replace(/(<([^>]+)>)/ig, "")
+        p.product-link
+          a.btn.btn-raised(href='https://badidas.myshopify.com/products/' + product.handle, role='button', target="_blank") Go to Product »
+        
+    

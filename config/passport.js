@@ -50,7 +50,20 @@ exports.isAdmin = (req, res, next) => {
       return next();
     }
     req.flash('info', {
-      msg: 'To access this page, you should be superadmin.'
+      msg: 'Only Super Admin can access this page.'
+    });
+  }
+  res.redirect('/login');
+}
+
+exports.isVendor = (req, res, next) => {
+  if(req.isAuthenticated()) {
+    
+    if(req.user.type == 'vendor') {
+      return next();
+    }
+    req.flash('info', {
+      msg: 'Only Vendors can access this page.'
     });
   }
   res.redirect('/login');
