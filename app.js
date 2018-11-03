@@ -19,7 +19,7 @@ const expressValidator = require('express-validator');
 const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
 const multer = require('multer');
-
+const User = require('./models/User');
 const upload = multer({ dest: path.join(__dirname, 'uploads') });
 
 /**
@@ -209,5 +209,23 @@ app.listen(app.get('port'), () => {
   console.log('%s App is running at http://localhost:%d in %s mode', chalk.green('✓'), app.get('port'), app.get('env'));
   console.log('  Press CTRL-C to stop\n');
 });
+User.find({type: 'superadmin'}, (err, superusers) => {
+  if (err) {
+    console.log(err);
+  }
+  // console.log('user at first : ', user[0]);
+  if (superusers.length == 0) {
+    var initSuperUser = new User();
+    initSuperUser.email = 'admin@admin.com';
+    initSuperUser.password = 'admin';
+    initSuperUser.profile.name = 'admin';
+    initSuperUser.type = 'superadmin';
 
+    initSuperUser.save(saveErr => {
+      if (saveErr) {
+        console.log(saveErr);
+      }
+    });
+  }
+});
 module.exports = app;

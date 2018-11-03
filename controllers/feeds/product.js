@@ -3,10 +3,10 @@ const fs = require('fs');
 const request = require('request');
 const Client = require('ssh2-sftp-client');
 const isset = require('isset');
-const TaxCodeList = require('../config/constants').TaxCodeList;
-const ProductTypeList = require('../config/constants').ProductTypeList;
-const ThreeColorList = require('../config/constants').ThreeColorList;
-const TaxonomyList = require('../config/constants').TaxonomyList;
+const TaxCodeList = require('../../config/constants').TaxCodeList;
+const ProductTypeList = require('../../config/constants').ProductTypeList;
+const ThreeColorList = require('../../config/constants').ThreeColorList;
+const TaxonomyList = require('../../config/constants').TaxonomyList;
 const delay = require('delay');
 const TSV = require('tsv');
 const eachSeries = require('async/eachSeries');
@@ -106,7 +106,7 @@ exports.index = (req, res) => {
                                             var ProductCodeOption = '';
                                             if (product.options.length > 0) {
                                                 var keyIndex = 1;
-                                                product.options.forEach((option) => {
+                                                product.options.forEach(option => {
                                                     if (option.name.toLowerCase() == 'size') {
                                                         Size = variant['option' + keyIndex];
                                                     }
