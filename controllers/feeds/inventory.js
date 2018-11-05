@@ -53,7 +53,8 @@ exports.index = (req, res, next) => {
                     })
                     .catch(inventoryError => console.log('inventoryError: ', inventoryError));
 
-            })
+            });
+            console.log('inventoryData: ', inventoryDataList);
         })
         .then(() => {
             sftp.connect({
@@ -63,6 +64,7 @@ exports.index = (req, res, next) => {
                     password: userData.sftp.sftpPassword
                 })
                 .then(() => {
+                    console.log('sftp connected !');
                     fs.writeFile("uploads/inventory.txt", TSV.stringify(inventoryDataList), function (err) {
                         if (err) {
                             console.log(err);
