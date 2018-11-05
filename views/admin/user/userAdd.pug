@@ -17,11 +17,13 @@ block content
     .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='password') Password
       .col-md-7
-        input.form-control(type='password', name='password', id='password')
+        input.form-control(type='text', name='password', id='password')
+      .col-md-2
+        a(class="generate-password" onClick="newPassword()") Generate<br />Password
     .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='confirmpassword') Confirm Password
       .col-md-7
-        input.form-control(type='password', name='confirmpassword', id='confirmpassword')
+        input.form-control(type='text', name='confirmpassword', id='confirmpassword')
     .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='clientName') Client Name
       .col-md-7
