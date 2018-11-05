@@ -74,6 +74,9 @@ exports.index = (req, res, next) => {
                             console.log('Writing File Error: ', err);
                         } else {
                             delay(3000);
+                            if(fs.existsSync('uploads/inventory.txt')) {
+                                console.log('file exists');
+                            }
                             var currentDate = new Date();
                             var temp = currentDate.toLocaleString().split('.');
                             var remotePath = '/incoming/inventory/inventory' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '') + '.txt';
