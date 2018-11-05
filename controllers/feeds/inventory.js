@@ -39,6 +39,7 @@ exports.index = (req, res, next) => {
 
     shopify.collect.list()
         .then(collects => {
+            console.log('collect list: ', collects);
             collects.forEach(collect => {
                 shopify.product.get(collect.product_id)
                     .then(product => {
