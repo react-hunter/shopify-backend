@@ -17,12 +17,32 @@ var threeColorKeys = Object.keys(ThreeColorList);
  * GET /
  * Product page.
  */
-exports.index = (req, res) => {
+exports.index = (req, res, next) => {
 
+    const userData = req.user;
+    if (userData.api.apiShop == '' || userData.api.apiKey == '' || userData.api.apiPassword == '') {
+        req.flash('info', {
+            msg: 'You should have API information to manage product feed. Please contact with Administrator.'
+        });
+        res.redirect('/');
+        return next();
+    }
+    if (userData.sftp.sftpHost == '' || userData.sftp.sftpPassword == '' || userData.sftp.sftpUsername == '') {
+        req.flash('info', {
+            msg: 'You should have SFTP information to manage product feed. Please contact with Administrator.'
+        });
+        res.redirect('/');
+        return next();
+    }
+    // const shopify = new Shopify({
+    //     shopName: process.env.SHOPIFY_STORE_NAME,
+    //     apiKey: process.env.SHOPIFY_APP_KEY,
+    //     password: process.env.SHOPIFY_APP_PASSWORD
+    // });
     const shopify = new Shopify({
-        shopName: process.env.SHOPIFY_STORE_NAME,
-        apiKey: process.env.SHOPIFY_APP_KEY,
-        password: process.env.SHOPIFY_APP_PASSWORD
+        shopName: userData.api.apiShop,
+        apiKey: userData.api.apiKey,
+        password: userData.api.apiPassword
     });
 
     const sftp = new Client(); // sftp client
@@ -461,10 +481,10 @@ exports.index = (req, res) => {
         })
         .then(() => {
             sftp.connect({
-                    host: process.env.SFTP_HOST,
+                    host: userData.sftp.sftpHost,
                     port: process.env.SFTP_PORT,
-                    username: process.env.SFTP_USERNAME,
-                    password: process.env.SFTP_PASSWORD
+                    username: userData.sftp.sftpUsername,
+                    password: userData.sftp.sftpPassword
                 })
                 .then(async () => {
                     await delay(1000);

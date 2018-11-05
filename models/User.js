@@ -17,10 +17,12 @@ const userSchema = new mongoose.Schema({
     connectors: String
   },
   api: {
+    apiShop: String,
     apiKey: String,
     apiPassword: String
   },
   sftp: {
+    sftpHost: String,
     sftpUsername: String,
     sftpPassword: String
   },

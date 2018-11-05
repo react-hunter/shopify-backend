@@ -23,6 +23,10 @@ block content
       .col-md-7
         input.form-control(type='password', name='confirmpassword', id='confirmpassword')
     .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='apiShop') API Shop Name
+      .col-md-7
+        input.form-control(type='text', name='apiShop', id='apiShop', value=vendorData.apiShop)
+    .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='apiKey') API Key
       .col-md-7
         input.form-control(type='text', name='apiKey', id='apiKey', value=vendorData.apiKey)
@@ -30,6 +34,10 @@ block content
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='apiPassword') API Password
       .col-md-7
         input.form-control(type='text', name='apiPassword', id='apiPassword', value=vendorData.apiPassword)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='sftpHost') SFTP Host
+      .col-md-7
+        input.form-control(type='text', name='sftpHost', id='sftpHost', value=vendorData.sftpHost)
     .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='sftpUsername') SFTP Username
       .col-md-7

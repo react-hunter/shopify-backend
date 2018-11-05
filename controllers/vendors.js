@@ -29,11 +29,17 @@ exports.addVendor = (req, res, next) => {
     if (req.query.name) {
         vendor.name = req.query.name;
     }
+    if (req.query.apiShop) {
+        vendor.apiShop = req.query.apiShop;
+    }
     if (req.query.apiKey) {
         vendor.apiKey = req.query.apiKey;
     }
     if (req.query.apiPassword) {
         vendor.apiPassword = req.query.apiPassword;
+    }
+    if (req.query.sftpHost) {
+        vendor.sftpHost = req.query.sftpHost;
     }
     if (req.query.sftpUsername) {
         vendor.sftpUsername = req.query.sftpUsername;
@@ -57,10 +63,12 @@ exports.saveVendor = (req, res, next) => {
         type: 'vendor',
         active: 'no',
         api: {
+            apiShop: req.body.apiShop,
             apiKey: req.body.apiKey,
             apiPassword: req.body.apiPassword
         },
         sftp: {
+            sftpHost: req.body.sftpHost,
             sftpUsername: req.body.sftpUsername,
             sftpPassword: req.body.sftpPassword
         }
@@ -74,8 +82,10 @@ exports.saveVendor = (req, res, next) => {
             query: {
                 email: req.body.email,
                 name: req.body.name,
+                apiShop: req.body.apiShop,
                 apiKey: req.body.apiKey,
                 apiPassword: req.body.apiPassword,
+                sftpHost: req.body.sftpHost,
                 sftpUsername: req.body.sftpUsername,
                 sftpPassword: req.body.sftpPassword
             }
@@ -117,8 +127,10 @@ exports.updateVendor = (req, res, next) => {
         }
         vendor.profile.name = req.body.name;
 
+        vendor.api.apiShop = req.body.apiShop;
         vendor.api.apiKey = req.body.apiKey;
         vendor.api.apiPassword = req.body.apiPassword;
+        vendor.sftp.sftpHost = req.body.sftpHost;
         vendor.sftp.sftpUsername = req.body.sftpUsername;
         vendor.sftp.sftpPassword = req.body.sftpPassword;
 
