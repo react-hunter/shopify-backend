@@ -42,7 +42,6 @@ exports.index = (req, res, next) => {
             collects.forEach(collect => {
                 shopify.product.get(collect.product_id)
                     .then(product => {
-                        console.log('Product Data: ', product);
                         product.variants.forEach(variant => {
                             var inventoryData = {};
                             inventoryData.id = variant.id;
@@ -71,9 +70,8 @@ exports.index = (req, res, next) => {
                             console.log('Writing File Error: ', err);
                         } else {
                             var currentDate = new Date();
-                            var temp = currentDate.toLocaleString().split('.');
-                            console.log('temp: ', temp);
-                            var remotePath = '/incoming/inventory/inventory' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '') + '.txt';
+                            var temp = currentDate.toLocaleString({hour12: false}).split('.');
+                            var remotePath = '/incoming/inventory/inventory' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '').replace(',', '') + '.txt';
                             console.log('remote path: ', remotePath);
                             sftp.put('uploads/inventory.txt', remotePath)
                                 .then(response => {
