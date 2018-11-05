@@ -63,7 +63,7 @@ exports.index = (req, res, next) => {
                     password: userData.sftp.sftpPassword
                 })
                 .then(() => {
-                    fs.writeFile("uploads/inventory.txt", TSV.stringify(inventoryDataList), async function (err) {
+                    fs.writeFile("uploads/inventory.txt", TSV.stringify(inventoryDataList), function (err) {
                         if (err) {
                             console.log(err);
                         } else {
