@@ -69,11 +69,11 @@ exports.index = (req, res, next) => {
                     console.log('sftp connected !');
                     console.log('inventoryData: ', inventoryDataList);
                     await delay(1000);
-                    fs.writeFile("uploads/inventory.txt", TSV.stringify(inventoryDataList), function (err) {
+                    fs.writeFile("uploads/inventory.txt", TSV.stringify(inventoryDataList), async function (err) {
                         if (err) {
                             console.log('Writing File Error: ', err);
                         } else {
-                            // delay(1000);
+                            delay(3000);
                             var currentDate = new Date();
                             var temp = currentDate.toLocaleString().split('.');
                             var remotePath = '/incoming/inventory/inventory' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '') + '.txt';
