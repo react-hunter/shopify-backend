@@ -119,7 +119,6 @@ exports.updateVendor = (req, res, next) => {
         if (err) {
             return next(err);
         }
-
         vendor.email = req.body.email;
         vendor.active = 'no';
         if (req.body.password != '') {
