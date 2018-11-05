@@ -72,7 +72,6 @@ exports.index = (req, res, next) => {
                             var currentDate = new Date();
                             var temp = currentDate.toLocaleString("en-US", {hour12: false}).split('.');
                             var remotePath = '/incoming/inventory/inventory' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '').replace(/\//g, '').replace(',', '') + '.txt';
-                            console.log('remote path: ', remotePath);
                             sftp.put('uploads/inventory.txt', remotePath)
                                 .then(response => {
                                     res.render('feeds/inventory', {

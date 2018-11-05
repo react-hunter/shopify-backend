@@ -189,8 +189,8 @@ exports.index = (req, res) => {
                             console.log('Writing File Error: ', err);
                         } else {
                             var currentDate = new Date();
-                            var temp = currentDate.toLocaleString().split('.');
-                            var remotePath = '/incoming/orders/order' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '') + '.txt';
+                            var temp = currentDate.toLocaleString("en-US", {hour12: false}).split('.');
+                            var remotePath = '/incoming/orders/order' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\//g, '').replace(',', '').replace(/\:/g, '') + '.txt';
                             sftp.put('uploads/order.txt', remotePath)
                                 .then(response => {
                                     res.render('feeds/order', {
