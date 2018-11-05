@@ -9,17 +9,17 @@ block content
     thead
       tr
         th Vender Name
-        th Email Address
-        th Type
+        th Shop Name
+        th SFTP Location
         th Actions
     tbody
       if vendors
         for vendor in vendors
           tr
             td
-              a(href="/vendors/" + vendor._id)= vendor.profile.name
-            td= vendor.email
-            td Vendor
+              a(href="/vendors/" + vendor._id)= vendor.name
+            td= vendor.api.apiShop
+            td= vendor.sftp.sftpHost
             td
               - var vendorId = vendor._id;
               a(href="/vendors/" + vendorId) Edit&nbsp;&nbsp;&nbsp;

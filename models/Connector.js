@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const connectorSchema = new mongoose.Schema({
   vendorId: String,
-  name: { type: String, unique: true},
+  name: { type: String, required: true, unique: false },
   kwiLocation: { type: String, required: true },
   active: String,
   activeDate: Date,

@@ -10,30 +10,17 @@ const userSchema = new mongoose.Schema({
   tokens: Array,
   type: String,
   active: String,
-  hasTransaction: Boolean,
   partnerClient: {
     name: String,
     domain: String,
     connectors: String
   },
-  api: {
-    apiShop: String,
-    apiKey: String,
-    apiPassword: String
-  },
-  sftp: {
-    sftpHost: String,
-    sftpUsername: String,
-    sftpPassword: String
-  },
-
   profile: {
     name: String,
     gender: String,
     location: String,
     picture: String
-  },
-  activeDate: Date
+  }
 }, { timestamps: true });
 
 /**

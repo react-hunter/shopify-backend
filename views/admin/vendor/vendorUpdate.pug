@@ -2,29 +2,15 @@ extends ../../admin-layout
 
 block content
   .pb-2.mt-2.mb-4.border-bottom
-    div.title-wrapper
-      h3.content-title Edit Vendor
-      a.manage-button(href="/vendors/" + vendorData._id + "/connectors") Connectors
+    h3 Edit Vendor
 
   form(action='/vendors/update', method='POST')
     input(type='hidden', name='_csrf', value=_csrf)
     input(type='hidden', name='vendorId', value=vendorData._id)
     .form-group.row
-      label.col-md-3.col-form-label.font-weight-bold.text-right(for='email') Email
-      .col-md-7
-        input.form-control(type='email', name='email', id='email', value=vendorData.email)
-    .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='name') Name
       .col-md-7
-        input.form-control(type='text', name='name', id='name', value=vendorData.profile.name)
-    .form-group.row
-      label.col-md-3.col-form-label.font-weight-bold.text-right(for='password') Account Password
-      .col-md-7
-        input.form-control(type='password', name='password', id='password')
-    .form-group.row
-      label.col-md-3.col-form-label.font-weight-bold.text-right(for='confirmpassword') Confirm Account Password
-      .col-md-7
-        input.form-control(type='password', name='confirmpassword', id='confirmpassword')
+        input.form-control(type='text', name='name', id='name', value=vendorData.name)
     .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='apiShop') API Shop Name
         span(class='explainText')  (When shop url is xxx.myshopify.com, please insert 'xxx'.)
@@ -55,4 +41,7 @@ block content
         button.btn.btn.btn-primary(type='submit')
           i.fas.fa-pencil-alt.fa-sm
           | Update Vendor
+        a.btn.btn-primary.manage-connector(href="/vendors/" + vendorData._id + "/connectors")
+          i.fas.fa-list.fa-sm
+          | Manage Connectors
 

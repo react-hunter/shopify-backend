@@ -1,5 +1,5 @@
 const Connector = require('../models/Connector');
-const User = require('../models/User');
+const Vendor = require('../models/Vendor');
 
 const url = require('url');
 
@@ -41,7 +41,7 @@ exports.addConnector = (req, res, next) => {
         connector.kwiLocation = req.query.kwiLocation;
     }
 
-    User.findById(req.params.vendorId, (err, vendor) => {
+    Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
             return next(err);
         }
@@ -97,7 +97,7 @@ exports.saveConnector = (req, res, next) => {
  * Output: vendorId, connector data
  */
 exports.getConnector = (req, res, next) => {
-    User.findById(req.params.vendorId, (err, vendor) => {
+    Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
             return next(err);
         } else {
@@ -124,7 +124,7 @@ exports.getConnector = (req, res, next) => {
  * Output: vendorId, connector list data
  */
 exports.updateConnector = (req, res, next) => {
-    User.findById(req.body.vendorId, (err, vendor) => {
+    Vendor.findById(req.body.vendorId, (err, vendor) => {
         if (err) {
             return next(err);
         } else {

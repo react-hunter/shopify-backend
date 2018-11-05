@@ -7,21 +7,9 @@ block content
   form(action='/vendors/add', method='POST')
     input(type='hidden', name='_csrf', value=_csrf)
     .form-group.row
-      label.col-md-3.col-form-label.font-weight-bold.text-right(for='email') Email
-      .col-md-7
-        input.form-control(type='email', name='email', id='email', value=vendorData.email)
-    .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='name') Name
       .col-md-7
         input.form-control(type='text', name='name', id='name', value=vendorData.name)
-    .form-group.row
-      label.col-md-3.col-form-label.font-weight-bold.text-right(for='password') Account Password
-      .col-md-7
-        input.form-control(type='password', name='password', id='password')
-    .form-group.row
-      label.col-md-3.col-form-label.font-weight-bold.text-right(for='confirmpassword') Confirm Account Password
-      .col-md-7
-        input.form-control(type='password', name='confirmpassword', id='confirmpassword')
     .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='apiShop') API Shop Name
         span(class='explainText')  (When shop url is xxx.myshopify.com, please insert 'xxx'.)

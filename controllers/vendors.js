@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const Vendor = require('../models/Vendor');
 const Connector = require('../models/Connector');
 
 const url = require('url');
@@ -8,9 +8,7 @@ const url = require('url');
  * Vendors Page.
  */
 exports.index = (req, res, next) => {
-    User.find({
-        type: 'vendor'
-    }, (err, vendors) => {
+    Vendor.find({}, (err, vendors) => {
         if (err) return next(err);
 
         res.render('admin/vendor/vendors', {
@@ -21,11 +19,8 @@ exports.index = (req, res, next) => {
 };
 
 exports.addVendor = (req, res, next) => {
-    var vendor = new User();
+    var vendor = new Vendor();
 
-    if (req.query.email) {
-        vendor.email = req.query.email;
-    }
     if (req.query.name) {
         vendor.name = req.query.name;
     }
@@ -54,13 +49,8 @@ exports.addVendor = (req, res, next) => {
 };
 
 exports.saveVendor = (req, res, next) => {
-    var vendor = new User({
-        email: req.body.email,
-        password: req.body.password,
-        profile: {
-            name: req.body.name
-        },
-        type: 'vendor',
+    var vendor = new Vendor({
+        name: req.body.name,
         active: 'no',
         api: {
             apiShop: req.body.apiShop,
@@ -73,14 +63,13 @@ exports.saveVendor = (req, res, next) => {
             sftpPassword: req.body.sftpPassword
         }
     });
-    if (req.body.password != req.body.confirmpassword || req.body.password == '') {
+    if (req.body.apiShop == '' || req.body.apiKey == '' || req.body.apiPassword == '' || req.body.sftpHost == '' || req.body.sftpUsername == '' || req.body.sftpPassword == '') {
         req.flash('info', {
-            msg: 'Password is not matched. Please try again.'
+            msg: 'Shopify API and SFTP information are required. Please try again.'
         });
         res.redirect(url.format({
             pathname: '/vendors/add',
             query: {
-                email: req.body.email,
                 name: req.body.name,
                 apiShop: req.body.apiShop,
                 apiKey: req.body.apiKey,
@@ -93,7 +82,7 @@ exports.saveVendor = (req, res, next) => {
         return next();
     }
 
-    vendor.save((err) => {
+    vendor.save(err => {
         if (err) {
             return next(err);
         }
@@ -102,7 +91,7 @@ exports.saveVendor = (req, res, next) => {
 };
 
 exports.getVendor = (req, res, next) => {
-    User.findById(req.params.vendorId, (err, vendor) => {
+    Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
             return next(err);
         }
@@ -115,17 +104,13 @@ exports.getVendor = (req, res, next) => {
 };
 
 exports.updateVendor = (req, res, next) => {
-    User.findById(req.body.vendorId, (err, vendor) => {
+    Vendor.findById(req.body.vendorId, (err, vendor) => {
         if (err) {
             return next(err);
         }
-        
-        vendor.email = req.body.email;
+
         vendor.active = 'no';
-        if (req.body.password != '') {
-            vendor.password = req.body.password;
-        }
-        vendor.profile.name = req.body.name;
+        vendor.name = req.body.name;
 
         vendor.api.apiShop = req.body.apiShop;
         vendor.api.apiKey = req.body.apiKey;
@@ -134,18 +119,26 @@ exports.updateVendor = (req, res, next) => {
         vendor.sftp.sftpUsername = req.body.sftpUsername;
         vendor.sftp.sftpPassword = req.body.sftpPassword;
 
-        vendor.save((err) => {
-            if (err) {
-                return next(err);
-            }
-
-            res.redirect('/vendors');
-        });
+        if (req.body.apiShop == '' || req.body.apiKey == '' || req.body.apiPassword == '' || req.body.sftpHost == '' || req.body.sftpUsername == '' || req.body.sftpPassword == '') {
+            req.flash('info', {
+                msg: 'Shopify API and SFTP information are required. Please try again.'
+            });
+            res.redirect('/vendors/' + req.body.vendorId);
+            return next();
+        } else {
+            vendor.save(err => {
+                if (err) {
+                    return next(err);
+                }
+                
+                res.redirect('/vendors');
+            });
+        }
     });
 };
 
 exports.enableVendor = (req, res, next) => {
-    User.findById(req.params.vendorId, (err, vendor) => {
+    Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
             return next(err);
         }
@@ -162,8 +155,7 @@ exports.enableVendor = (req, res, next) => {
 };
 
 exports.disableVendor = (req, res, next) => {
-    console.log('params: ', req.params);
-    User.findById(req.params.vendorId, (err, vendor) => {
+    Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
             return next(err);
         }
@@ -187,7 +179,7 @@ exports.disableVendor = (req, res, next) => {
 };
 
 exports.deleteVendor = (req, res, next) => {
-    User.findById(req.params.vendorId, (err, vendor) => {
+    Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
             return next(err);
         }
@@ -199,7 +191,7 @@ exports.deleteVendor = (req, res, next) => {
             res.redirect('/vendors');
             return next();
         } else {
-            User.deleteOne({
+            Vendor.deleteOne({
                 _id: req.params.vendorId
             }, err => {
                 if (err) {
