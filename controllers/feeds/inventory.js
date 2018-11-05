@@ -57,16 +57,18 @@ exports.index = (req, res, next) => {
 
             });
         })
-        .then(() => {
+        .then(async () => {
+            await delay(1000);
             sftp.connect({
                     host: userData.sftp.sftpHost,
                     port: process.env.SFTP_PORT,
                     username: userData.sftp.sftpUsername,
                     password: userData.sftp.sftpPassword
                 })
-                .then(() => {
+                .then(async () => {
                     console.log('sftp connected !');
                     console.log('inventoryData: ', inventoryDataList);
+                    await delay(1000);
                     fs.writeFile("uploads/inventory.txt", TSV.stringify(inventoryDataList), function (err) {
                         if (err) {
                             console.log('Writing File Error: ', err);
