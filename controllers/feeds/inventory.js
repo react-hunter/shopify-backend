@@ -43,6 +43,7 @@ exports.index = (req, res, next) => {
             collects.forEach(collect => {
                 shopify.product.get(collect.product_id)
                     .then(product => {
+                        console.log('Product Data: ', product);
                         product.variants.forEach(variant => {
                             var inventoryData = {};
                             inventoryData.id = variant.id;
