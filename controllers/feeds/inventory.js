@@ -67,7 +67,7 @@ exports.index = (req, res, next) => {
                         if (err) {
                             console.log(err);
                         } else {
-                            await delay(1000);
+                            delay(1000);
                             var currentDate = new Date();
                             var temp = currentDate.toLocaleString().split('.');
                             var remotePath = '/incoming/inventory/inventory' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '') + '.txt';
