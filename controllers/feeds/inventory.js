@@ -39,7 +39,6 @@ exports.index = (req, res, next) => {
 
     shopify.collect.list()
         .then(collects => {
-            console.log('collect list: ', collects);
             collects.forEach(collect => {
                 shopify.product.get(collect.product_id)
                     .then(product => {
@@ -66,20 +65,15 @@ exports.index = (req, res, next) => {
                     password: userData.sftp.sftpPassword
                 })
                 .then(async () => {
-                    console.log('sftp connected !');
-                    console.log('inventoryData: ', inventoryDataList);
                     await delay(1000);
-                    fs.writeFile("uploads/inventory.txt", TSV.stringify(inventoryDataList), async function (err) {
+                    fs.writeFile("uploads/inventory.txt", TSV.stringify(inventoryDataList), function (err) {
                         if (err) {
                             console.log('Writing File Error: ', err);
                         } else {
-                            delay(3000);
-                            if(fs.existsSync('uploads/inventory.txt')) {
-                                console.log('file exists');
-                            }
                             var currentDate = new Date();
                             var temp = currentDate.toLocaleString().split('.');
                             var remotePath = '/incoming/inventory/inventory' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '') + '.txt';
+                            console.log('remote path: ', remotePath);
                             sftp.put('uploads/inventory.txt', remotePath)
                                 .then(response => {
                                     res.render('feeds/inventory', {
