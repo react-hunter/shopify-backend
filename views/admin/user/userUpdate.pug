@@ -16,11 +16,17 @@ block content
       .col-md-7
         input.form-control(type='text', name='name', id='name', value=userData.profile.name)
     .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='userType') User Type
+      .col-md-7
+        select.form-control(name='userType', id='userType')
+          option(value='readonly', selected= userData.type == 'readonly') Read Only
+          option(value='admin', selected= userData.type == 'admin') Admin
+    .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='password') Password
       .col-md-7
         input.form-control(type='text', name='password', id='password')
       .col-md-2
-        a(class="generate-password" onClick="newPassword()") Generate<br />Password
+        a(class="generate-password" onClick="newPassword()") Generate
     .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='confirmpassword') Confirm Password
       .col-md-7

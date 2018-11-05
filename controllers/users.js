@@ -40,6 +40,9 @@ exports.addUser = (req, res, next) => {
     if (req.query.name) {
         user.name = req.query.name;
     }
+    if (req.query.userType) {
+        user.userType = req.query.userType;
+    }
     if (req.query.clientName) {
         user.clientName = req.query.clientName;
     }
@@ -66,6 +69,7 @@ exports.saveUser = (req, res, next) => {
     user.email = req.body.email;
     user.active = 'no';
     user.profile.name = req.body.name;
+    user.type = req.body.userType
     user.partnerClient.name = req.body.clientName;
     user.partnerClient.domain = req.body.domain;
     user.partnerClient.connectors = req.body.connectors;
@@ -82,6 +86,7 @@ exports.saveUser = (req, res, next) => {
             query: {
                 email: req.body.email,
                 name: req.body.name,
+                userType: req.body.userType,
                 clientName: req.body.clientName,
                 domain: req.body.domain,
                 connectors: req.body.connectors
@@ -134,7 +139,7 @@ exports.updateUser = (req, res, next) => {
 
         user.email = req.body.email;
         user.profile.name = req.body.name;
-
+        user.type = req.body.userType;
         user.partnerClient.name = req.body.clientName;
         user.partnerClient.domain = req.body.domain;
         user.partnerClient.connectors = req.body.connectors;

@@ -7,24 +7,21 @@ var CHARACTER_SETS = [
 
 /* eslint-env jquery, browser */
 $(document).ready(() => {
-  console.log('document ready');
   // Place JavaScript code here...
   $("#users-table").DataTable();
   $("#vendors-table").DataTable();
 
   $('.delete-item').on('click', function (e) {
     e.preventDefault();
-    console.log(e);
     var result = confirm("Are you sure to delete this?");
     if (!result) {
       return false;
     } else {
-      console.log(e);
+      return true;
     }
   });
 
 });
-
 
 var passwordElem   = document.getElementById("password");
 var confirmpasswordElem = document.getElementById("confirmpassword");
@@ -35,7 +32,6 @@ function newPassword() {
   var charset = getPasswordCharacterSet();
 	currentPassword = generatePassword(charset, 8);
 	
-	console.log('password Result: ', currentPassword);
 	// Set output elements
   passwordElem.value = currentPassword;
   confirmpasswordElem.value = currentPassword;
@@ -76,14 +72,12 @@ function getPasswordCharacterSet() {
 	return charset;
 }
 
-
 function generatePassword(charset, len) {
 	var result = "";
 	for (var i = 0; i < len; i++)
 		result += charset[randomInt(charset.length)];
 	return result;
 }
-
 
 // Returns a random integer in the range [0, n) using a variety of methods.
 function randomInt(n) {
@@ -92,7 +86,6 @@ function randomInt(n) {
 	return x;
 }
 
-
 // Not secure or high quality, but always available.
 function randomIntMathRandom(n) {
 	var x = Math.floor(Math.random() * n);
@@ -100,7 +93,6 @@ function randomIntMathRandom(n) {
 		throw "Arithmetic exception";
 	return x;
 }
-
 
 // Uses a secure, unpredictable random number generator if available; otherwise returns 0.
 function randomIntBrowserCrypto(n) {

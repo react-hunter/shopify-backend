@@ -16,3 +16,15 @@
 td.nodata {
     text-align: center;
 }
+a.generate-password {
+    color: red !important;
+    cursor: pointer;
+    border: 1px solid #888;
+    padding: 3px 10px;
+    display: block;
+    width: 100px;
+    text-align: center;
+    margin-top: 5px;
+    border-radius: 5px;
+    background: #cc0;
+}
