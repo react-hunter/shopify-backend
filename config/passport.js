@@ -43,7 +43,7 @@ exports.isAuthenticated = (req, res, next) => {
   res.redirect('/login');
 };
 
-exports.isAdmin = (req, res, next) => {
+exports.isSuper = (req, res, next) => {
   if(req.isAuthenticated()) {
     
     if(req.user.type == 'superadmin') {
@@ -55,17 +55,26 @@ exports.isAdmin = (req, res, next) => {
   }
   res.redirect('/login');
 }
-
-exports.isVendor = (req, res, next) => {
+exports.isAdmin = (req, res, next) => {
   if(req.isAuthenticated()) {
     
-    if(req.user.type == 'vendor') {
+    if(req.user.type == 'superadmin' || req.user.type == 'admin') {
       return next();
     }
     req.flash('info', {
-      msg: 'Only Vendors can access this page.'
+      msg: 'Only Super Administrator and Admin User can access this page.'
     });
   }
+  res.redirect('/login');
+}
+
+exports.isUser = (req, res, next) => {
+  if(req.isAuthenticated()) {
+    return next();
+  }
+  req.flash('info', {
+    msg: 'Only Users can access this page.'
+  });
   res.redirect('/login');
 }
 

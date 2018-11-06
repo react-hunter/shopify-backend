@@ -21,6 +21,12 @@ block content
           option(value='readonly', selected= userData.type == 'readonly') Read Only
           option(value='admin', selected= userData.type == 'admin') Admin
     .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='vendorId') Vendor
+      .col-md-7
+        select.form-control(name='vendorId', id='vendorId')
+          for vendor in vendors
+            option(value= vendor._id, selected= userData.vendorId == vendor._id)= vendor.name
+    .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='password') Password
       .col-md-7
         input.form-control(type='text', name='password', id='password')
@@ -38,16 +44,6 @@ block content
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='domain') Domain
       .col-md-7
         input.form-control(type='text', name='domain', id='domain', value=userData.domain)
-    .form-group.row
-      label.col-md-3.col-form-label.font-weight-bold.text-right(for='connectors') Connectors
-      .col-md-7
-        select.form-control(name='connectors', id='connectors')
-          option(value='productin', selected= userData.connectors == 'productin') Shopify Products Inbound
-          option(value='productout', selected= userData.connectors == 'productout') Shopify Products Outbound
-          option(value='orderin', selected= userData.connectors == 'orderin') Shopify Order Inbound
-          option(value='orderout', selected= userData.connectors == 'orderout') Shopify Order Outbound
-          option(value='inventory', selected= userData.connectors == 'inventory') Shopify Inventory
-          option(value='refund', selected= userData.connectors == 'refund') Shopify Refund
     .form-group
       .offset-sm-3.col-md-7.pl-2
         button.btn.btn.btn-primary(type='submit')

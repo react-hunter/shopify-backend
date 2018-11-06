@@ -3,7 +3,8 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  email: { type: String, unique: true },
+  vendorId: String,
+  email: { type: String, unique: true, required: true },
   password: String,
   passwordResetToken: String,
   passwordResetExpires: Date,
@@ -11,9 +12,8 @@ const userSchema = new mongoose.Schema({
   type: String,
   active: String,
   partnerClient: {
-    name: String,
-    domain: String,
-    connectors: String
+    clientName: String,
+    domain: String
   },
   profile: {
     name: String,

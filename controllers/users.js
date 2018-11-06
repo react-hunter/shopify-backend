@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const Connector = require('../models/Connector');
+const Vendor = require('../models/Vendor');
 
 const url = require('url');
 
@@ -10,13 +10,7 @@ const url = require('url');
  * Output: users data
  */
 exports.index = (req, res, next) => {
-    User.find({
-        $or: [{
-            type: 'user'
-        }, {
-            type: 'readonly'
-        }]
-    }, (err, users) => {
+    User.find({type: {$ne: 'superadmin'}}, (err, users) => {
         if (err) return next(err);
 
         res.render('admin/user/users', {
@@ -43,18 +37,26 @@ exports.addUser = (req, res, next) => {
     if (req.query.userType) {
         user.userType = req.query.userType;
     }
+    if (req.query.vendorId) {
+        user.vendorId = req.query.vendorId;
+    }
     if (req.query.clientName) {
-        user.clientName = req.query.clientName;
+        user.vendorId = req.query.clientName;
     }
     if (req.query.domain) {
         user.domain = req.query.domain;
     }
-    if (req.query.connectors) {
-        user.connectors = req.query.connectors;
-    }
-    res.render('admin/user/userAdd', {
-        title: 'Adding User',
-        userData: user
+
+    Vendor.find({}, (err, vendors) => {
+        if (err) {
+            return next(err);
+        }
+
+        res.render('admin/user/userAdd', {
+            title: 'Adding User',
+            userData: user,
+            vendors: vendors
+        });
     });
 };
 
@@ -66,14 +68,14 @@ exports.addUser = (req, res, next) => {
  */
 exports.saveUser = (req, res, next) => {
     var user = new User();
+    user.vendorId = req.body.vendorId;
     user.email = req.body.email;
     user.active = 'no';
     user.profile.name = req.body.name;
-    user.type = req.body.userType
-    user.partnerClient.name = req.body.clientName;
+    user.type = req.body.userType;
+    user.partnerClient.clientName = req.body.clientName;
     user.partnerClient.domain = req.body.domain;
-    user.partnerClient.connectors = req.body.connectors;
-    user.type = 'readonly';
+
     if (req.body.password != '') {
         user.password = req.body.password;
     }
@@ -84,12 +86,12 @@ exports.saveUser = (req, res, next) => {
         res.redirect(url.format({
             pathname: '/users/add',
             query: {
+                vendorId: req.body.vendorId,
                 email: req.body.email,
                 name: req.body.name,
                 userType: req.body.userType,
                 clientName: req.body.clientName,
-                domain: req.body.domain,
-                connectors: req.body.connectors
+                domain: req.body.domain
             }
         }));
         return next();
@@ -118,9 +120,16 @@ exports.getUser = (req, res, next) => {
             return next(err);
         }
 
-        res.render('admin/user/userUpdate', {
-            title: 'Update User',
-            userData: user
+        Vendor.find({}, (vendorError, vendors) => {
+            if (vendorError) {
+                return next(vendorError);
+            }
+
+            res.render('admin/user/userUpdate', {
+                title: 'Update User',
+                userData: user,
+                vendors: vendors
+            });
         });
     });
 };
@@ -140,9 +149,10 @@ exports.updateUser = (req, res, next) => {
         user.email = req.body.email;
         user.profile.name = req.body.name;
         user.type = req.body.userType;
+        user.vendorId = req.body.vendorId;
         user.partnerClient.name = req.body.clientName;
         user.partnerClient.domain = req.body.domain;
-        user.partnerClient.connectors = req.body.connectors;
+        
         if (req.body.password != '') {
             user.password = req.body.password;
             if (req.body.password != req.body.confirmpassword) {

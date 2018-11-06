@@ -9,13 +9,8 @@ const connectorSchema = new mongoose.Schema({
   inactiveDate: Date,
   lastActivityDate: Date,
   lastActivityProcessed: String,
-  processedTransactionAmount: Number,
-  // vendorKeyType: {
-  //   apiKey: String,
-  //   userName: String,
-  //   password: String
-  // }
-
+  processedTransactionAmount: Number
+  
 }, { timestamps: true });
 
 const Connector = mongoose.model('Connector', connectorSchema);

@@ -17,8 +17,10 @@
             a.nav-link(href='/vendors') Vendors
           li.nav-item(class=(title === 'Users') ? 'active' : undefined)
             a.nav-link(href='/users') Users
-      else if user && user.type=='vendor'
+      else if user
         ul.nav.navbar-nav
+          li.nav-item(class=(title === 'vendor') ? 'active' : undefined)
+            a.nav-link(href='/vendors/' + user.vendorId) Vendor
           li.nav-item(class=(title === 'product') ? 'active' : undefined)
             a.nav-link(href='/product') Product
           li.nav-item(class=(title === 'inventory') ? 'active' : undefined)

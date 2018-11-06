@@ -4,34 +4,44 @@ const Client = require('ssh2-sftp-client');
 const delay = require('delay');
 const TSV = require('tsv');
 
+const Vendor = require('../../models/Vendor');
+
 /**
  * GET /
  * Inventory page.
  */
-exports.index = (req, res, next) => {
+exports.index = async (req, res, next) => {
 
-    const userData = req.user;
-    if (userData.api.apiShop == '' || userData.api.apiKey == '' || userData.api.apiPassword == '') {
-        req.flash('info', {
-            msg: 'You should insert API information to manage Inventory Feed.'
+    var vendorData;
+    var shopify;
+    Vendor.findOne({_id: req.user.vendorId}, (vendorError, vendor) => {
+        if (vendorError) {
+            return next(vendorError);
+        }
+        vendorData = vendor;
+        
+        if (vendorData.api.apiShop == '' || vendorData.api.apiKey == '' || vendorData.api.apiPassword == '') {
+            req.flash('info', {
+                msg: 'You should have API information to manage product feed. Please contact with Administrator.'
+            });
+            res.redirect('/');
+            return next();
+        }
+        if (vendorData.sftp.sftpHost == '' || vendorData.sftp.sftpPassword == '' || vendorData.sftp.sftpUsername == '') {
+            req.flash('info', {
+                msg: 'You should have SFTP information to manage product feed. Please contact with Administrator.'
+            });
+            res.redirect('/');
+            return next();
+        }
+        shopify = new Shopify({
+            shopName: vendorData.api.apiShop,
+            apiKey: vendorData.api.apiKey,
+            password: vendorData.api.apiPassword
         });
-        res.redirect('/');
-        return next();
-    }
-    if (userData.sftp.sftpHost == '' || userData.sftp.sftpPassword == '' || userData.sftp.sftpUsername == '') {
-        req.flash('info', {
-            msg: 'You should insert SFTP information to manage Inventory Feed.'
-        });
-        res.redirect('/');
-        return next();
-    }
-
-    const shopify = new Shopify({
-        shopName: userData.api.apiShop,
-        apiKey: userData.api.apiKey,
-        password: userData.api.apiPassword
     });
 
+    await delay(1000);
     const sftp = new Client();
     var inventoryDataList = new Array();
 
@@ -58,10 +68,10 @@ exports.index = (req, res, next) => {
         .then(async () => {
             await delay(1000);
             sftp.connect({
-                    host: userData.sftp.sftpHost,
+                    host: vendorData.sftp.sftpHost,
                     port: process.env.SFTP_PORT,
-                    username: userData.sftp.sftpUsername,
-                    password: userData.sftp.sftpPassword
+                    username: vendorData.sftp.sftpUsername,
+                    password: vendorData.sftp.sftpPassword
                 })
                 .then(async () => {
                     await delay(1000);

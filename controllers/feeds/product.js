@@ -13,38 +13,43 @@ const eachSeries = require('async/eachSeries');
 
 var threeColorKeys = Object.keys(ThreeColorList);
 
+const Vendor = require('../../models/Vendor');
 /**
  * GET /
  * Product page.
  */
-exports.index = (req, res, next) => {
+exports.index = async (req, res, next) => {
 
-    const userData = req.user;
-    if (userData.api.apiShop == '' || userData.api.apiKey == '' || userData.api.apiPassword == '') {
-        req.flash('info', {
-            msg: 'You should have API information to manage product feed. Please contact with Administrator.'
+    var vendorData;
+    var shopify;
+    Vendor.findOne({_id: req.user.vendorId}, (vendorError, vendor) => {
+        if (vendorError) {
+            return next(vendorError);
+        }
+        vendorData = vendor;
+        
+        if (vendorData.api.apiShop == '' || vendorData.api.apiKey == '' || vendorData.api.apiPassword == '') {
+            req.flash('info', {
+                msg: 'You should have API information to manage product feed. Please contact with Administrator.'
+            });
+            res.redirect('/');
+            return next();
+        }
+        if (vendorData.sftp.sftpHost == '' || vendorData.sftp.sftpPassword == '' || vendorData.sftp.sftpUsername == '') {
+            req.flash('info', {
+                msg: 'You should have SFTP information to manage product feed. Please contact with Administrator.'
+            });
+            res.redirect('/');
+            return next();
+        }
+        shopify = new Shopify({
+            shopName: vendorData.api.apiShop,
+            apiKey: vendorData.api.apiKey,
+            password: vendorData.api.apiPassword
         });
-        res.redirect('/');
-        return next();
-    }
-    if (userData.sftp.sftpHost == '' || userData.sftp.sftpPassword == '' || userData.sftp.sftpUsername == '') {
-        req.flash('info', {
-            msg: 'You should have SFTP information to manage product feed. Please contact with Administrator.'
-        });
-        res.redirect('/');
-        return next();
-    }
-    // const shopify = new Shopify({
-    //     shopName: process.env.SHOPIFY_STORE_NAME,
-    //     apiKey: process.env.SHOPIFY_APP_KEY,
-    //     password: process.env.SHOPIFY_APP_PASSWORD
-    // });
-    const shopify = new Shopify({
-        shopName: userData.api.apiShop,
-        apiKey: userData.api.apiKey,
-        password: userData.api.apiPassword
     });
 
+    await delay(1000);
     const sftp = new Client(); // sftp client
     var taxCodeKeys = Object.keys(TaxCodeList);
     var taxonomyKeys = Object.keys(TaxonomyList);
@@ -481,10 +486,10 @@ exports.index = (req, res, next) => {
         })
         .then(() => {
             sftp.connect({
-                    host: userData.sftp.sftpHost,
+                    host: vendorData.sftp.sftpHost,
                     port: process.env.SFTP_PORT,
-                    username: userData.sftp.sftpUsername,
-                    password: userData.sftp.sftpPassword
+                    username: vendorData.sftp.sftpUsername,
+                    password: vendorData.sftp.sftpPassword
                 })
                 .then(async () => {
                     await delay(1000);
