@@ -75,7 +75,7 @@ exports.index = async (req, res, next) => {
                 })
                 .then(async () => {
                     await delay(1000);
-                    fs.writeFile("uploads/inventory.txt", TSV.stringify(inventoryDataList), function (err) {
+                    fs.writeFile("uploads/inventory.txt", TSV.stringify(inventoryDataList), (err) => {
                         if (err) {
                             console.log('Writing File Error: ', err);
                         } else {
@@ -103,12 +103,12 @@ const deleteAndInitialize = function (filePath) {
     if (fs.existsSync(filePath)) {
         fs.unlink(filePath, (err) => {
             if (err) throw err;
-            console.log(filePath + ' file was deleted');
+            console.log(filePath + ' file has been deleted');
             fs.writeFile(filePath, '', function (initErr) {
                 if (initErr) {
                     console.log(initErr);
                 }
-                console.log('init empty');
+                console.log('Made inventory file and initialized with empty');
             });
         });
     }

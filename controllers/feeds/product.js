@@ -22,12 +22,14 @@ exports.index = async (req, res, next) => {
 
     var vendorData;
     var shopify;
-    Vendor.findOne({_id: req.user.vendorId}, (vendorError, vendor) => {
+    Vendor.findOne({
+        _id: req.user.vendorId
+    }, (vendorError, vendor) => {
         if (vendorError) {
             return next(vendorError);
         }
         vendorData = vendor;
-        
+
         if (vendorData.api.apiShop == '' || vendorData.api.apiKey == '' || vendorData.api.apiPassword == '') {
             req.flash('info', {
                 msg: 'You should have API information to manage product feed. Please contact with Administrator.'
@@ -493,8 +495,7 @@ exports.index = async (req, res, next) => {
                 })
                 .then(async () => {
                     await delay(1000);
-                    fs.writeFile("uploads/product.txt", TSV.stringify(productDataList), function (err) {
-                        console.log('writing');
+                    fs.writeFile("uploads/product.txt", TSV.stringify(productDataList), (err) => {
                         if (err) {
                             console.log(err);
                         } else {
@@ -604,12 +605,12 @@ const deleteAndInitialize = function (filePath) {
     if (fs.existsSync(filePath)) {
         fs.unlink(filePath, (err) => {
             if (err) throw err;
-            console.log('product file was deleted');
+            console.log('product file has been deleted');
             fs.writeFile(filePath, '', function (initErr) {
                 if (initErr) {
                     console.log(initErr);
                 }
-                console.log('init empty');
+                console.log('Made product file and initialized with empty');
             });
         });
     }
