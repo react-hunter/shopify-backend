@@ -219,6 +219,7 @@ User.find({type: 'superadmin'}, (err, superusers) => {
   if (superusers.length == 0) {
     var initSuperUser = new User();
     initSuperUser.email = 'admin@admin.com';
+    initSuperUser.active = 'yes';
     initSuperUser.password = 'admin';
     initSuperUser.profile.name = 'admin';
     initSuperUser.type = 'superadmin';
