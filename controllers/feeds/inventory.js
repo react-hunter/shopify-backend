@@ -13,7 +13,7 @@ const Vendor = require('../../models/Vendor');
 exports.index = async (req, res, next) => {
 
     var vendorData;
-    var shopify;
+    var shopify = null;
     Vendor.findOne({_id: req.user.vendorId}, (vendorError, vendor) => {
         if (vendorError) {
             return next(vendorError);
@@ -21,32 +21,52 @@ exports.index = async (req, res, next) => {
         vendorData = vendor;
         
         if (vendorData.api.apiShop == '' || vendorData.api.apiKey == '' || vendorData.api.apiPassword == '') {
-            req.flash('info', {
+            req.flash('errors', {
                 msg: 'You should have API information to manage product feed. Please contact with Administrator.'
             });
             res.redirect('/');
             return next();
         }
         if (vendorData.sftp.sftpHost == '' || vendorData.sftp.sftpPassword == '' || vendorData.sftp.sftpUsername == '') {
-            req.flash('info', {
+            req.flash('errors', {
                 msg: 'You should have SFTP information to manage product feed. Please contact with Administrator.'
             });
             res.redirect('/');
             return next();
         }
-        shopify = new Shopify({
-            shopName: vendorData.api.apiShop,
-            apiKey: vendorData.api.apiKey,
-            password: vendorData.api.apiPassword
-        });
+        if (vendorData.active == 'yes') {
+            shopify = new Shopify({
+                shopName: vendorData.api.apiShop,
+                apiKey: vendorData.api.apiKey,
+                password: vendorData.api.apiPassword
+            });
+        }
     });
 
     await delay(1000);
     const sftp = new Client();
     var inventoryDataList = new Array();
 
+    // Initialize product feed file with empty
     deleteAndInitialize('uploads/inventory.txt');
 
+    // Check user's active/inactive status.
+    if (req.user.active !== 'yes') {
+        req.flash('errors', {
+            msg: 'Your account is inactive now. Please contact with Administrator.'
+        });
+        res.redirect('/');
+        return next();
+    }
+
+    // Check vendor availability. If vendor's status is inactive, it should redirect to homepage without any action.
+    if (!shopify) {
+        req.flash('errors', {
+            msg: 'Your vendor should be active to manage feed. Please contact with Administrator.'
+        });
+        res.redirect('/');
+        return next();
+    }
     shopify.collect.list()
         .then(collects => {
             collects.forEach(collect => {

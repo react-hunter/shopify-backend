@@ -55,7 +55,7 @@ exports.isSuper = (req, res, next) => {
   res.redirect('/login');
 }
 exports.isAdmin = (req, res, next) => {
-  if(req.isAuthenticated()) {
+  if(req.isAuthenticated() && req.user.active == 'yes') {
     
     if(req.user.type == 'superadmin' || req.user.type == 'admin') {
       return next();
@@ -68,11 +68,11 @@ exports.isAdmin = (req, res, next) => {
 }
 
 exports.isUser = (req, res, next) => {
-  if(req.isAuthenticated()) {
+  if(req.isAuthenticated() && req.user.active == 'yes') {
     return next();
   }
   req.flash('info', {
-    msg: 'Only Users can access this page.'
+    msg: 'Only registered Users can access this page.'
   });
   res.redirect('/login');
 }

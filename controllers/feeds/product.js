@@ -21,7 +21,7 @@ const Vendor = require('../../models/Vendor');
 exports.index = async (req, res, next) => {
 
     var vendorData;
-    var shopify;
+    var shopify = null;
     var metaList;
     Vendor.findOne({
         _id: req.user.vendorId
@@ -32,30 +32,32 @@ exports.index = async (req, res, next) => {
         vendorData = vendor;
 
         if (vendorData.api.apiShop == '' || vendorData.api.apiKey == '' || vendorData.api.apiPassword == '') {
-            req.flash('info', {
+            req.flash('errors', {
                 msg: 'You should have API information to manage product feed. Please contact with Administrator.'
             });
             res.redirect('/');
             return next();
         }
         if (vendorData.sftp.sftpHost == '' || vendorData.sftp.sftpPassword == '' || vendorData.sftp.sftpUsername == '') {
-            req.flash('info', {
+            req.flash('errors', {
                 msg: 'You should have SFTP information to manage product feed. Please contact with Administrator.'
             });
             res.redirect('/');
             return next();
         }
-        shopify = new Shopify({
-            shopName: vendorData.api.apiShop,
-            apiKey: vendorData.api.apiKey,
-            password: vendorData.api.apiPassword,
-            timeout: 50000,
-            autoLimit: {
-                calls: 2,
-                interval: 1000,
-                bucketSize: 35
-            }
-        });
+        if (vendorData.active == 'yes') {
+            shopify = new Shopify({
+                shopName: vendorData.api.apiShop,
+                apiKey: vendorData.api.apiKey,
+                password: vendorData.api.apiPassword,
+                timeout: 50000,
+                autoLimit: {
+                    calls: 2,
+                    interval: 1000,
+                    bucketSize: 35
+                }
+            });
+        }
     });
 
     await delay(1000);
@@ -71,6 +73,24 @@ exports.index = async (req, res, next) => {
 
     // Initialize product feed file with empty
     deleteAndInitialize('uploads/product.txt');
+
+    // Check user's active/inactive status.
+    if (req.user.active !== 'yes') {
+        req.flash('errors', {
+            msg: 'Your account is inactive now. Please contact with Administrator.'
+        });
+        res.redirect('/');
+        return next();
+    }
+
+    // Check vendor availability. If vendor's status is inactive, it should redirect to homepage without any action.
+    if (!shopify) {
+        req.flash('errors', {
+            msg: 'Your vendor should be active to manage feed. Please contact with Administrator.'
+        });
+        res.redirect('/');
+        return next();
+    }
 
     shopify.metafield.list().then(metas => {
         metaList = metas.reduce((r, a) => {
