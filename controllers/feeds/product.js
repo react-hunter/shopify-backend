@@ -127,6 +127,7 @@ exports.index = async (req, res, next) => {
             shopData = shop;
         }).catch(err => console.log(err));
 
+        await delay(1000);
 
         shopify.product.list({
                 limit: 250
