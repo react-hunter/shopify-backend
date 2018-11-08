@@ -132,6 +132,16 @@ exports.index = async (req, res, next) => {
         shopify.product.list({
                 limit: 250
             }).then(products => {
+                // var productList = [];
+                // products.forEach(product => {
+                //     var temp = product;
+                //     temp.body_html = 'product description';
+                //     productList.push(temp);
+                // });
+                // fs.writeFile("uploads/product-original.txt", TSV.stringify(productList), (err) => {
+                //     if (err) return next(err);
+                //     console.log('original written.');
+                // });
                 products.forEach(product => {
                     const metafields = metaList[product.id];
                     var productCategory = '';
@@ -288,7 +298,11 @@ exports.index = async (req, res, next) => {
                             productData.CountryOfOrigin = shopData.country;
                             productData.VendorModelNumber = VendorModelNumber;
                             productData.Vendor = product.vendor;
-                            productData.Season = publishSeason + ' ' + publishYear;
+                            if(product.published_at) {
+                                productData.Season = publishSeason + ' ' + publishYear;
+                            } else {
+                                productData.Season = '';
+                            }
                             productData.ColorName = ColorName;
                             productData.Size = Size;
                             productData.DateAvailable = product.published_at.substr(5, 2) + '/' + product.published_at.substr(8, 2) + '/' + publishYear;
@@ -384,7 +398,11 @@ exports.index = async (req, res, next) => {
                             productData.CountryOfOrigin = shopData.country;
                             productData.VendorModelNumber = variant.sku;
                             productData.Vendor = product.vendor;
-                            productData.Season = publishSeason + ' ' + publishYear;
+                            if(product.published_at) {
+                                productData.Season = publishSeason + ' ' + publishYear;
+                            } else {
+                                productData.Season = '';
+                            }
                             productData.ColorName = ColorName;
                             productData.Size = Size;
                             if (product.published_at) {
@@ -488,6 +506,11 @@ exports.index = async (req, res, next) => {
                             productView.img3 = temp1[0] + '_540x' + lastBlock;
                             productView.img4 = temp1[0] + '_720x' + lastBlock;
                             productView.img5 = temp1[0] + '_900x' + lastBlock;
+                            productData.ZoomImage1 = productView.img1;
+                            productData.ZoomImage2 = productView.img2;
+                            productData.ZoomImage3 = productView.img3;
+                            productData.ZoomImage4 = productView.img4;
+                            productData.ZoomImage5 = productView.img5;
                         } else {
                             if (product.image) {
                                 var temp0 = product.image.src.split('.');
@@ -498,6 +521,11 @@ exports.index = async (req, res, next) => {
                                 productView.img3 = temp1[0] + '_540x' + lastBlock;
                                 productView.img4 = temp1[0] + '_720x' + lastBlock;
                                 productView.img5 = temp1[0] + '_900x' + lastBlock;
+                                productData.ZoomImage1 = productView.img1;
+                                productData.ZoomImage2 = productView.img2;
+                                productData.ZoomImage3 = productView.img3;
+                                productData.ZoomImage4 = productView.img4;
+                                productData.ZoomImage5 = productView.img5;
                             }
                         }
                         productData.FreeShip = true;
@@ -539,6 +567,7 @@ exports.index = async (req, res, next) => {
                     })
                     .then(async () => {
                         await delay(1000);
+                        var vendorUrl = 'https://' + vendorData.apiShop + 'myshopify.com';
                         fs.writeFile("uploads/product.txt", TSV.stringify(productDataList), (err) => {
                             if (err) {
                                 console.log(err);
@@ -547,7 +576,8 @@ exports.index = async (req, res, next) => {
                                     .then(response => {
                                         res.render('feeds/product', {
                                             title: 'Product',
-                                            products: productViewList
+                                            products: productViewList,
+                                            vendorUrl: vendorUrl
                                         });
                                     })
                                     .then(() => {

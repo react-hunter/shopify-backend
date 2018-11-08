@@ -7,7 +7,7 @@ block content
   .row
     each product in products
       .col-md-6
-        a.product-title(href='https://badidas.myshopify.com/products/' + product.handle, target="_blank") 
+        a.product-title(href=vendorUrl + '/products/' + product.handle, target="_blank") 
           h2 #{ product.title }
         .product-body
           if product.description.replace(/(<([^>]+)>)/ig, "").length > 50
@@ -15,6 +15,6 @@ block content
           else 
             p= product.description.replace(/(<([^>]+)>)/ig, "")
         p.product-link
-          a.btn.btn-raised(href='https://badidas.myshopify.com/products/' + product.handle, role='button', target="_blank") Go to Product »
+          a.btn.btn-raised(href=vendorUrl + '/products/' + product.handle, role='button', target="_blank") Go to Product »
         
     
