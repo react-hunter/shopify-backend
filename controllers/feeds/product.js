@@ -14,6 +14,7 @@ const eachSeries = require('async/eachSeries');
 var threeColorKeys = Object.keys(ThreeColorList);
 
 const Vendor = require('../../models/Vendor');
+const Connector = require('../../models/Connector');
 /**
  * GET /
  * Product page.
@@ -23,6 +24,7 @@ exports.index = async (req, res, next) => {
     var vendorData;
     var shopify = null;
     var metaList;
+    var errorExist = false;
     Vendor.findOne({
         _id: req.user.vendorId
     }, (vendorError, vendor) => {
@@ -35,6 +37,7 @@ exports.index = async (req, res, next) => {
             req.flash('errors', {
                 msg: 'You should have API information to manage product feed. Please contact with Administrator.'
             });
+            errorExist = true;
             res.redirect('/');
             return next();
         }
@@ -42,6 +45,7 @@ exports.index = async (req, res, next) => {
             req.flash('errors', {
                 msg: 'You should have SFTP information to manage product feed. Please contact with Administrator.'
             });
+            errorExist = true;
             res.redirect('/');
             return next();
         }
@@ -60,7 +64,6 @@ exports.index = async (req, res, next) => {
         }
     });
 
-    await delay(1000);
     const sftp = new Client(); // sftp client
     var taxCodeKeys = Object.keys(TaxCodeList);
     var taxonomyKeys = Object.keys(TaxonomyList);
@@ -79,6 +82,7 @@ exports.index = async (req, res, next) => {
         req.flash('errors', {
             msg: 'Your account is inactive now. Please contact with Administrator.'
         });
+        errorExist = true;
         res.redirect('/');
         return next();
     }
@@ -88,483 +92,503 @@ exports.index = async (req, res, next) => {
         req.flash('errors', {
             msg: 'Your vendor should be active to manage feed. Please contact with Administrator.'
         });
+        errorExist = true;
         res.redirect('/');
         return next();
     }
 
-    shopify.metafield.list().then(metas => {
-        metaList = metas.reduce((r, a) => {
-            r[a.owner_id] = r[a.owner_id] || [];
-            r[a.owner_id].push(a);
-            return r;
-        }, Object.create(null));
-    }).catch((e) => {
-        console.log(e);
+    // Check product connector
+    Connector.find({vendorId:vendorData._id, kwiLocation: 'product', active: 'yes'}, (err, connectors) => {
+        if (err) {
+            return next(err);
+        }
+        if (connectors.length == 0) {
+            req.flash('errors', {
+                msg: 'Your vendor does not include product connector or it is inactive. Please contact with Administrator or Admin User.'
+            });
+            errorExist = true;
+            res.redirect('/');
+            return next();
+        }
     });
 
-    shopify.shop.get().then((shop) => {
-        shopData = shop;
-    }).catch(err => console.log(err));
+    await delay(2000);
+    if(!errorExist) {
+        shopify.metafield.list().then(metas => {
+            metaList = metas.reduce((r, a) => {
+                r[a.owner_id] = r[a.owner_id] || [];
+                r[a.owner_id].push(a);
+                return r;
+            }, Object.create(null));
+        }).catch((e) => {
+            console.log(e);
+        });
 
-    shopify.product.list({
-            limit: 250
-        }).then(products => {
-            products.forEach(product => {
-                const metafields = metaList[product.id];
-                var productCategory = '';
-                var isFirstVariant = true;
-                var firstVariantColor = '';
-                var firstVariantSku = '';
-                product.variants.forEach((variant) => {
-                    var productData = {};
-                    var productView = {};
-                    productData.Brand = product.vendor;
-                    productData.Category = productCategory;
+        shopify.shop.get().then((shop) => {
+            shopData = shop;
+        }).catch(err => console.log(err));
 
-                    productData.ProductCode = '';
-                    productData.ParentCode = '';
-                    productData.ProductName = product.title;
-                    productView.title = product.title;
-                    productData.ProductDescription = '';
-                    if (product.body_html) {
-                        productData.ProductDescription = product.body_html.replace(/(<([^>]+)>)/ig, "");
-                        productData.ProductDescription = productData.ProductDescription.replace(/\r?\n|\r/g, '');
-                    }
-                    productView.description = productData.ProductDescription;
 
-                    if (product.published_at) {
-                        var publishYear = product.published_at.substr(0, 4);
-                        var publishMonth = parseInt(product.published_at.substr(5, 2));
-                        var publishSeason = '';
-                        if (publishMonth < 6 && publishMonth > 2) {
-                            publishSeason = 'Spring';
-                        } else if (publishMonth > 5 && publishMonth < 9) {
-                            publishSeason = 'Summer';
-                        } else if (publishMonth > 8 && publishMonth < 12) {
-                            publishSeason = 'Fall';
-                        } else {
-                            publishSeason = 'Winter';
+        shopify.product.list({
+                limit: 250
+            }).then(products => {
+                products.forEach(product => {
+                    const metafields = metaList[product.id];
+                    var productCategory = '';
+                    var isFirstVariant = true;
+                    var firstVariantColor = '';
+                    var firstVariantSku = '';
+                    product.variants.forEach((variant) => {
+                        var productData = {};
+                        var productView = {};
+                        productData.Brand = product.vendor;
+                        productData.Category = productCategory;
+
+                        productData.ProductCode = '';
+                        productData.ParentCode = '';
+                        productData.ProductName = product.title;
+                        productView.title = product.title;
+                        productData.ProductDescription = '';
+                        if (product.body_html) {
+                            productData.ProductDescription = product.body_html.replace(/(<([^>]+)>)/ig, "");
+                            productData.ProductDescription = productData.ProductDescription.replace(/\r?\n|\r/g, '');
                         }
-                    }
-                    var today = new Date();
-                    var daysDifference = daysBetween(product.published_at, today);
-                    var ColorName = '';
-                    var Size = '';
-                    var ProductCodeOption = '';
-                    if (product.options.length > 0) {
-                        var keyIndex = 1;
-                        product.options.forEach(option => {
-                            if (option.name.toLowerCase() == 'size') {
-                                Size = variant['option' + keyIndex];
+                        productView.description = productData.ProductDescription;
+
+                        if (product.published_at) {
+                            var publishYear = product.published_at.substr(0, 4);
+                            var publishMonth = parseInt(product.published_at.substr(5, 2));
+                            var publishSeason = '';
+                            if (publishMonth < 6 && publishMonth > 2) {
+                                publishSeason = 'Spring';
+                            } else if (publishMonth > 5 && publishMonth < 9) {
+                                publishSeason = 'Summer';
+                            } else if (publishMonth > 8 && publishMonth < 12) {
+                                publishSeason = 'Fall';
+                            } else {
+                                publishSeason = 'Winter';
                             }
-                            if (option.name.toLowerCase() == 'color') {
-                                ColorName = variant['option' + keyIndex];
-                                ColorName = jsUcfirst(ColorName).replace(' ', '');
-                                if (isFirstVariant) {
-                                    firstVariantColor = ColorName;
-                                    firstVariantSku = variant.sku;
-                                    isFirstVariant = false;
+                        }
+                        var today = new Date();
+                        var daysDifference = daysBetween(product.published_at, today);
+                        var ColorName = '';
+                        var Size = '';
+                        var ProductCodeOption = '';
+                        if (product.options.length > 0) {
+                            var keyIndex = 1;
+                            product.options.forEach(option => {
+                                if (option.name.toLowerCase() == 'size') {
+                                    Size = variant['option' + keyIndex];
                                 }
-                            }
-                            if (option.name.toLowerCase() == 'productcode' || option.name.toLowerCase() == 'product code') {
-                                ProductCodeOption = 'option' + keyIndex;
-                            }
-
-                            keyIndex++;
-                        });
-                    }
-                    if (ProductCodeOption == '') {
-                        productData.ProductCode = variant.sku + '_' + getShortenColorName(ColorName);
-                        productData.ParentCode = firstVariantSku + '_' + getShortenColorName(firstVariantColor);
-                    } else {
-                        productData.ProductCode = variant[ProductCodeOption] + '_' + getShortenColorName(ColorName);
-                        productData.ParentCode = variant[ProductCodeOption] + '_' + getShortenColorName(firstVariantColor);
-                    }
-
-                    var ProductDescription2 = '';
-                    var ProductOverview = '';
-                    var ProductType = 'Apparel';
-
-                    try {
-                        ProductTypeList.forEach(ProductTypeItem => {
-                            if (ProductTypeItem.toLowerCase() == product.product_type.toLowerCase()) {
-                                ProductType = ProductTypeItem;
-                                throw BreakException;
-                            }
-                        })
-                    } catch (e) {
-                        if (e !== BreakException) throw e;
-                    }
-
-                    // Regenerate the `Category` field by `ProductType`
-                    try {
-                        taxonomyKeys.forEach(taxoKey => {
-                            var temp = TaxonomyList[taxoKey].toLowerCase();
-                            var temp1 = temp.split(' > ');
-                            var taxoItem = temp1[temp1.length - 1];
-                            if (taxoItem.indexOf(ProductType.toLowerCase()) != -1) {
-                                productData.Category = TaxonomyList[taxoKey];
-                                throw BreakException;
-                            }
-                        });
-                    } catch (e) {
-                        if (e !== BreakException) throw e;
-                    }
-
-                    var ProductVideo = '';
-                    var MaterialContent = '';
-                    var VendorModelNumber = '';
-                    var MSRP = variant.price;
-                    var MinQty = 1;
-                    var MaxQty = 10;
-                    var UPC = variant.id;
-                    var MoreInfo = '';
-                    var WarehouseCode = "001".toString();
-                    if (metafields) {
-                        metafields.forEach(meta => {
-                            if (meta.key == 'productDescription2') {
-                                ProductDescription2 = meta.value;
-                            }
-                            if (meta.key == 'overview') {
-                                ProductOverview = meta.value;
-                            }
-                            if (meta.key == 'productVideo') {
-                                ProductVideo = meta.value;
-                            }
-                            if (meta.key == 'materialContent') {
-                                MaterialContent = meta.value;
-                            }
-                            if (meta.key == 'vendorModelNumber') {
-                                VendorModelNumber = meta.value;
-                            }
-                            if (meta.key == 'msrp') {
-                                MSRP = meta.value;
-                            }
-                            if (meta.key == 'minQty') {
-                                MinQty = meta.value;
-                            }
-                            if (meta.key == 'maxQty') {
-                                MaxQty = meta.value;
-                            }
-                            if (meta.key == 'upc' && meta.value != '') {
-                                UPC = meta.value;
-                            }
-                            if (meta.key == 'moreInfo') {
-                                MoreInfo = meta.value;
-                            }
-                            if (meta.key == 'warehouseCode') {
-                                WarehouseCode = meta.value;
-                            }
-                        });
-                    }
-                    if (metafields && metafields.length > 0) {
-                        productData.ProductDescription2 = ProductDescription2;
-                        productData.ProductOverview = ProductOverview;
-                        productData.ProductType = ProductType;
-                        productData.MaterialContent = MaterialContent;
-                        productData.CountryOfOrigin = shopData.country;
-                        productData.VendorModelNumber = VendorModelNumber;
-                        productData.Vendor = product.vendor;
-                        productData.Season = publishSeason + ' ' + publishYear;
-                        productData.ColorName = ColorName;
-                        productData.Size = Size;
-                        productData.DateAvailable = product.published_at.substr(5, 2) + '/' + product.published_at.substr(8, 2) + '/' + publishYear;
-                        if (product.gender) {
-                            productData.Gender = product.gender;
-                        } else {
-                            productData.Gender = 'Mens';
-                        }
-                        if (product.weight) {
-                            productData.Weight = product.weight;
-                        } else {
-                            productData.Weight = variant.weight;
-                        }
-                        if (variant.weight_unit == 'g') {
-                            productData.Weight = parseFloat(productData.Weight / 453.59237).toFixed(2);
-                        } else if (variant.weight_unit == 'kg') {
-                            productData.Weight = parseFloat(productData.Weight / 0.45359237).toFixed(2);
-                        }
-                        productData.Cost = variant.price;
-                        productData.Price = variant.price;
-                        productData.MSRP = MSRP;
-                        productData.Title = product.title;
-                        productData.MinQty = MinQty;
-                        productData.MaxQty = MaxQty;
-                        productData.IsBestSeller = collect.collection_id == bestSellCollectionId ? true : false;
-                        // if(daysDifference > 30) {
-                        //     productData.IsNew = false;
-                        // } else {
-                        //     productData.IsNew = true;
-                        // }
-                        productData.IsNew = false;
-                        productData.IsExclusive = false;
-                        // if(!variant.compare_at_price || variant.price >= variant.compare_at_price) {
-                        //     productData.IsSale = false;
-                        // } else {
-                        //     productData.IsSale = true;
-                        // }
-                        productData.IsSale = false;
-                        productData.SizeGroup = '';
-                        productData.ColorGroup = '';
-
-                        productData.ZoomImage1 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_1.jpg';
-                        productData.ZoomImage2 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_2.jpg';
-                        productData.ZoomImage3 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_3.jpg';
-                        productData.ZoomImage4 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_4.jpg';
-                        productData.ZoomImage5 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_5.jpg';
-                        productData.ProductVideo = ProductVideo;
-                        if (variant.sku != '') {
-                            // productData.SKU = variant.sku + getShortenColorName(ColorName) + Size;
-                            productData.SKU = variant.id;
-                        } else {
-                            // productData.SKU = productData.ProductCode;
-                            productData.SKU = variant.id;
-                        }
-                        productData.SkuPrice = variant.price;
-                        productData.UPC = UPC;
-                        productData.QtyOnHand = variant.inventory_quantity > 0 ? variant.inventory_quantity : 0;
-                        productData.MoreInfo = MoreInfo;
-                        try {
-                            taxCodeKeys.forEach((key) => {
-                                TaxCodeList[key].forEach((taxType) => {
-                                    if (product.product_type != '' && taxType.indexOf(product.product_type) !== -1) {
-                                        productData.TaxCode = key;
-                                        throw BreakException;
+                                if (option.name.toLowerCase() == 'color') {
+                                    ColorName = variant['option' + keyIndex];
+                                    ColorName = jsUcfirst(ColorName).replace(' ', '');
+                                    if (isFirstVariant) {
+                                        firstVariantColor = ColorName;
+                                        firstVariantSku = variant.sku;
+                                        isFirstVariant = false;
                                     }
-                                })
+                                }
+                                if (option.name.toLowerCase() == 'productcode' || option.name.toLowerCase() == 'product code') {
+                                    ProductCodeOption = 'option' + keyIndex;
+                                }
+
+                                keyIndex++;
                             });
+                        }
+                        if (ProductCodeOption == '') {
+                            productData.ProductCode = variant.sku + '_' + getShortenColorName(ColorName);
+                            productData.ParentCode = firstVariantSku + '_' + getShortenColorName(firstVariantColor);
+                        } else {
+                            productData.ProductCode = variant[ProductCodeOption] + '_' + getShortenColorName(ColorName);
+                            productData.ParentCode = variant[ProductCodeOption] + '_' + getShortenColorName(firstVariantColor);
+                        }
+
+                        var ProductDescription2 = '';
+                        var ProductOverview = '';
+                        var ProductType = 'Apparel';
+
+                        try {
+                            ProductTypeList.forEach(ProductTypeItem => {
+                                if (ProductTypeItem.toLowerCase() == product.product_type.toLowerCase()) {
+                                    ProductType = ProductTypeItem;
+                                    throw BreakException;
+                                }
+                            })
                         } catch (e) {
                             if (e !== BreakException) throw e;
                         }
-                        /*try{
-                            taxCodeKeys.forEach( (key) => {
-                                if(product.product_type != '' && TaxCodeList[key].indexOf(product.product_type) !== -1) {
-                                    productData.TaxCode = key;
+
+                        // Regenerate the `Category` field by `ProductType`
+                        try {
+                            taxonomyKeys.forEach(taxoKey => {
+                                var temp = TaxonomyList[taxoKey].toLowerCase();
+                                var temp1 = temp.split(' > ');
+                                var taxoItem = temp1[temp1.length - 1];
+                                if (taxoItem.indexOf(ProductType.toLowerCase()) != -1) {
+                                    productData.Category = TaxonomyList[taxoKey];
                                     throw BreakException;
                                 }
                             });
-                        } catch(e) {
-                            if( e !== BreakException ) throw e;
-                        }*/
-                        if (!productData.TaxCode) {
-                            productData.TaxCode = '';
-                        }
-                        productData.FinalSale = false;
-                        productData.CurrencyCode = shopData.currency;
-                        productData.WarehouseCode = WarehouseCode;
-
-                    } else {
-                        productData.ProductDescription2 = '';
-                        productData.ProductOverview = '';
-                        productData.ProductType = ProductType;
-                        productData.MaterialContent = '';
-                        productData.CountryOfOrigin = shopData.country;
-                        productData.VendorModelNumber = variant.sku;
-                        productData.Vendor = product.vendor;
-                        productData.Season = publishSeason + ' ' + publishYear;
-                        productData.ColorName = ColorName;
-                        productData.Size = Size;
-                        if (product.published_at) {
-                            productData.DateAvailable = product.published_at.substr(5, 2) + '/' + product.published_at.substr(8, 2) + '/' + publishYear;
-                        } else {
-                            productData.DateAvailable = '';
-                        }
-                        if (product.gender) {
-                            productData.Gender = product.gender;
-                        } else {
-                            productData.Gender = 'Mens';
-                        }
-                        if (product.weight) {
-                            productData.Weight = product.weight;
-                        } else {
-                            productData.Weight = variant.weight;
-                        }
-                        if (variant.weight_unit == 'g') {
-                            productData.Weight = parseFloat(productData.Weight / 453.59237).toFixed(2);
-                        } else if (variant.weight_unit == 'kg') {
-                            productData.Weight = parseFloat(productData.Weight / 0.45359237).toFixed(2);
-                        }
-                        productData.Cost = variant.price;
-                        productData.Price = variant.price;
-                        productData.MSRP = variant.price;
-                        productData.Title = product.title;
-                        productData.MinQty = '';
-                        productData.MaxQty = '';
-                        // productData.IsBestSeller = collect.collection_id == bestSellCollectionId ? true : false;
-                        productData.IsBestSeller = false;
-                        // if (daysDifference > 30) {
-                        //     productData.IsNew = false;
-                        // } else {
-                        //     productData.IsNew = true;
-                        // }
-                        productData.IsNew = false;
-                        productData.IsExclusive = false;
-                        if (!variant.compare_at_price || variant.price >= variant.compare_at_price) {
-                            productData.IsSale = false;
-                        } else {
-                            productData.IsSale = true;
-                        }
-                        productData.SizeGroup = '';
-                        productData.ColorGroup = '';
-
-                        productData.ZoomImage1 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_1.jpg';
-                        productData.ZoomImage2 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_2.jpg';
-                        productData.ZoomImage3 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_3.jpg';
-                        productData.ZoomImage4 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_4.jpg';
-                        productData.ZoomImage5 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_5.jpg';
-                        productData.ProductVideo = '';
-                        if (variant.sku != '') {
-                            // productData.SKU = variant.sku + getShortenColorName(ColorName) + Size;
-                            productData.SKU = variant.id;
-                        } else {
-                            // productData.SKU = productData.ProductCode;
-                            productData.SKU = variant.id;
-                        }
-                        productData.SkuPrice = variant.price;
-                        productData.UPC = UPC;
-                        productData.QtyOnHand = variant.inventory_quantity > 0 ? variant.inventory_quantity : 0;
-                        productData.MoreInfo = '';
-                        try {
-                            taxCodeKeys.forEach((key) => {
-                                TaxCodeList[key].forEach((taxType) => {
-                                    if (product.product_type != '' && taxType.indexOf(product.product_type) !== -1) {
-                                        productData.TaxCode = key;
-                                        throw BreakException;
-                                    }
-                                })
-                            });
                         } catch (e) {
                             if (e !== BreakException) throw e;
                         }
-                        // try{
-                        //     taxCodeKeys.forEach( (key) => {
-                        //         if(product.product_type != '' && TaxCodeList[key].indexOf(product.product_type) !== -1) {
-                        //             productData.TaxCode = key;
-                        //             throw BreakException;
-                        //         }
-                        //     });
-                        // } catch(e) {
-                        //     if( e !== BreakException ) throw e;
-                        // }
-                        if (!productData.TaxCode) {
-                            productData.TaxCode = '';
-                        }
-                        productData.FinalSale = false;
-                        productData.CurrencyCode = shopData.currency;
-                        productData.WarehouseCode = "001".toString();
-                    }
 
-                    // productData.ColorSwatchImage = "";
-                    if (variant.image_id) {
-                        var variant_image = getVariantImage(product.images, variant.image_id);
-                        var temp0 = variant_image.split('.');
-                        var lastBlock = '.' + temp0[temp0.length - 1];
-                        var temp1 = variant_image.split(lastBlock);
-                        productView.img1 = temp1[0] + '_180x' + lastBlock;
-                        productView.img2 = temp1[0] + '_360x' + lastBlock;
-                        productView.img3 = temp1[0] + '_540x' + lastBlock;
-                        productView.img4 = temp1[0] + '_720x' + lastBlock;
-                        productView.img5 = temp1[0] + '_900x' + lastBlock;
-                    } else {
-                        if (product.image) {
-                            var temp0 = product.image.src.split('.');
+                        var ProductVideo = '';
+                        var MaterialContent = '';
+                        var VendorModelNumber = '';
+                        var MSRP = variant.price;
+                        var MinQty = 1;
+                        var MaxQty = 10;
+                        var UPC = variant.id;
+                        var MoreInfo = '';
+                        var WarehouseCode = "001".toString();
+                        if (metafields) {
+                            metafields.forEach(meta => {
+                                if (meta.key == 'productDescription2') {
+                                    ProductDescription2 = meta.value;
+                                }
+                                if (meta.key == 'overview') {
+                                    ProductOverview = meta.value;
+                                }
+                                if (meta.key == 'productVideo') {
+                                    ProductVideo = meta.value;
+                                }
+                                if (meta.key == 'materialContent') {
+                                    MaterialContent = meta.value;
+                                }
+                                if (meta.key == 'vendorModelNumber') {
+                                    VendorModelNumber = meta.value;
+                                }
+                                if (meta.key == 'msrp') {
+                                    MSRP = meta.value;
+                                }
+                                if (meta.key == 'minQty') {
+                                    MinQty = meta.value;
+                                }
+                                if (meta.key == 'maxQty') {
+                                    MaxQty = meta.value;
+                                }
+                                if (meta.key == 'upc' && meta.value != '') {
+                                    UPC = meta.value;
+                                }
+                                if (meta.key == 'moreInfo') {
+                                    MoreInfo = meta.value;
+                                }
+                                if (meta.key == 'warehouseCode') {
+                                    WarehouseCode = meta.value;
+                                }
+                            });
+                        }
+                        if (metafields && metafields.length > 0) {
+                            productData.ProductDescription2 = ProductDescription2;
+                            productData.ProductOverview = ProductOverview;
+                            productData.ProductType = ProductType;
+                            productData.MaterialContent = MaterialContent;
+                            productData.CountryOfOrigin = shopData.country;
+                            productData.VendorModelNumber = VendorModelNumber;
+                            productData.Vendor = product.vendor;
+                            productData.Season = publishSeason + ' ' + publishYear;
+                            productData.ColorName = ColorName;
+                            productData.Size = Size;
+                            productData.DateAvailable = product.published_at.substr(5, 2) + '/' + product.published_at.substr(8, 2) + '/' + publishYear;
+                            if (product.gender) {
+                                productData.Gender = product.gender;
+                            } else {
+                                productData.Gender = 'Mens';
+                            }
+                            if (product.weight) {
+                                productData.Weight = product.weight;
+                            } else {
+                                productData.Weight = variant.weight;
+                            }
+                            if (variant.weight_unit == 'g') {
+                                productData.Weight = parseFloat(productData.Weight / 453.59237).toFixed(2);
+                            } else if (variant.weight_unit == 'kg') {
+                                productData.Weight = parseFloat(productData.Weight / 0.45359237).toFixed(2);
+                            }
+                            productData.Cost = variant.price;
+                            productData.Price = variant.price;
+                            productData.MSRP = MSRP;
+                            productData.Title = product.title;
+                            productData.MinQty = MinQty;
+                            productData.MaxQty = MaxQty;
+                            productData.IsBestSeller = collect.collection_id == bestSellCollectionId ? true : false;
+                            // if(daysDifference > 30) {
+                            //     productData.IsNew = false;
+                            // } else {
+                            //     productData.IsNew = true;
+                            // }
+                            productData.IsNew = false;
+                            productData.IsExclusive = false;
+                            // if(!variant.compare_at_price || variant.price >= variant.compare_at_price) {
+                            //     productData.IsSale = false;
+                            // } else {
+                            //     productData.IsSale = true;
+                            // }
+                            productData.IsSale = false;
+                            productData.SizeGroup = '';
+                            productData.ColorGroup = '';
+
+                            productData.ZoomImage1 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_1.jpg';
+                            productData.ZoomImage2 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_2.jpg';
+                            productData.ZoomImage3 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_3.jpg';
+                            productData.ZoomImage4 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_4.jpg';
+                            productData.ZoomImage5 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_5.jpg';
+                            productData.ProductVideo = ProductVideo;
+                            if (variant.sku != '') {
+                                // productData.SKU = variant.sku + getShortenColorName(ColorName) + Size;
+                                productData.SKU = variant.id;
+                            } else {
+                                // productData.SKU = productData.ProductCode;
+                                productData.SKU = variant.id;
+                            }
+                            productData.SkuPrice = variant.price;
+                            productData.UPC = UPC;
+                            productData.QtyOnHand = variant.inventory_quantity > 0 ? variant.inventory_quantity : 0;
+                            productData.MoreInfo = MoreInfo;
+                            try {
+                                taxCodeKeys.forEach((key) => {
+                                    TaxCodeList[key].forEach((taxType) => {
+                                        if (product.product_type != '' && taxType.indexOf(product.product_type) !== -1) {
+                                            productData.TaxCode = key;
+                                            throw BreakException;
+                                        }
+                                    })
+                                });
+                            } catch (e) {
+                                if (e !== BreakException) throw e;
+                            }
+                            /*try{
+                                taxCodeKeys.forEach( (key) => {
+                                    if(product.product_type != '' && TaxCodeList[key].indexOf(product.product_type) !== -1) {
+                                        productData.TaxCode = key;
+                                        throw BreakException;
+                                    }
+                                });
+                            } catch(e) {
+                                if( e !== BreakException ) throw e;
+                            }*/
+                            if (!productData.TaxCode) {
+                                productData.TaxCode = '';
+                            }
+                            productData.FinalSale = false;
+                            productData.CurrencyCode = shopData.currency;
+                            productData.WarehouseCode = WarehouseCode;
+
+                        } else {
+                            productData.ProductDescription2 = '';
+                            productData.ProductOverview = '';
+                            productData.ProductType = ProductType;
+                            productData.MaterialContent = '';
+                            productData.CountryOfOrigin = shopData.country;
+                            productData.VendorModelNumber = variant.sku;
+                            productData.Vendor = product.vendor;
+                            productData.Season = publishSeason + ' ' + publishYear;
+                            productData.ColorName = ColorName;
+                            productData.Size = Size;
+                            if (product.published_at) {
+                                productData.DateAvailable = product.published_at.substr(5, 2) + '/' + product.published_at.substr(8, 2) + '/' + publishYear;
+                            } else {
+                                productData.DateAvailable = '';
+                            }
+                            if (product.gender) {
+                                productData.Gender = product.gender;
+                            } else {
+                                productData.Gender = 'Mens';
+                            }
+                            if (product.weight) {
+                                productData.Weight = product.weight;
+                            } else {
+                                productData.Weight = variant.weight;
+                            }
+                            if (variant.weight_unit == 'g') {
+                                productData.Weight = parseFloat(productData.Weight / 453.59237).toFixed(2);
+                            } else if (variant.weight_unit == 'kg') {
+                                productData.Weight = parseFloat(productData.Weight / 0.45359237).toFixed(2);
+                            }
+                            productData.Cost = variant.price;
+                            productData.Price = variant.price;
+                            productData.MSRP = variant.price;
+                            productData.Title = product.title;
+                            productData.MinQty = '';
+                            productData.MaxQty = '';
+                            // productData.IsBestSeller = collect.collection_id == bestSellCollectionId ? true : false;
+                            productData.IsBestSeller = false;
+                            // if (daysDifference > 30) {
+                            //     productData.IsNew = false;
+                            // } else {
+                            //     productData.IsNew = true;
+                            // }
+                            productData.IsNew = false;
+                            productData.IsExclusive = false;
+                            if (!variant.compare_at_price || variant.price >= variant.compare_at_price) {
+                                productData.IsSale = false;
+                            } else {
+                                productData.IsSale = true;
+                            }
+                            productData.SizeGroup = '';
+                            productData.ColorGroup = '';
+
+                            productData.ZoomImage1 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_1.jpg';
+                            productData.ZoomImage2 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_2.jpg';
+                            productData.ZoomImage3 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_3.jpg';
+                            productData.ZoomImage4 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_4.jpg';
+                            productData.ZoomImage5 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_5.jpg';
+                            productData.ProductVideo = '';
+                            if (variant.sku != '') {
+                                // productData.SKU = variant.sku + getShortenColorName(ColorName) + Size;
+                                productData.SKU = variant.id;
+                            } else {
+                                // productData.SKU = productData.ProductCode;
+                                productData.SKU = variant.id;
+                            }
+                            productData.SkuPrice = variant.price;
+                            productData.UPC = UPC;
+                            productData.QtyOnHand = variant.inventory_quantity > 0 ? variant.inventory_quantity : 0;
+                            productData.MoreInfo = '';
+                            try {
+                                taxCodeKeys.forEach((key) => {
+                                    TaxCodeList[key].forEach((taxType) => {
+                                        if (product.product_type != '' && taxType.indexOf(product.product_type) !== -1) {
+                                            productData.TaxCode = key;
+                                            throw BreakException;
+                                        }
+                                    })
+                                });
+                            } catch (e) {
+                                if (e !== BreakException) throw e;
+                            }
+                            // try{
+                            //     taxCodeKeys.forEach( (key) => {
+                            //         if(product.product_type != '' && TaxCodeList[key].indexOf(product.product_type) !== -1) {
+                            //             productData.TaxCode = key;
+                            //             throw BreakException;
+                            //         }
+                            //     });
+                            // } catch(e) {
+                            //     if( e !== BreakException ) throw e;
+                            // }
+                            if (!productData.TaxCode) {
+                                productData.TaxCode = '';
+                            }
+                            productData.FinalSale = false;
+                            productData.CurrencyCode = shopData.currency;
+                            productData.WarehouseCode = "001".toString();
+                        }
+
+                        // productData.ColorSwatchImage = "";
+                        if (variant.image_id) {
+                            var variant_image = getVariantImage(product.images, variant.image_id);
+                            var temp0 = variant_image.split('.');
                             var lastBlock = '.' + temp0[temp0.length - 1];
-                            var temp1 = product.image.src.split(lastBlock);
+                            var temp1 = variant_image.split(lastBlock);
                             productView.img1 = temp1[0] + '_180x' + lastBlock;
                             productView.img2 = temp1[0] + '_360x' + lastBlock;
                             productView.img3 = temp1[0] + '_540x' + lastBlock;
                             productView.img4 = temp1[0] + '_720x' + lastBlock;
                             productView.img5 = temp1[0] + '_900x' + lastBlock;
-                        }
-                    }
-                    productData.FreeShip = true;
-                    productData.Action = 'Activate';
-
-                    productView.handle = product.handle;
-                    productView.variantId = variant.id.toString();
-                    productDataList.push(productData);
-                    productViewList.push(productView);
-                    /*if(isFirstVariant) {
-                        writeProductFile(JSON.stringify(productData), 1, (writeError, writeResponse) => {
-                            isFirstVariant = false;
-                            if(writeError){
-                                console.log('writeError: ', writeError);
-                            }
-                            if(writeResponse == 'success') {
-                                console.log('Writing ...');
-                            }
-                        });
-                    } else {
-                        writeProductFile(JSON.stringify(productData), 0, (writeError, writeResponse) => {
-                            if(writeError){
-                                console.log('writeError: ', writeError);
-                            }
-                            if(writeResponse == 'success') {
-                                console.log('Writing ...');
-                            }
-                        });
-                    }*/
-                });
-            });
-        })
-        .then(() => {
-            sftp.connect({
-                    host: vendorData.sftp.sftpHost,
-                    port: process.env.SFTP_PORT,
-                    username: vendorData.sftp.sftpUsername,
-                    password: vendorData.sftp.sftpPassword
-                })
-                .then(async () => {
-                    await delay(1000);
-                    fs.writeFile("uploads/product.txt", TSV.stringify(productDataList), (err) => {
-                        if (err) {
-                            console.log(err);
                         } else {
-                            sftp.put('uploads/product.txt', '/incoming/products/products01.txt')
-                                .then(response => {
-                                    res.render('feeds/product', {
-                                        title: 'Product',
-                                        products: productViewList
-                                    });
-                                })
-                                .then(() => {
-                                    var kkk = 0;
-                                    eachSeries(productViewList, (pro, callbackProduct) => {
-                                        [1, 2, 3, 4, 5].forEach(i => {
-                                            var remotePath = '/productimages/product' + pro.variantId + '_' + i + '.jpg';
-                                            var localPath = 'uploads/temp' + kkk + '.jpg';
-                                            kkk++;
-                                            if (pro['img' + i]) {
-                                                downloadImage(pro['img' + i], localPath, () => {
-                                                    sftp.put(localPath, remotePath)
-                                                        .then(response => {
-                                                            // callbackProduct(null);
-                                                            // console.log('image ' + i + ' uploaded');
-                                                        })
-                                                        .catch(error => {
-                                                            console.log('upload error: ', error);
-                                                        });
-                                                });
+                            if (product.image) {
+                                var temp0 = product.image.src.split('.');
+                                var lastBlock = '.' + temp0[temp0.length - 1];
+                                var temp1 = product.image.src.split(lastBlock);
+                                productView.img1 = temp1[0] + '_180x' + lastBlock;
+                                productView.img2 = temp1[0] + '_360x' + lastBlock;
+                                productView.img3 = temp1[0] + '_540x' + lastBlock;
+                                productView.img4 = temp1[0] + '_720x' + lastBlock;
+                                productView.img5 = temp1[0] + '_900x' + lastBlock;
+                            }
+                        }
+                        productData.FreeShip = true;
+                        productData.Action = 'Activate';
+
+                        productView.handle = product.handle;
+                        productView.variantId = variant.id.toString();
+                        productDataList.push(productData);
+                        productViewList.push(productView);
+                        /*if(isFirstVariant) {
+                            writeProductFile(JSON.stringify(productData), 1, (writeError, writeResponse) => {
+                                isFirstVariant = false;
+                                if(writeError){
+                                    console.log('writeError: ', writeError);
+                                }
+                                if(writeResponse == 'success') {
+                                    console.log('Writing ...');
+                                }
+                            });
+                        } else {
+                            writeProductFile(JSON.stringify(productData), 0, (writeError, writeResponse) => {
+                                if(writeError){
+                                    console.log('writeError: ', writeError);
+                                }
+                                if(writeResponse == 'success') {
+                                    console.log('Writing ...');
+                                }
+                            });
+                        }*/
+                    });
+                });
+            })
+            .then(() => {
+                sftp.connect({
+                        host: vendorData.sftp.sftpHost,
+                        port: process.env.SFTP_PORT,
+                        username: vendorData.sftp.sftpUsername,
+                        password: vendorData.sftp.sftpPassword
+                    })
+                    .then(async () => {
+                        await delay(1000);
+                        fs.writeFile("uploads/product.txt", TSV.stringify(productDataList), (err) => {
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                sftp.put('uploads/product.txt', '/incoming/products/products01.txt')
+                                    .then(response => {
+                                        res.render('feeds/product', {
+                                            title: 'Product',
+                                            products: productViewList
+                                        });
+                                    })
+                                    .then(() => {
+                                        var kkk = 0;
+                                        eachSeries(productViewList, (pro, callbackProduct) => {
+                                            [1, 2, 3, 4, 5].forEach(i => {
+                                                var remotePath = '/productimages/product' + pro.variantId + '_' + i + '.jpg';
+                                                var localPath = 'uploads/temp' + kkk + '.jpg';
+                                                kkk++;
+                                                if (pro['img' + i]) {
+                                                    downloadImage(pro['img' + i], localPath, () => {
+                                                        sftp.put(localPath, remotePath)
+                                                            .then(response => {
+                                                                // callbackProduct(null);
+                                                                // console.log('image ' + i + ' uploaded');
+                                                            })
+                                                            .catch(error => {
+                                                                console.log('upload error: ', error);
+                                                            });
+                                                    });
+                                                }
+                                            });
+                                            callbackProduct(null);
+                                        }, (errorList) => {
+                                            if (errorList) {
+                                                console.log('errorList: ', errorList);
+                                            } else {
+                                                console.log('images have been uploaded just before');
                                             }
                                         });
-                                        callbackProduct(null);
-                                    }, (errorList) => {
-                                        if (errorList) {
-                                            console.log('errorList: ', errorList);
-                                        } else {
-                                            console.log('images have been uploaded just before');
-                                        }
-                                    });
-                                })
-                                .catch(error => console.log('upload error: ', error));
-                        }
-                    });
+                                    })
+                                    .catch(error => console.log('upload error: ', error));
+                            }
+                        });
 
-                })
-                .catch(error => console.log('connect error: ', error));
-        })
-        .catch(err => console.log('collectError: ', err));
+                    })
+                    .catch(error => console.log('connect error: ', error));
+            })
+            .catch(err => console.log('collectError: ', err));
 
+    }
 };
 
 const daysBetween = function (date1, date2) {

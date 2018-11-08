@@ -18,10 +18,12 @@ const passport = require('passport');
 const expressValidator = require('express-validator');
 const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
+const Promise = require('bluebird');
 const multer = require('multer');
 const User = require('./models/User');
 const upload = multer({ dest: path.join(__dirname, 'uploads') });
 
+Promise.promisifyAll(mongoose);
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
  */
