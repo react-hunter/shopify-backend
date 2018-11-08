@@ -90,7 +90,6 @@ exports.index = async (req, res, next) => {
             limit: 250
         }).then(products => {
             products.forEach(product => {
-                console.log('product data: ', product);
                 const metafields = metaList[product.id];
                 var productCategory = '';
                 var isFirstVariant = true;
