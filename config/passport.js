@@ -36,7 +36,6 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, don
  * Login Required middleware.
  */
 exports.isAuthenticated = (req, res, next) => {
-  console.log('req: ', req.user);
   if (req.isAuthenticated()) {
     return next();
   }
