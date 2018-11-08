@@ -62,6 +62,30 @@ exports.index = async (req, res, next) => {
                 }
             });
         }
+        // Check vendor availability. If vendor's status is inactive, it should redirect to homepage without any action.
+        if (vendorData.active == 'no') {
+            req.flash('errors', {
+                msg: 'Your vendor should be active to manage feed. Please contact with Administrator.'
+            });
+            errorExist = true;
+            res.redirect('/');
+            return next();
+        }
+
+        // Check product connector
+        Connector.find({vendorId:vendorData._id, kwiLocation: 'product', active: 'yes'}, (err, connectors) => {
+            if (err) {
+                return next(err);
+            }
+            if (connectors.length == 0) {
+                req.flash('errors', {
+                    msg: 'Your vendor does not include product connector or it is inactive. Please contact with Administrator or Admin User.'
+                });
+                errorExist = true;
+                res.redirect('/');
+                return next();
+            }
+        });
     });
 
     const sftp = new Client(); // sftp client
@@ -86,31 +110,6 @@ exports.index = async (req, res, next) => {
         res.redirect('/');
         return next();
     }
-
-    // Check vendor availability. If vendor's status is inactive, it should redirect to homepage without any action.
-    if (vendorData.active == 'no') {
-        req.flash('errors', {
-            msg: 'Your vendor should be active to manage feed. Please contact with Administrator.'
-        });
-        errorExist = true;
-        res.redirect('/');
-        return next();
-    }
-
-    // Check product connector
-    Connector.find({vendorId:vendorData._id, kwiLocation: 'product', active: 'yes'}, (err, connectors) => {
-        if (err) {
-            return next(err);
-        }
-        if (connectors.length == 0) {
-            req.flash('errors', {
-                msg: 'Your vendor does not include product connector or it is inactive. Please contact with Administrator or Admin User.'
-            });
-            errorExist = true;
-            res.redirect('/');
-            return next();
-        }
-    });
 
     await delay(2000);
     if(!errorExist) {
