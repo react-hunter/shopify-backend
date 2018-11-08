@@ -70,7 +70,7 @@ exports.index = async (req, res, next) => {
     }
 
     // Check vendor availability. If vendor's status is inactive, it should redirect to homepage without any action.
-    if (!shopify) {
+    if (vendorData.active == 'no') {
         req.flash('errors', {
             msg: 'Your vendor should be active to manage feed. Please contact with Administrator.'
         });
