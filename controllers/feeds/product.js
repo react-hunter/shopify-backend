@@ -10,7 +10,8 @@ const TaxonomyList = require('../../config/constants').TaxonomyList;
 const delay = require('delay');
 const TSV = require('tsv');
 const eachSeries = require('async/eachSeries');
-
+const eachOfSeries = require('async/eachOfSeries');
+const async = require('async');
 var threeColorKeys = Object.keys(ThreeColorList);
 
 const Vendor = require('../../models/Vendor');
@@ -132,16 +133,19 @@ exports.index = async (req, res, next) => {
         shopify.product.list({
                 limit: 250
             }).then(products => {
-                // var productList = [];
-                // products.forEach(product => {
-                //     var temp = product;
-                //     temp.body_html = 'product description';
-                //     productList.push(temp);
-                // });
-                // fs.writeFile("uploads/product-original.txt", TSV.stringify(productList), (err) => {
-                //     if (err) return next(err);
-                //     console.log('original written.');
-                // });
+                /*products.forEach(product => {
+                    var temp = product;
+                    temp.body_html = 'product description';
+                    writeProductFile(JSON.stringify(temp), 0, (writeError, writeResponse) => {
+                        isFirstVariant = false;
+                        if(writeError){
+                            console.log('writeError: ', writeError);
+                        }
+                        if(writeResponse == 'success') {
+                            console.log('Writing ...');
+                        }
+                    });
+                });*/
                 products.forEach(product => {
                     const metafields = metaList[product.id];
                     var productCategory = '';
@@ -582,22 +586,21 @@ exports.index = async (req, res, next) => {
                                     })
                                     .then(() => {
                                         var kkk = 0;
+                                        var downloadImageList = [];
+                                        var tempList = [];
+                                        const imageUploadLimit = 500;
                                         eachSeries(productViewList, (pro, callbackProduct) => {
                                             [1, 2, 3, 4, 5].forEach(i => {
                                                 var remotePath = '/productimages/product' + pro.variantId + '_' + i + '.jpg';
                                                 var localPath = 'uploads/temp' + kkk + '.jpg';
                                                 kkk++;
                                                 if (pro['img' + i]) {
-                                                    downloadImage(pro['img' + i], localPath, () => {
-                                                        sftp.put(localPath, remotePath)
-                                                            .then(response => {
-                                                                // callbackProduct(null);
-                                                                // console.log('image ' + i + ' uploaded');
-                                                            })
-                                                            .catch(error => {
-                                                                console.log('upload error: ', error);
-                                                            });
-                                                    });
+                                                    var temp = [pro['img' + i], localPath, remotePath];
+                                                    tempList.push(temp);
+                                                    if(kkk % imageUploadLimit == 0) {
+                                                        downloadImageList.push(tempList);
+                                                        tempList = [];
+                                                    }
                                                 }
                                             });
                                             callbackProduct(null);
@@ -606,8 +609,47 @@ exports.index = async (req, res, next) => {
                                                 console.log('errorList: ', errorList);
                                             } else {
                                                 console.log('images have been uploaded just before');
+                                                // Uploading part
+                                                eachOfSeries(
+                                                    downloadImageList,
+                                                    (subList, key, subCallback) => {
+                                                        async.each(
+                                                            subList,
+                                                            (item, itemCallback) => {
+                                                                downloadImage(item[0], item[1], () => {
+                                                                    sftp.put(item[1], item[2])
+                                                                        .then(response => {
+                                                                            console.log(item[1] + ' uploaded');
+                                                                            itemCallback();
+                                                                        })
+                                                                        .catch(error => {
+                                                                            // console.log('upload error: ', error);
+                                                                            // itemCallback(error);
+                                                                            if (error) {
+                                                                                console.log('sftp error: ', error);
+                                                                                itemCallback(error);
+                                                                            }
+                                                                        });
+                                                                });
+                                                            },
+                                                            (err) => {
+                                                                if (err) {
+                                                                    console.log('suberr');
+                                                                    subCallback(err);
+                                                                } else {
+                                                                    console.log('processed 500');
+                                                                    subCallback();
+                                                                }
+                                                            }
+                                                        );
+                                                    },
+                                                    (err) => {
+                                                        console.log(err);
+                                                    }         
+                                                );
                                             }
                                         });
+                                        // console.log('downloadImageList: ', downloadImageList);
                                     })
                                     .catch(error => console.log('upload error: ', error));
                             }
@@ -663,14 +705,14 @@ const getShortenColorName = function (str) {
 }
 const writeProductFile = function (data, isFirst, callback) {
     if (isFirst == 1) {
-        fs.appendFile("uploads/product.txt", data, function (err) {
+        fs.appendFile("uploads/product-original.txt", data, function (err) {
             if (err) {
                 callback(err);
             }
         });
         callback(null, 'success');
     } else {
-        fs.appendFile("uploads/product.txt", ', ' + data, function (err) {
+        fs.appendFile("uploads/product-original.txt", ', ' + data, function (err) {
             if (err) {
                 callback(err);
             }
