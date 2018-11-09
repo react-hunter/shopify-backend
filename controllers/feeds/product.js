@@ -113,7 +113,7 @@ exports.index = async (req, res, next) => {
 
     await delay(2000);
     if(!errorExist) {
-        shopify.metafield.list().then(metas => {
+        shopify.metafield.list().then(async metas => {
             metaList = metas.reduce((r, a) => {
                 r[a.owner_id] = r[a.owner_id] || [];
                 r[a.owner_id].push(a);
@@ -127,7 +127,7 @@ exports.index = async (req, res, next) => {
             shopData = shop;
         }).catch(err => console.log(err));
 
-        await delay(1000);
+        await delay(2000);
 
         shopify.product.list({
                 limit: 250
@@ -566,8 +566,8 @@ exports.index = async (req, res, next) => {
                         password: vendorData.sftp.sftpPassword
                     })
                     .then(async () => {
-                        await delay(1000);
-                        var vendorUrl = 'https://' + vendorData.apiShop + 'myshopify.com';
+                        await delay(2000);
+                        var vendorUrl = 'https://' + vendorData.api.apiShop + '.myshopify.com';
                         fs.writeFile("uploads/product.txt", TSV.stringify(productDataList), (err) => {
                             if (err) {
                                 console.log(err);
