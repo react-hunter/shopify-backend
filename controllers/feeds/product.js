@@ -619,12 +619,10 @@ exports.index = async (req, res, next) => {
                                                                 downloadImage(item[0], item[1], () => {
                                                                     sftp.put(item[1], item[2])
                                                                         .then(response => {
-                                                                            console.log(item[1] + ' uploaded');
+                                                                            // console.log(item[1] + ' uploaded');
                                                                             itemCallback();
                                                                         })
                                                                         .catch(error => {
-                                                                            // console.log('upload error: ', error);
-                                                                            // itemCallback(error);
                                                                             if (error) {
                                                                                 console.log('sftp error: ', error);
                                                                                 itemCallback(error);
@@ -637,8 +635,17 @@ exports.index = async (req, res, next) => {
                                                                     console.log('suberr');
                                                                     subCallback(err);
                                                                 } else {
-                                                                    console.log('processed 500');
-                                                                    subCallback();
+                                                                    console.log('processed ' + imageUploadLimit);
+                                                                    // Delete subList from local
+                                                                    deleteImageList(subList, (err) => {
+                                                                        if (err) {
+                                                                            console.log('Error in deleting files');
+                                                                            throw new Error('Could not delete files successfully.');
+                                                                        } else {
+                                                                            console.log('deleted ' + imageUploadLimit);
+                                                                            subCallback();
+                                                                        }
+                                                                    });
                                                                 }
                                                             }
                                                         );
@@ -690,6 +697,19 @@ const downloadImage = function (uri, filename, callback) {
         request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
     });
 };
+
+const deleteImageList = function (fileList, callback) {
+    if(fileList.length > 0) {
+        fileList.forEach(file => {
+            if (fs.existsSync(file[1])) {
+                fs.unlink(file[1], (err) => {
+                    if (err) throw err;
+                });
+            }
+        })
+    }
+    callback(null);
+}
 const jsUcfirst = function (string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
