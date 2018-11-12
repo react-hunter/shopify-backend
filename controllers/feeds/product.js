@@ -152,6 +152,7 @@ exports.index = async (req, res, next) => {
                     var isFirstVariant = true;
                     var firstVariantColor = '';
                     var firstVariantSku = '';
+                    var firstVariantId = '';
                     product.variants.forEach((variant) => {
                         var productData = {};
                         var productView = {};
@@ -200,6 +201,7 @@ exports.index = async (req, res, next) => {
                                     if (isFirstVariant) {
                                         firstVariantColor = ColorName;
                                         firstVariantSku = variant.sku;
+                                        firstVariantId = variant.id;
                                         isFirstVariant = false;
                                     }
                                 }
@@ -211,8 +213,8 @@ exports.index = async (req, res, next) => {
                             });
                         }
                         if (ProductCodeOption == '') {
-                            productData.ProductCode = variant.sku + '_' + getShortenColorName(ColorName);
-                            productData.ParentCode = firstVariantSku + '_' + getShortenColorName(firstVariantColor);
+                            productData.ProductCode = variant.id + '_' + getShortenColorName(ColorName);
+                            productData.ParentCode = firstVariantId + '_' + getShortenColorName(firstVariantColor);
                         } else {
                             productData.ProductCode = variant[ProductCodeOption] + '_' + getShortenColorName(ColorName);
                             productData.ParentCode = variant[ProductCodeOption] + '_' + getShortenColorName(firstVariantColor);
@@ -253,7 +255,7 @@ exports.index = async (req, res, next) => {
                         var VendorModelNumber = '';
                         var MSRP = variant.price;
                         var MinQty = 1;
-                        var MaxQty = 10;
+                        var MaxQty = variant.inventory_quantity;
                         var UPC = variant.id;
                         var MoreInfo = '';
                         var WarehouseCode = "001".toString();
@@ -325,7 +327,10 @@ exports.index = async (req, res, next) => {
                             } else if (variant.weight_unit == 'kg') {
                                 productData.Weight = parseFloat(productData.Weight / 0.45359237).toFixed(2);
                             }
-                            productData.Cost = variant.price;
+                            if(productData.Weight == 0) {
+                                productData.Weight = '';
+                            }
+                            productData.Cost = '';
                             productData.Price = variant.price;
                             productData.MSRP = MSRP;
                             productData.Title = product.title;
@@ -429,12 +434,15 @@ exports.index = async (req, res, next) => {
                             } else if (variant.weight_unit == 'kg') {
                                 productData.Weight = parseFloat(productData.Weight / 0.45359237).toFixed(2);
                             }
-                            productData.Cost = variant.price;
+                            if(productData.Weight == 0) {
+                                productData.Weight = '';
+                            }
+                            productData.Cost = '';
                             productData.Price = variant.price;
                             productData.MSRP = variant.price;
                             productData.Title = product.title;
-                            productData.MinQty = '';
-                            productData.MaxQty = '';
+                            productData.MinQty = MinQty;
+                            productData.MaxQty = MaxQty;
                             // productData.IsBestSeller = collect.collection_id == bestSellCollectionId ? true : false;
                             productData.IsBestSeller = false;
                             // if (daysDifference > 30) {
