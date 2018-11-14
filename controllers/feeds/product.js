@@ -74,7 +74,11 @@ exports.index = async (req, res, next) => {
         }
 
         // Check product connector
-        Connector.find({vendorId:vendorData._id, kwiLocation: 'product', active: 'yes'}, (err, connectors) => {
+        Connector.find({
+            vendorId: vendorData._id,
+            kwiLocation: 'product',
+            active: 'yes'
+        }, (err, connectors) => {
             if (err) {
                 return next(err);
             }
@@ -113,7 +117,7 @@ exports.index = async (req, res, next) => {
     }
 
     await delay(2000);
-    if(!errorExist) {
+    if (!errorExist) {
         shopify.metafield.list().then(async metas => {
             metaList = metas.reduce((r, a) => {
                 r[a.owner_id] = r[a.owner_id] || [];
@@ -304,7 +308,7 @@ exports.index = async (req, res, next) => {
                             productData.CountryOfOrigin = shopData.country;
                             productData.VendorModelNumber = VendorModelNumber;
                             productData.Vendor = product.vendor;
-                            if(product.published_at) {
+                            if (product.published_at) {
                                 productData.Season = publishSeason + ' ' + publishYear;
                             } else {
                                 productData.Season = '';
@@ -327,7 +331,7 @@ exports.index = async (req, res, next) => {
                             } else if (variant.weight_unit == 'kg') {
                                 productData.Weight = parseFloat(productData.Weight / 0.45359237).toFixed(2);
                             }
-                            if(productData.Weight == 0) {
+                            if (productData.Weight == 0) {
                                 productData.Weight = '';
                             }
                             productData.Cost = '';
@@ -407,7 +411,7 @@ exports.index = async (req, res, next) => {
                             productData.CountryOfOrigin = shopData.country;
                             productData.VendorModelNumber = variant.sku;
                             productData.Vendor = product.vendor;
-                            if(product.published_at) {
+                            if (product.published_at) {
                                 productData.Season = publishSeason + ' ' + publishYear;
                             } else {
                                 productData.Season = '';
@@ -434,7 +438,7 @@ exports.index = async (req, res, next) => {
                             } else if (variant.weight_unit == 'kg') {
                                 productData.Weight = parseFloat(productData.Weight / 0.45359237).toFixed(2);
                             }
-                            if(productData.Weight == 0) {
+                            if (productData.Weight == 0) {
                                 productData.Weight = '';
                             }
                             productData.Cost = '';
@@ -705,7 +709,7 @@ const downloadImage = function (uri, filename, callback) {
 };
 
 const deleteImageList = function (fileList, callback) {
-    if(fileList.length > 0) {
+    if (fileList.length > 0) {
         fileList.forEach(file => {
             if (fs.existsSync(file[1])) {
                 fs.unlink(file[1], (err) => {

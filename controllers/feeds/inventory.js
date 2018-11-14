@@ -16,12 +16,14 @@ exports.index = async (req, res, next) => {
     var vendorData;
     var shopify = null;
     var errorExist = false;
-    Vendor.findOne({_id: req.user.vendorId}, (vendorError, vendor) => {
+    Vendor.findOne({
+        _id: req.user.vendorId
+    }, (vendorError, vendor) => {
         if (vendorError) {
             return next(vendorError);
         }
         vendorData = vendor;
-        
+
         if (vendorData.api.apiShop == '' || vendorData.api.apiKey == '' || vendorData.api.apiPassword == '') {
             req.flash('errors', {
                 msg: 'You should have API information to manage product feed. Please contact with Administrator.'
@@ -62,7 +64,11 @@ exports.index = async (req, res, next) => {
         }
 
         // Check inventory connector
-        Connector.find({vendorId:vendorData._id, kwiLocation: 'inventory', active: 'yes'}, (err, connectors) => {
+        Connector.find({
+            vendorId: vendorData._id,
+            kwiLocation: 'inventory',
+            active: 'yes'
+        }, (err, connectors) => {
             if (err) {
                 return next(err);
             }
@@ -94,7 +100,7 @@ exports.index = async (req, res, next) => {
     }
 
     await delay(2000);
-    if (!errorExist){
+    if (!errorExist) {
         shopify.collect.list()
             .then(collects => {
                 collects.forEach(collect => {
@@ -114,7 +120,7 @@ exports.index = async (req, res, next) => {
                 });
             })
             .then(async () => {
-                await delay(1000);
+                await delay(2000);
                 sftp.connect({
                         host: vendorData.sftp.sftpHost,
                         port: process.env.SFTP_PORT,
@@ -128,7 +134,9 @@ exports.index = async (req, res, next) => {
                                 console.log('Writing File Error: ', err);
                             } else {
                                 var currentDate = new Date();
-                                var temp = currentDate.toLocaleString("en-US", {hour12: false}).split('.');
+                                var temp = currentDate.toLocaleString("en-US", {
+                                    hour12: false
+                                }).split('.');
                                 var remotePath = '/incoming/inventory/inventory' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '').replace(/\//g, '').replace(',', '') + '.txt';
                                 sftp.put('uploads/inventory.txt', remotePath)
                                     .then(response => {
