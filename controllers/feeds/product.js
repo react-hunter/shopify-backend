@@ -518,11 +518,6 @@ exports.index = async (req, res, next) => {
                             productView.img3 = temp1[0] + '_540x' + lastBlock;
                             productView.img4 = temp1[0] + '_720x' + lastBlock;
                             productView.img5 = temp1[0] + '_900x' + lastBlock;
-                            productData.ZoomImage1 = productView.img1;
-                            productData.ZoomImage2 = productView.img2;
-                            productData.ZoomImage3 = productView.img3;
-                            productData.ZoomImage4 = productView.img4;
-                            productData.ZoomImage5 = productView.img5;
                         } else {
                             if (product.image) {
                                 var temp0 = product.image.src.split('.');
@@ -533,11 +528,6 @@ exports.index = async (req, res, next) => {
                                 productView.img3 = temp1[0] + '_540x' + lastBlock;
                                 productView.img4 = temp1[0] + '_720x' + lastBlock;
                                 productView.img5 = temp1[0] + '_900x' + lastBlock;
-                                productData.ZoomImage1 = productView.img1;
-                                productData.ZoomImage2 = productView.img2;
-                                productData.ZoomImage3 = productView.img3;
-                                productData.ZoomImage4 = productView.img4;
-                                productData.ZoomImage5 = productView.img5;
                             }
                         }
                         productData.FreeShip = true;
