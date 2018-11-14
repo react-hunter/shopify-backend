@@ -130,8 +130,14 @@ exports.updateVendor = (req, res, next) => {
                 if (err) {
                     return next(err);
                 }
-                
-                res.redirect('/vendors');
+                if (req.user.type == 'superadmin') {
+                    res.redirect('/vendors');
+                } else {
+                    req.flash('info', {
+                        msg: 'You have updated vendor data successfully.'
+                    });
+                    res.redirect('/');
+                }
             });
         }
     });
