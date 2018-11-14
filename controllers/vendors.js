@@ -64,7 +64,7 @@ exports.saveVendor = (req, res, next) => {
         }
     });
     if (req.body.apiShop == '' || req.body.apiKey == '' || req.body.apiPassword == '' || req.body.sftpHost == '' || req.body.sftpUsername == '' || req.body.sftpPassword == '') {
-        req.flash('info', {
+        req.flash('errors', {
             msg: 'Shopify API and SFTP information are required. Please try again.'
         });
         res.redirect(url.format({
@@ -120,7 +120,7 @@ exports.updateVendor = (req, res, next) => {
         vendor.sftp.sftpPassword = req.body.sftpPassword;
 
         if (req.body.apiShop == '' || req.body.apiKey == '' || req.body.apiPassword == '' || req.body.sftpHost == '' || req.body.sftpUsername == '' || req.body.sftpPassword == '') {
-            req.flash('info', {
+            req.flash('errors', {
                 msg: 'Shopify API and SFTP information are required. Please try again.'
             });
             res.redirect('/vendors/' + req.body.vendorId);
@@ -133,7 +133,7 @@ exports.updateVendor = (req, res, next) => {
                 if (req.user.type == 'superadmin') {
                     res.redirect('/vendors');
                 } else {
-                    req.flash('info', {
+                    req.flash('success', {
                         msg: 'You have updated vendor data successfully.'
                     });
                     res.redirect('/');
@@ -155,6 +155,9 @@ exports.enableVendor = (req, res, next) => {
             if (err) {
                 return next(err);
             }
+            req.flash('info', {
+                msg: 'You have enabled vendor successfully.'
+            });
             res.redirect('/vendors');
         });
     });
@@ -203,7 +206,7 @@ exports.deleteVendor = (req, res, next) => {
                 if (err) {
                     return next(err);
                 }
-                req.flash('info', {
+                req.flash('success', {
                     msg: 'Vendor has been deleted successfully.'
                 });
                 res.redirect('/vendors');

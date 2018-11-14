@@ -4,6 +4,9 @@ const Client = require('ssh2-sftp-client');
 const delay = require('delay');
 const TSV = require('tsv');
 
+const Vendor = require('../../models/Vendor');
+const Connector = require('../../models/Connector');
+
 /**
  * GET /
  * Order page.

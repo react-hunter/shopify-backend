@@ -80,7 +80,7 @@ exports.saveUser = (req, res, next) => {
         user.password = req.body.password;
     }
     if (req.body.password != req.body.confirmpassword) {
-        req.flash('info', {
+        req.flash('errors', {
             msg: 'Password is not matched. Please try again.'
         });
         res.redirect(url.format({
@@ -101,7 +101,7 @@ exports.saveUser = (req, res, next) => {
         if (err) {
             return next(err);
         }
-        req.flash('info', {
+        req.flash('success', {
             msg: 'User has been added successfully.'
         });
         res.redirect('/users');
@@ -156,7 +156,7 @@ exports.updateUser = (req, res, next) => {
         if (req.body.password != '') {
             user.password = req.body.password;
             if (req.body.password != req.body.confirmpassword) {
-                req.flash('info', {
+                req.flash('errors', {
                     msg: 'Password is not matched. Please try again.'
                 });
                 res.redirect('/users/' + userId);
@@ -231,7 +231,9 @@ exports.deleteUser = (req, res, next) => {
         if (err) {
             return next(err);
         }
-
+        req.flash('success', {
+            msg: 'You have deleted user successfully.'
+        });
         res.redirect('/users');
     });
 }

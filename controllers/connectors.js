@@ -67,7 +67,7 @@ exports.saveConnector = (req, res, next) => {
     connector.kwiLocation = req.body.kwiLocation;
 
     if (req.body.name == '') {
-        req.flash('info', {
+        req.flash('errors', {
             msg: 'Input is not correct. Please try again.'
         });
         res.redirect(url.format({
@@ -83,7 +83,7 @@ exports.saveConnector = (req, res, next) => {
         if (err) {
             return next(err);
         }
-        req.flash('info', {
+        req.flash('success', {
             msg: 'Connector has been added successfully.'
         });
         res.redirect('/vendors/' + req.body.vendorId + '/connectors');
@@ -135,7 +135,7 @@ exports.updateConnector = (req, res, next) => {
                     connector.name = req.body.name;
                     connector.kwiLocation = req.body.kwiLocation;
                     if (req.body.name == '') {
-                        req.flash('info', {
+                        req.flash('errors', {
                             msg: 'Please insert correctly.'
                         });
                         res.redirect('/vendors/' + req.body.vendorId + '/connectors/' + req.body.connectorId);
@@ -145,7 +145,7 @@ exports.updateConnector = (req, res, next) => {
                         if (connectorErr) {
                             return next(connectorErr);
                         } else {
-                            req.flash('info', {
+                            req.flash('success', {
                                 msg: 'Connector has been updated successfully.'
                             });
                             res.redirect('/vendors/' + req.body.vendorId + '/connectors');
@@ -170,7 +170,7 @@ exports.deleteConnector = (req, res, next) => {
         if (err) {
             return next(err);
         }
-        req.flash('info', {
+        req.flash('success', {
             msg: 'Connector has been deleted successfully.'
         });
         res.redirect('/vendors/' + req.params.vendorId + '/connectors');
@@ -195,7 +195,7 @@ exports.activateConnector = (req, res, next) => {
                 if (err) {
                     return next(err);
                 } else {
-                    req.flash('info', {
+                    req.flash('success', {
                         msg: 'Connector has been activated successfully.'
                     });
                     res.redirect('/vendors/' + req.params.vendorId + '/connectors');
@@ -222,7 +222,7 @@ exports.inactivateConnector = (req, res, next) => {
                 if (err) {
                     return next(err);
                 } else {
-                    req.flash('info', {
+                    req.flash('success', {
                         msg: 'Connector has been inactivated successfully.'
                     });
                     res.redirect('/vendors/' + req.params.vendorId + '/connectors');
