@@ -353,11 +353,11 @@ exports.index = async (req, res, next) => {
                             productData.SizeGroup = '';
                             productData.ColorGroup = '';
 
-                            productData.ZoomImage1 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_1.jpg';
-                            productData.ZoomImage2 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_2.jpg';
-                            productData.ZoomImage3 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_3.jpg';
-                            productData.ZoomImage4 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_4.jpg';
-                            productData.ZoomImage5 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_5.jpg';
+                            productData.ZoomImage1 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_1.jpg';
+                            productData.ZoomImage2 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_2.jpg';
+                            productData.ZoomImage3 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_3.jpg';
+                            productData.ZoomImage4 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_4.jpg';
+                            productData.ZoomImage5 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_5.jpg';
                             productData.ProductVideo = ProductVideo;
                             if (variant.sku != '') {
                                 // productData.SKU = variant.sku + getShortenColorName(ColorName) + Size;
@@ -460,11 +460,11 @@ exports.index = async (req, res, next) => {
                             productData.SizeGroup = '';
                             productData.ColorGroup = '';
 
-                            productData.ZoomImage1 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_1.jpg';
-                            productData.ZoomImage2 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_2.jpg';
-                            productData.ZoomImage3 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_3.jpg';
-                            productData.ZoomImage4 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_4.jpg';
-                            productData.ZoomImage5 = 'http://www.imagestore.com/productimages/product' + variant.id.toString() + '_5.jpg';
+                            productData.ZoomImage1 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_1.jpg';
+                            productData.ZoomImage2 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_2.jpg';
+                            productData.ZoomImage3 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_3.jpg';
+                            productData.ZoomImage4 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_4.jpg';
+                            productData.ZoomImage5 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_5.jpg';
                             productData.ProductVideo = '';
                             if (variant.sku != '') {
                                 // productData.SKU = variant.sku + getShortenColorName(ColorName) + Size;
@@ -596,11 +596,11 @@ exports.index = async (req, res, next) => {
                                         var kkk = 0;
                                         var downloadImageList = [];
                                         var tempList = [];
-                                        const imageUploadLimit = 500;
+                                        const imageUploadLimit = 300;
                                         eachSeries(productViewList, (pro, callbackProduct) => {
                                             [1, 2, 3, 4, 5].forEach(i => {
-                                                var remotePath = '/productimages/product' + pro.variantId + '_' + i + '.jpg';
-                                                var localPath = 'uploads/temp' + kkk + '.jpg';
+                                                var remotePath = '/productimages/product_' + pro.variantId + '_' + i + '.jpg';
+                                                var localPath = 'uploads/product_' + pro.variantId + '_' + i + '.jpg';
                                                 kkk++;
                                                 if (pro['img' + i]) {
                                                     var temp = [pro['img' + i], localPath, remotePath];
@@ -625,7 +625,9 @@ exports.index = async (req, res, next) => {
                                                             subList,
                                                             (item, itemCallback) => {
                                                                 downloadImage(item[0], item[1], () => {
-                                                                    sftp.put(item[1], item[2])
+                                                                    itemCallback();
+                                                                    // upload from local to sftp
+                                                                    /*sftp.put(item[1], item[2])
                                                                         .then(response => {
                                                                             // console.log(item[1] + ' uploaded');
                                                                             itemCallback();
@@ -635,7 +637,7 @@ exports.index = async (req, res, next) => {
                                                                                 console.log('sftp error: ', error);
                                                                                 itemCallback(error);
                                                                             }
-                                                                        });
+                                                                        });*/
                                                                 });
                                                             },
                                                             (err) => {
@@ -644,8 +646,9 @@ exports.index = async (req, res, next) => {
                                                                     subCallback(err);
                                                                 } else {
                                                                     console.log('processed ' + imageUploadLimit);
+                                                                    subCallback();
                                                                     // Delete subList from local
-                                                                    deleteImageList(subList, (err) => {
+                                                                    /*deleteImageList(subList, (err) => {
                                                                         if (err) {
                                                                             console.log('Error in deleting files');
                                                                             throw new Error('Could not delete files successfully.');
@@ -653,7 +656,7 @@ exports.index = async (req, res, next) => {
                                                                             console.log('deleted ' + imageUploadLimit);
                                                                             subCallback();
                                                                         }
-                                                                    });
+                                                                    });*/
                                                                 }
                                                             }
                                                         );
