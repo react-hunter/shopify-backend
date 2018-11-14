@@ -288,3 +288,18 @@ exports.index = async (req, res, next) => {
             .catch(err => console.log(err));
     }
 };
+
+const deleteAndInitialize = function (filePath) {
+    if (fs.existsSync(filePath)) {
+        fs.unlink(filePath, (err) => {
+            if (err) throw err;
+            console.log(filePath + ' file has been deleted');
+            fs.writeFile(filePath, '', function (initErr) {
+                if (initErr) {
+                    console.log(initErr);
+                }
+                console.log('Made inventory file and initialized with empty');
+            });
+        });
+    }
+}
