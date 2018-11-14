@@ -530,6 +530,13 @@ exports.index = async (req, res, next) => {
                                 productView.img5 = temp1[0] + '_900x' + lastBlock;
                             }
                         }
+
+                        productData.ZoomImage1 = productView.img1;
+                        productData.ZoomImage2 = productView.img2;
+                        productData.ZoomImage3 = productView.img3;
+                        productData.ZoomImage4 = productView.img4;
+                        productData.ZoomImage5 = productView.img5;
+
                         productData.FreeShip = true;
                         productData.Action = 'Activate';
 
@@ -582,7 +589,7 @@ exports.index = async (req, res, next) => {
                                             vendorUrl: vendorUrl
                                         });
                                     })
-                                    .then(() => {
+                                    /*.then(() => {
                                         var kkk = 0;
                                         var downloadImageList = [];
                                         var tempList = [];
@@ -615,9 +622,8 @@ exports.index = async (req, res, next) => {
                                                             subList,
                                                             (item, itemCallback) => {
                                                                 downloadImage(item[0], item[1], () => {
-                                                                    itemCallback();
                                                                     // upload from local to sftp
-                                                                    /*sftp.put(item[1], item[2])
+                                                                    sftp.put(item[1], item[2])
                                                                         .then(response => {
                                                                             // console.log(item[1] + ' uploaded');
                                                                             itemCallback();
@@ -627,7 +633,7 @@ exports.index = async (req, res, next) => {
                                                                                 console.log('sftp error: ', error);
                                                                                 itemCallback(error);
                                                                             }
-                                                                        });*/
+                                                                        });
                                                                 });
                                                             },
                                                             (err) => {
@@ -636,9 +642,8 @@ exports.index = async (req, res, next) => {
                                                                     subCallback(err);
                                                                 } else {
                                                                     console.log('processed ' + imageUploadLimit);
-                                                                    subCallback();
                                                                     // Delete subList from local
-                                                                    /*deleteImageList(subList, (err) => {
+                                                                    deleteImageList(subList, (err) => {
                                                                         if (err) {
                                                                             console.log('Error in deleting files');
                                                                             throw new Error('Could not delete files successfully.');
@@ -646,7 +651,7 @@ exports.index = async (req, res, next) => {
                                                                             console.log('deleted ' + imageUploadLimit);
                                                                             subCallback();
                                                                         }
-                                                                    });*/
+                                                                    });
                                                                 }
                                                             }
                                                         );
@@ -658,7 +663,7 @@ exports.index = async (req, res, next) => {
                                             }
                                         });
                                         // console.log('downloadImageList: ', downloadImageList);
-                                    })
+                                    })*/
                                     .catch(error => console.log('upload error: ', error));
                             }
                         });
@@ -717,7 +722,6 @@ const jsUcfirst = function (string) {
 const getShortenColorName = function (str) {
     var returnColor = '';
     threeColorKeys.forEach(colorItemKey => {
-        // if( colorItemKey == str.toLowerCase() ) {
         if (str.toLowerCase().indexOf(colorItemKey) != -1) {
             returnColor = ThreeColorList[colorItemKey];
         }
