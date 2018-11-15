@@ -10,7 +10,7 @@ const Connector = require('../../models/Connector');
  * GET /
  * Refund page.
  */
-exports.index = (req, res) => {
+exports.index = async (req, res) => {
 
     var vendorData;
     var shopify = null;
