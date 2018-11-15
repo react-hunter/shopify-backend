@@ -27,7 +27,7 @@ bower_components
 *.iml
 modules.xml
 *.ipr
-
+ngrok.exe
 # Upload folder
 uploads/*
 !uploads/.gitkeep

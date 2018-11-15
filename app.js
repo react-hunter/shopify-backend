@@ -47,6 +47,7 @@ const inventoryController = require('./controllers/feeds/inventory');
 const orderController = require('./controllers/feeds/order');
 const refundController = require('./controllers/feeds/refund');
 
+const webhookController = require('./controllers/feeds/webhook');
 const testcodeController = require('./controllers/testcode');
 
 /**
@@ -103,7 +104,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use((req, res, next) => {
-  if (req.path === '/api/upload') {
+  if (req.path === '/api/upload' || req.path === '/webhook') {
     next();
   } else {
     lusca.csrf()(req, res, next);
@@ -193,6 +194,9 @@ app.get('/product', passportConfig.isAuthenticated, productController.index);
 app.get('/inventory', passportConfig.isAuthenticated, inventoryController.index);
 app.get('/order', passportConfig.isAuthenticated, orderController.index);
 app.get('/refund', passportConfig.isAuthenticated, refundController.index);
+
+// Test for webhook
+app.post('/webhook', webhookController.index);
 // To test some code.
 app.get('/testcode', testcodeController.index);
 
