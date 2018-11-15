@@ -1,6 +1,7 @@
 const Shopify = require('shopify-api-node');
 const fs = require('fs');
 const Client = require('ssh2-sftp-client');
+const delay = require('delay');
 const TSV = require('tsv');
 
 const Vendor = require('../../models/Vendor');
@@ -10,7 +11,7 @@ const Connector = require('../../models/Connector');
  * GET /
  * Refund page.
  */
-exports.index = async (req, res) => {
+exports.index = async (req, res, next) => {
 
     var vendorData;
     var shopify = null;
