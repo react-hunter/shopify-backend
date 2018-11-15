@@ -84,7 +84,7 @@ exports.index = async (req, res, next) => {
     });
 
     const sftp = new Client();
-    var inventoryDataList = new Array();
+    var inventoryDataList = [];
 
     // Initialize product feed file with empty
     deleteAndInitialize('uploads/inventory.txt');
@@ -101,22 +101,17 @@ exports.index = async (req, res, next) => {
 
     await delay(2000);
     if (!errorExist) {
-        shopify.collect.list()
-            .then(collects => {
-                collects.forEach(collect => {
-                    shopify.product.get(collect.product_id)
-                        .then(product => {
-                            product.variants.forEach(variant => {
-                                var inventoryData = {};
-                                inventoryData.id = variant.id;
-                                inventoryData.qty_on_hand = variant.inventory_quantity < 0 ? 0 : variant.inventory_quantity;
-                                inventoryData.date_available = product.published_at;
+        shopify.product.list()
+            .then(products => {
+                products.forEach(product => {
+                    product.variants.forEach(variant => {
+                        var inventoryData = {};
+                        inventoryData.id = variant.id;
+                        inventoryData.qty_on_hand = variant.inventory_quantity < 0 ? 0 : variant.inventory_quantity;
+                        inventoryData.date_available = product.published_at;
 
-                                inventoryDataList.push(inventoryData);
-                            });
-                        })
-                        .catch(inventoryError => console.log('inventoryError: ', inventoryError));
-
+                        inventoryDataList.push(inventoryData);
+                    });
                 });
             })
             .then(async () => {
