@@ -135,7 +135,8 @@ exports.index = async (req, res, next) => {
         await delay(2000);
 
         shopify.product.list({
-                limit: 250
+                limit: 250,
+                published_status: 'published'
             }).then(products => {
                 /*products.forEach(product => {
                     var temp = product;
@@ -200,14 +201,17 @@ exports.index = async (req, res, next) => {
                                     Size = variant['option' + keyIndex];
                                 }
                                 if (option.name.toLowerCase() == 'color') {
-                                    ColorName = variant['option' + keyIndex];
-                                    ColorName = jsUcfirst(ColorName).replace(' ', '');
+                                    var colorname = variant['option' + keyIndex];
+                                    ColorName = jsUcfirst(colorname).replace(' ', '');
                                     if (isFirstVariant) {
-                                        firstVariantColor = ColorName;
+                                        firstVariantColor = colorname;
                                         firstVariantSku = variant.sku;
                                         firstVariantId = variant.id;
                                         isFirstVariant = false;
                                     }
+                                }
+                                if(option.name.toLowerCase() != 'color' && isFirstVariant) {
+                                    firstVariantId = variant.id;
                                 }
                                 if (option.name.toLowerCase() == 'productcode' || option.name.toLowerCase() == 'product code') {
                                     ProductCodeOption = 'option' + keyIndex;

@@ -10,7 +10,7 @@ const taxonomyList = {
 
 var productTypeList = ['Apparel', 'Footwear', 'Jewelry', 'Furniture', 'Sports Equipment', 'Home goods' ,'Watches & Jewelry', 'Accessories', 'Food & Beverage', 'Beauty & Grooming', 'Pets'];
 
-var threeColorList = {"clear":"CLR", "black":"BLK", "brown":"BRN", "red":"RED", "orange":"ORN", "yellow":"YEL", "green":"GRN", "blue":"BLU", "violet":"VIO", "grey":"GRY", "white":"WHT", "pink":"PNK", "tan":"TAN", "pearl":"PER"};
+var threeColorList = {"clear":"CLR", "black":"BLK", "brown":"BRN", "red":"RED", "orange":"ORN", "yellow":"YEL", "green":"GRN", "blue":"BLU", "violet":"VIO", "grey":"GRY", "white":"WHT", "pink":"PNK", "tan":"TAN", "pearl":"PER", "dusk pink":"DPK", "heather black": "HBK", "heather blue":"HBL", "heather gray":"HGR", "royal":"RYL", "charcoal":"CCL", "merlot":"MLT", "pacific":"PFC", "celadon":"CEL", "indigo":"IND", "light gray":"LGR", "cardinal":"CAR", "golden state blue":"GSB", "eagle":"EGL", "quail":"QUA", "green collar":"GCL", "powder blue":"PBL"};
 
 module.exports = {
     'TaxCodeList': taxCodeList,
