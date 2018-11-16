@@ -130,10 +130,10 @@ exports.index = async (req, res, next) => {
         })
         .then(() => {
             sftp.connect({
-                    host: process.env.SFTP_HOST,
+                    host: vendorData.sftp.sftpHost,
                     port: process.env.SFTP_PORT,
-                    username: process.env.SFTP_USERNAME,
-                    password: process.env.SFTP_PASSWORD
+                    username: vendorData.sftp.sftpUsername,
+                    password: vendorData.sftp.sftpPassword
                 })
                 .then(() => {
                     fs.writeFile("uploads/return.txt", TSV.stringify(refundDataList), function (err) {

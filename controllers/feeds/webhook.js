@@ -24,10 +24,10 @@ exports.index = (req, res) => {
     // productHookList[fromStore + '-update'] = [];
     if (hookHeaders['x-shopify-topic'] == 'products/update') {
         if (contains.call(productHookList[fromStore + '-update'], hookHeaders['x-shopify-product-id'])) {
-            console.log('request headers: ', hookHeaders);
-            console.log('request body: ', hookBody);
+            console.log('updated product id: ', hookHeaders['x-shopify-product-id']);
+            console.log('updated product title: ', hookBody.title);
             console.log('////////////////////////////////////////////////////////////////////');
-            res.json({status: 'ok'});
+            res.status(200).send();
             productHookList[fromStore + '-update'] = [];
         } else {
             productHookList[fromStore + '-update'] = [];
