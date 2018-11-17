@@ -201,17 +201,14 @@ exports.index = async (req, res, next) => {
                                     Size = variant['option' + keyIndex];
                                 }
                                 if (option.name.toLowerCase() == 'color') {
-                                    var colorname = variant['option' + keyIndex];
-                                    ColorName = jsUcfirst(colorname).replace(' ', '');
+                                    var color = variant['option' + keyIndex];
+                                    ColorName = jsUcfirst(color);
                                     if (isFirstVariant) {
-                                        firstVariantColor = colorname;
+                                        firstVariantColor = color;
                                         firstVariantSku = variant.sku;
                                         firstVariantId = variant.id;
                                         isFirstVariant = false;
                                     }
-                                }
-                                if(option.name.toLowerCase() != 'color' && isFirstVariant) {
-                                    firstVariantId = variant.id;
                                 }
                                 if (option.name.toLowerCase() == 'productcode' || option.name.toLowerCase() == 'product code') {
                                     ProductCodeOption = 'option' + keyIndex;
@@ -220,12 +217,18 @@ exports.index = async (req, res, next) => {
                                 keyIndex++;
                             });
                         }
+                        if (firstVariantColor == '' && isFirstVariant) {
+                            firstVariantId = variant.id;
+                            isFirstVariant = false;
+                        }
+                        var shortColorName = getShortenColorName(ColorName);
+                        var shortFirstColorName = getShortenColorName(firstVariantColor);
                         if (ProductCodeOption == '') {
-                            productData.ProductCode = variant.id + '_' + getShortenColorName(ColorName);
-                            productData.ParentCode = firstVariantId + '_' + getShortenColorName(firstVariantColor);
+                            productData.ProductCode = shortColorName==''?variant.id.toString() : variant.id.toString() + '_' + shortColorName;
+                            productData.ParentCode = shortFirstColorName==''?firstVariantId.toString() : firstVariantId.toString() + '_' + shortFirstColorName;
                         } else {
-                            productData.ProductCode = variant[ProductCodeOption] + '_' + getShortenColorName(ColorName);
-                            productData.ParentCode = variant[ProductCodeOption] + '_' + getShortenColorName(firstVariantColor);
+                            productData.ProductCode = shortColorName==''?variant[ProductCodeOption] : variant[ProductCodeOption] + '_' + shortColorName;
+                            productData.ParentCode = shortFirstColorName==''?variant[ProductCodeOption] : variant[ProductCodeOption] + '_' + shortFirstColorName;
                         }
 
                         var ProductDescription2 = '';
@@ -317,7 +320,7 @@ exports.index = async (req, res, next) => {
                             } else {
                                 productData.Season = '';
                             }
-                            productData.ColorName = ColorName;
+                            productData.ColorName = ColorName.replace(' ', '');
                             productData.Size = Size;
                             productData.DateAvailable = product.published_at.substr(5, 2) + '/' + product.published_at.substr(8, 2) + '/' + publishYear;
                             if (product.gender) {
@@ -420,7 +423,7 @@ exports.index = async (req, res, next) => {
                             } else {
                                 productData.Season = '';
                             }
-                            productData.ColorName = ColorName;
+                            productData.ColorName = ColorName.replace(' ', '');
                             productData.Size = Size;
                             if (product.published_at) {
                                 productData.DateAvailable = product.published_at.substr(5, 2) + '/' + product.published_at.substr(8, 2) + '/' + publishYear;
