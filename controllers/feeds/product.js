@@ -322,7 +322,11 @@ exports.index = async (req, res, next) => {
                             }
                             productData.ColorName = ColorName.replace(' ', '');
                             productData.Size = Size;
-                            productData.DateAvailable = product.published_at.substr(5, 2) + '/' + product.published_at.substr(8, 2) + '/' + publishYear;
+                            if (product.published_at) {
+                                productData.DateAvailable = product.published_at.substr(5, 2) + '/' + product.published_at.substr(8, 2) + '/' + publishYear;
+                            } else {
+                                productData.DateAvailable = '';
+                            }
                             if (product.gender) {
                                 productData.Gender = product.gender;
                             } else {
