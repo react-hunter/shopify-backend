@@ -150,7 +150,14 @@ exports.index = async (req, res, next) => {
                             console.log('Writing ...');
                         }
                     });
-                });*/
+                });
+                tempProducts = [];
+                products.forEach(product => {
+                    var temp = product;
+                    temp.body_html = 'product description';
+                    tempProducts.push(temp);
+                });
+                fs.writeFile("uploads/product-raw-stateapparel.tsv", TSV.stringify(tempProducts));*/
                 products.forEach(product => {
                     const metafields = metaList[product.id];
                     var productCategory = '';
@@ -224,8 +231,8 @@ exports.index = async (req, res, next) => {
                         var shortColorName = getShortenColorName(ColorName);
                         var shortFirstColorName = getShortenColorName(firstVariantColor);
                         if (ProductCodeOption == '') {
-                            productData.ProductCode = shortColorName==''?variant.id.toString() : variant.id.toString() + '_' + shortColorName;
-                            productData.ParentCode = shortFirstColorName==''?firstVariantId.toString() : firstVariantId.toString() + '_' + shortFirstColorName;
+                            productData.ProductCode = shortColorName==''?variant.product_id.toString() : variant.product_id.toString() + '_' + shortColorName;
+                            productData.ParentCode = shortFirstColorName==''?variant.product_id.toString() : variant.product_id.toString() + '_' + shortFirstColorName;
                         } else {
                             productData.ProductCode = shortColorName==''?variant[ProductCodeOption] : variant[ProductCodeOption] + '_' + shortColorName;
                             productData.ParentCode = shortFirstColorName==''?variant[ProductCodeOption] : variant[ProductCodeOption] + '_' + shortFirstColorName;
@@ -266,7 +273,7 @@ exports.index = async (req, res, next) => {
                         var VendorModelNumber = '';
                         var MSRP = variant.price;
                         var MinQty = 1;
-                        var MaxQty = variant.inventory_quantity;
+                        var MaxQty = variant.inventory_quantity > 0 ? variant.inventory_quantity:1;
                         var UPC = variant.id;
                         var MoreInfo = '';
                         var WarehouseCode = "001".toString();
@@ -322,16 +329,15 @@ exports.index = async (req, res, next) => {
                             }
                             productData.ColorName = ColorName.replace(' ', '');
                             productData.Size = Size;
+                            productData.DateAvailable = '';
                             if (product.published_at) {
                                 productData.DateAvailable = product.published_at.substr(5, 2) + '/' + product.published_at.substr(8, 2) + '/' + publishYear;
-                            } else {
-                                productData.DateAvailable = '';
                             }
+                            productData.Gender = 'Mens';
                             if (product.gender) {
                                 productData.Gender = product.gender;
-                            } else {
-                                productData.Gender = 'Mens';
                             }
+                            productData.Weight = 0;
                             if (product.weight) {
                                 productData.Weight = product.weight;
                             } else {
@@ -343,7 +349,7 @@ exports.index = async (req, res, next) => {
                                 productData.Weight = parseFloat(productData.Weight / 0.45359237).toFixed(2);
                             }
                             if (productData.Weight == 0) {
-                                productData.Weight = '';
+                                productData.Weight = 1;
                             }
                             productData.Cost = '';
                             productData.Price = variant.price;
@@ -368,11 +374,11 @@ exports.index = async (req, res, next) => {
                             productData.SizeGroup = '';
                             productData.ColorGroup = '';
 
-                            productData.ZoomImage1 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_1.jpg';
-                            productData.ZoomImage2 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_2.jpg';
-                            productData.ZoomImage3 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_3.jpg';
-                            productData.ZoomImage4 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_4.jpg';
-                            productData.ZoomImage5 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_5.jpg';
+                            productData.ZoomImage1 = '';
+                            // productData.ZoomImage2 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_2.jpg';
+                            // productData.ZoomImage3 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_3.jpg';
+                            // productData.ZoomImage4 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_4.jpg';
+                            // productData.ZoomImage5 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_5.jpg';
                             productData.ProductVideo = ProductVideo;
                             if (variant.sku != '') {
                                 // productData.SKU = variant.sku + getShortenColorName(ColorName) + Size;
@@ -429,10 +435,9 @@ exports.index = async (req, res, next) => {
                             }
                             productData.ColorName = ColorName.replace(' ', '');
                             productData.Size = Size;
+                            productData.DateAvailable = '';
                             if (product.published_at) {
                                 productData.DateAvailable = product.published_at.substr(5, 2) + '/' + product.published_at.substr(8, 2) + '/' + publishYear;
-                            } else {
-                                productData.DateAvailable = '';
                             }
                             if (product.gender) {
                                 productData.Gender = product.gender;
@@ -450,7 +455,7 @@ exports.index = async (req, res, next) => {
                                 productData.Weight = parseFloat(productData.Weight / 0.45359237).toFixed(2);
                             }
                             if (productData.Weight == 0) {
-                                productData.Weight = '';
+                                productData.Weight = 1;
                             }
                             productData.Cost = '';
                             productData.Price = variant.price;
@@ -475,11 +480,11 @@ exports.index = async (req, res, next) => {
                             productData.SizeGroup = '';
                             productData.ColorGroup = '';
 
-                            productData.ZoomImage1 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_1.jpg';
-                            productData.ZoomImage2 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_2.jpg';
-                            productData.ZoomImage3 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_3.jpg';
-                            productData.ZoomImage4 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_4.jpg';
-                            productData.ZoomImage5 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_5.jpg';
+                            productData.ZoomImage1 = '';
+                            // productData.ZoomImage2 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_2.jpg';
+                            // productData.ZoomImage3 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_3.jpg';
+                            // productData.ZoomImage4 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_4.jpg';
+                            // productData.ZoomImage5 = 'https://content-commerce.herokuapp.com/productimages/product_' + variant.id.toString() + '_5.jpg';
                             productData.ProductVideo = '';
                             if (variant.sku != '') {
                                 // productData.SKU = variant.sku + getShortenColorName(ColorName) + Size;
@@ -528,29 +533,29 @@ exports.index = async (req, res, next) => {
                             var temp0 = variant_image.split('.');
                             var lastBlock = '.' + temp0[temp0.length - 1];
                             var temp1 = variant_image.split(lastBlock);
-                            productView.img1 = temp1[0] + '_180x' + lastBlock;
-                            productView.img2 = temp1[0] + '_360x' + lastBlock;
-                            productView.img3 = temp1[0] + '_540x' + lastBlock;
-                            productView.img4 = temp1[0] + '_720x' + lastBlock;
-                            productView.img5 = temp1[0] + '_900x' + lastBlock;
+                            productView.img1 = temp1[0] + '_1024x' + lastBlock;
+                            // productView.img2 = temp1[0] + '_360x' + lastBlock;
+                            // productView.img3 = temp1[0] + '_540x' + lastBlock;
+                            // productView.img4 = temp1[0] + '_720x' + lastBlock;
+                            // productView.img5 = temp1[0] + '_900x' + lastBlock;
                         } else {
                             if (product.image) {
                                 var temp0 = product.image.src.split('.');
                                 var lastBlock = '.' + temp0[temp0.length - 1];
                                 var temp1 = product.image.src.split(lastBlock);
-                                productView.img1 = temp1[0] + '_180x' + lastBlock;
-                                productView.img2 = temp1[0] + '_360x' + lastBlock;
-                                productView.img3 = temp1[0] + '_540x' + lastBlock;
-                                productView.img4 = temp1[0] + '_720x' + lastBlock;
-                                productView.img5 = temp1[0] + '_900x' + lastBlock;
+                                productView.img1 = temp1[0] + '_1024x' + lastBlock;
+                                // productView.img2 = temp1[0] + '_360x' + lastBlock;
+                                // productView.img3 = temp1[0] + '_540x' + lastBlock;
+                                // productView.img4 = temp1[0] + '_720x' + lastBlock;
+                                // productView.img5 = temp1[0] + '_900x' + lastBlock;
                             }
                         }
 
                         productData.ZoomImage1 = productView.img1;
-                        productData.ZoomImage2 = productView.img2;
-                        productData.ZoomImage3 = productView.img3;
-                        productData.ZoomImage4 = productView.img4;
-                        productData.ZoomImage5 = productView.img5;
+                        // productData.ZoomImage2 = productView.img2;
+                        // productData.ZoomImage3 = productView.img3;
+                        // productData.ZoomImage4 = productView.img4;
+                        // productData.ZoomImage5 = productView.img5;
 
                         productData.FreeShip = true;
                         productData.Action = 'Activate';
