@@ -162,15 +162,14 @@ exports.updateUser = (req, res, next) => {
                 res.redirect('/users/' + userId);
                 return next();
             }
-        } else {
-            user.save(err => {
-                if (err) {
-                    return next(err);
-                }
-
-                res.redirect('/users');
-            });
         }
+        user.save(err => {
+            if (err) {
+                return next(err);
+            }
+
+            res.redirect('/users');
+        });
     });
 };
 
