@@ -157,7 +157,7 @@ exports.index = async (req, res, next) => {
                     temp.body_html = 'product description';
                     tempProducts.push(temp);
                 });
-                fs.writeFile("uploads/product-raw-stateapparel.tsv", TSV.stringify(tempProducts));*/
+                fs.writeFile("uploads/backup/product-raw-hedge.tsv", TSV.stringify(tempProducts));*/
                 products.forEach(product => {
                     const metafields = metaList[product.id];
                     var productCategory = '';
@@ -750,7 +750,7 @@ const getShortenColorName = function (str) {
 }
 const writeProductFile = function (data, isFirst, callback) {
     if (isFirst == 1) {
-        fs.appendFile("uploads/product-original.txt", data, function (err) {
+        fs.appendFile("uploads/product-original-hedge.txt", data, function (err) {
             if (err) {
                 callback(err);
             }
