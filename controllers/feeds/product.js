@@ -391,6 +391,7 @@ exports.index = async (req, res, next) => {
                             productData.UPC = UPC;
                             productData.QtyOnHand = variant.inventory_quantity > 0 ? variant.inventory_quantity : 0;
                             productData.MoreInfo = MoreInfo;
+                            productData.TaxCode = 'PC040100';
                             try {
                                 taxCodeKeys.forEach((key) => {
                                     TaxCodeList[key].forEach((taxType) => {
@@ -496,7 +497,8 @@ exports.index = async (req, res, next) => {
                             productData.SkuPrice = variant.price;
                             productData.UPC = UPC;
                             productData.QtyOnHand = variant.inventory_quantity > 0 ? variant.inventory_quantity : 0;
-                            productData.MoreInfo = '';
+                            productData.MoreInfo = MoreInfo;
+                            productData.TaxCode = 'PC040100';
                             try {
                                 taxCodeKeys.forEach((key) => {
                                     TaxCodeList[key].forEach((taxType) => {
