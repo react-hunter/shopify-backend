@@ -178,7 +178,7 @@ exports.index = async (req, res, next) => {
                         productData.ProductDescription = '';
                         if (product.body_html) {
                             productData.ProductDescription = product.body_html.replace(/(<([^>]+)>)/ig, "");
-                            productData.ProductDescription = productData.ProductDescription.replace(/\r?\n|\r/g, '');
+                            productData.ProductDescription = '"' + productData.ProductDescription.replace(/\r?\n|\r/g, '').replace(/\"/g, '""') + '"';
                         }
                         productView.description = productData.ProductDescription;
 
