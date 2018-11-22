@@ -16,6 +16,10 @@ var threeColorKeys = Object.keys(ThreeColorList);
 
 const Vendor = require('../../models/Vendor');
 const Connector = require('../../models/Connector');
+const Color = require('../../models/Color');
+
+var colorList = [];
+
 /**
  * GET /
  * Product page.
@@ -26,6 +30,15 @@ exports.index = async (req, res, next) => {
     var shopify = null;
     var metaList;
     var errorExist = false;
+    // Get color list from db
+    Color.findOne({}, (colorError, color) => {
+        if (colorError) {
+            return next(colorError);
+        } else {
+            colorList = color.colorList;
+        }
+    });
+    
     Vendor.findOne({
         _id: req.user.vendorId
     }, (vendorError, vendor) => {
@@ -743,9 +756,14 @@ const jsUcfirst = function (string) {
 }
 const getShortenColorName = function (str) {
     var returnColor = '';
-    threeColorKeys.forEach(colorItemKey => {
+    /*threeColorKeys.forEach(colorItemKey => {
         if (str.toLowerCase().indexOf(colorItemKey) != -1) {
             returnColor = ThreeColorList[colorItemKey];
+        }
+    });*/
+    colorList.forEach(colorItem => {
+        if (colorItem.colorName == str.toLowerCase()) {
+            returnColor = colorItem.shortName;
         }
     });
     return returnColor;
