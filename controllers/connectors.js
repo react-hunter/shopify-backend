@@ -206,17 +206,30 @@ exports.activateConnector = (req, res, next) => {
         if (getErr) {
             return next(getErr);
         } else {
-            connector.active = 'yes';
-            connector.activeDate = new Date();
-
-            connector.save(err => {
-                if (err) {
-                    return next(err);
-                } else {
-                    req.flash('success', {
-                        msg: 'Connector has been activated successfully.'
+            Vendor.findById(req.params.vendorId, (vendorError, vendor) => {
+                if (vendorError) {
+                    return next(vendorError);
+                }
+                if (vendor.colorSynched != 'yes') {
+                    req.flash('errors', {
+                        msg: 'To create product connector, you should apply colors in products of this store firstly.'
                     });
-                    res.redirect('/vendors/' + req.params.vendorId + '/connectors');
+                    res.redirect('/vendors');
+                    return next();
+                } else {
+                    connector.active = 'yes';
+                    connector.activeDate = new Date();
+        
+                    connector.save(err => {
+                        if (err) {
+                            return next(err);
+                        } else {
+                            req.flash('success', {
+                                msg: 'Connector has been activated successfully.'
+                            });
+                            res.redirect('/vendors/' + req.params.vendorId + '/connectors');
+                        }
+                    });
                 }
             });
         }
