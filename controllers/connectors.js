@@ -62,6 +62,24 @@ exports.addConnector = (req, res, next) => {
 exports.saveConnector = (req, res, next) => {
     var connector = new Connector();
 
+    if (req.body.kwiLocation === 'product') {
+        // Get all colors of this vendor and add colors into db
+        Vendor.findById(req.body.vendorId, (vendorError, vendor) => {
+            if (vendor.colorSynched != 'yes') {
+                req.flash('errors', {
+                    msg: 'To create product connector, you should apply colors in products of this store firstly.'
+                });
+                res.redirect(url.format({
+                    pathname: '/vendors/' + req.body.vendorId + '/connectors/add',
+                    query: {
+                        name: req.body.name,
+                        kwiLocation: req.body.kwiLocation
+                    }
+                }));
+                return next();
+            }
+        });
+    }
     connector.vendorId = req.body.vendorId;
     connector.name = req.body.name;
     connector.kwiLocation = req.body.kwiLocation;

@@ -21,6 +21,7 @@ const sass = require('node-sass-middleware');
 const Promise = require('bluebird');
 const multer = require('multer');
 const User = require('./models/User');
+const Color = require('./models/Color');
 const upload = multer({ dest: path.join(__dirname, 'uploads') });
 
 Promise.promisifyAll(mongoose);
@@ -194,6 +195,8 @@ app.get('/product', passportConfig.isAuthenticated, productController.index);
 app.get('/inventory', passportConfig.isAuthenticated, inventoryController.index);
 app.get('/order', passportConfig.isAuthenticated, orderController.index);
 app.get('/refund', passportConfig.isAuthenticated, refundController.index);
+// Utilities
+app.get('/vendors/synchronizeColors/:vendorId', passportConfig.isSuper, vendorsController.synchronizeColors);
 
 // Test for webhook
 app.post('/webhook', webhookController.index);
@@ -234,6 +237,34 @@ User.find({type: 'superadmin'}, (err, superusers) => {
         console.log(saveErr);
       }
     });
+
+    
+  }
+});
+Color.find({}, (err, colors) => {
+  if (err) {
+    console.log(err);
+  }
+
+  if (colors.length === 0) {
+    var initColor = new Color();
+    let initColorList = [
+      {colorName: 'clear', shortName: 'CLR'},
+      {colorName: 'black', shortName: 'BLK'},
+      {colorName: 'brown', shortName: 'BRN'},
+      {colorName: 'red', shortName: 'RED'},
+      {colorName: 'orange', shortName: 'ORN'},
+      {colorName: 'yellow', shortName: 'YEL'},
+      {colorName: 'green', shortName: 'GRN'},
+      {colorName: 'blue', shortName: 'BLU'},
+      {colorName: 'violet', shortName: 'VIO'},
+      {colorName: 'grey', shortName: 'GRY'},
+      {colorName: 'gray', shortName: 'GRY'},
+      {colorName: 'white', shortName: 'WHT'},
+      {colorName: 'pink', shortName: 'PNK'}
+    ]
+    initColor.colorList = initColorList;
+    initColor.save();
   }
 });
 module.exports = app;
