@@ -5,14 +5,12 @@ const Client = require('ssh2-sftp-client');
 const isset = require('isset');
 const TaxCodeList = require('../../config/constants').TaxCodeList;
 const ProductTypeList = require('../../config/constants').ProductTypeList;
-const ThreeColorList = require('../../config/constants').ThreeColorList;
 const TaxonomyList = require('../../config/constants').TaxonomyList;
 const delay = require('delay');
 const TSV = require('tsv');
 const eachSeries = require('async/eachSeries');
 const eachOfSeries = require('async/eachOfSeries');
 const async = require('async');
-var threeColorKeys = Object.keys(ThreeColorList);
 
 const Vendor = require('../../models/Vendor');
 const Connector = require('../../models/Connector');
@@ -756,11 +754,6 @@ const jsUcfirst = function (string) {
 }
 const getShortenColorName = function (str) {
     var returnColor = '';
-    /*threeColorKeys.forEach(colorItemKey => {
-        if (str.toLowerCase().indexOf(colorItemKey) != -1) {
-            returnColor = ThreeColorList[colorItemKey];
-        }
-    });*/
     colorList.forEach(colorItem => {
         if (colorItem.colorName == str.toLowerCase()) {
             returnColor = colorItem.shortName;
