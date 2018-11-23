@@ -132,6 +132,7 @@ exports.updateVendor = (req, res, next) => {
                 }
                 if (req.user.type == 'superadmin') {
                     res.redirect('/vendors');
+                    return next();
                 } else {
                     req.flash('success', {
                         msg: 'You have updated vendor data successfully.'
@@ -164,18 +165,26 @@ exports.enableVendor = (req, res, next) => {
             limit: 2,
             published_status: 'published'
         }).then(products => {
-            vendor.active = 'yes';
-            vendor.activeDate = Date();
-            vendor.save(err => {
-                if (err) {
-                    return next(err);
-                }
-                req.flash('info', {
-                    msg: 'You have enabled vendor successfully.'
+            if (products.length < 1) {
+                req.flash('errors', {
+                    msg: 'This vendor does not have any published products.'
                 });
                 res.redirect('/vendors');
-            });
-
+                return next();
+            } else {
+                vendor.active = 'yes';
+                vendor.activeDate = Date();
+                vendor.save(err => {
+                    if (err) {
+                        return next(err);
+                    }
+                    req.flash('info', {
+                        msg: 'You have enabled vendor successfully.'
+                    });
+                    res.redirect('/vendors');
+                    return next();
+                });
+            }
         }).catch(e => {
             req.flash('errors', {
                 msg: 'This vendor does not have correct information. You can not get products from store with this vendor.'
@@ -255,7 +264,6 @@ exports.synchronizeColors = (req, res, next) => {
         // Get current color list in db.
         Color.findOne({}, (colorError, colorValue) => {
             if (colorError) {
-                console.log(colorError);
                 return next(colorError);
             }
             originalColorValue = colorValue;
@@ -314,6 +322,7 @@ exports.synchronizeColors = (req, res, next) => {
                         msg: 'You have applied the colors in products of this store successfully.'
                     });
                     res.redirect('/vendors');
+                    return next();
                 });
             });
         }).catch(e => {

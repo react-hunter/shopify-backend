@@ -185,13 +185,27 @@ exports.activateUser = (req, res, next) => {
             return next(err);
         }
 
-        var newUserData = user;
-        user.active = 'yes';
-        newUserData.save(err => {
-            if (err) {
-                return next(err);
+        Vendor.findById(user.vendorId, (vendorError, vendor) => {
+            if (vendorError) {
+                return next(vendorError);
             }
-            res.redirect('/users');
+
+            if (vendor.active != 'yes') {
+                req.flash('errors', {
+                    msg: 'To activate user, related vendor should be activated in first.'
+                });
+                res.redirect('/users');
+                return next();
+            } else {
+                var newUserData = user;
+                user.active = 'yes';
+                newUserData.save(err => {
+                    if (err) {
+                        return next(err);
+                    }
+                    res.redirect('/users');
+                });
+            }
         });
     });
 };
