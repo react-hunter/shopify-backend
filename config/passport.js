@@ -71,7 +71,6 @@ exports.isSuper = (req, res, next) => {
   }
 }
 exports.isAdmin = (req, res, next) => {
-  console.log('req: ', req);
   if (req.isAuthenticated() && req.user.active == 'yes') {
 
     if (req.user.type == 'superadmin' || req.user.type == 'admin') {
