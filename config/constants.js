@@ -13,6 +13,5 @@ var productTypeList = ['Apparel', 'Footwear', 'Jewelry', 'Furniture', 'Sports Eq
 module.exports = {
     'TaxCodeList': taxCodeList,
     'ProductTypeList': productTypeList,
-    'TaxonomyList': taxonomyList,
-    'ThreeColorList': threeColorList
+    'TaxonomyList': taxonomyList
 };

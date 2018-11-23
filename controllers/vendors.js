@@ -181,7 +181,7 @@ exports.enableVendor = (req, res, next) => {
                 msg: 'This vendor does not have correct information. You can not get products from store with this vendor.'
             });
             res.redirect('/vendors');
-        })
+        });
     });
 };
 

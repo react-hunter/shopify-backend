@@ -258,34 +258,36 @@ exports.index = async (req, res, next) => {
             })
             .then(() => {
                 sftp.connect({
-                        host: vendorData.sftp.sftpHost,
-                        port: process.env.SFTP_PORT,
-                        username: vendorData.sftp.sftpUsername,
-                        password: vendorData.sftp.sftpPassword
-                    })
-                    .then(() => {
-                        fs.writeFile("uploads/order.txt", TSV.stringify(orderDataList), function (err) {
-                            if (err) {
-                                console.log('Writing File Error: ', err);
-                            } else {
-                                var currentDate = new Date();
-                                var temp = currentDate.toLocaleString("en-US", {
-                                    hour12: false
-                                }).split('.');
-                                var remotePath = '/incoming/orders/order' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\//g, '').replace(',', '').replace(/\:/g, '') + '.txt';
-                                sftp.put('uploads/order.txt', remotePath)
-                                    .then(response => {
-                                        res.render('feeds/order', {
-                                            title: 'Order',
-                                            orderList: orderDataList
-                                        });
-                                    })
-                                    .catch(error => console.log('upload error: ', error));
-                            }
-                        });
-                    })
-            })
-            .catch(err => console.log(err));
+                    host: vendorData.sftp.sftpHost,
+                    port: process.env.SFTP_PORT,
+                    username: vendorData.sftp.sftpUsername,
+                    password: vendorData.sftp.sftpPassword
+                }).then(() => {
+                    fs.writeFile("uploads/order.txt", TSV.stringify(orderDataList), function (err) {
+                        if (err) {
+                            console.log('Writing File Error: ', err);
+                        } else {
+                            var currentDate = new Date();
+                            var temp = currentDate.toLocaleString("en-US", {
+                                hour12: false
+                            }).split('.');
+                            var remotePath = '/incoming/orders/order' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\//g, '').replace(',', '').replace(/\:/g, '') + '.txt';
+                            // sftp.put('uploads/order.txt', remotePath).then(response => {
+                            //     res.render('feeds/order', {
+                            //         title: 'Order',
+                            //         orderList: orderDataList
+                            //     });
+                            // }).catch(error => console.log('upload error: ', error));
+                            res.render('feeds/order', {
+                                title: 'Order',
+                                orderList: orderDataList
+                            });
+                        }
+                    });
+                }).catch((e) => {
+                    console.log('SFTP connection error: ', e);
+                });
+            }).catch(err => console.log(err));
     }
 };
 
