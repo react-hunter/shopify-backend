@@ -6,14 +6,22 @@ const TSV = require('tsv');
 
 const Vendor = require('../../models/Vendor');
 const Connector = require('../../models/Connector');
+const History = require('../../models/History');
 
 /**
  * GET /
  * Order page.
  */
 exports.index = async (req, res, next) => {
+    res.render('feeds/order', {
+        title: 'order'
+    });
+};
 
-    var vendorData;
+exports.shipment = async (req, res, next) => {
+
+    var vendorData, connectorData;
+    var orderFileName = '';
     var shopify = null;
     var errorExist = false;
     Vendor.findOne({
@@ -23,6 +31,7 @@ exports.index = async (req, res, next) => {
             return next(vendorError);
         }
         vendorData = vendor;
+        orderFileName = 'uploads/shipment-' + vendor.api.apiShop + '.txt';
 
         if (vendorData.api.apiShop == '' || vendorData.api.apiKey == '' || vendorData.api.apiPassword == '') {
             req.flash('errors', {
@@ -80,6 +89,7 @@ exports.index = async (req, res, next) => {
                 res.redirect('/');
                 return next();
             }
+            connectorData = connectors[0];
         });
     });
 
@@ -87,7 +97,7 @@ exports.index = async (req, res, next) => {
     var orderDataList = new Array();
     var BreakException = {};
 
-    deleteAndInitialize('uploads/order.txt');
+    deleteAndInitialize(orderFileName);
 
     if (req.user.active !== 'yes') {
         req.flash('errors', {
@@ -263,24 +273,33 @@ exports.index = async (req, res, next) => {
                     username: vendorData.sftp.sftpUsername,
                     password: vendorData.sftp.sftpPassword
                 }).then(() => {
-                    fs.writeFile("uploads/order.txt", TSV.stringify(orderDataList), function (err) {
+                    fs.writeFile(orderFileName, TSV.stringify(orderDataList), function (err) {
                         if (err) {
                             console.log('Writing File Error: ', err);
                         } else {
-                            var currentDate = new Date();
-                            var temp = currentDate.toLocaleString("en-US", {
-                                hour12: false
-                            }).split('.');
-                            var remotePath = '/incoming/orders/order' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\//g, '').replace(',', '').replace(/\:/g, '') + '.txt';
-                            // sftp.put('uploads/order.txt', remotePath).then(response => {
+                            // var currentDate = new Date();
+                            // var temp = currentDate.toLocaleString("en-US", {
+                            //     hour12: false
+                            // }).split('.');
+                            // var remotePath = '/incoming/orders/order' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\//g, '').replace(',', '').replace(/\:/g, '') + '.txt';
+                            // sftp.put(orderFileName, remotePath).then(response => {
                             //     res.render('feeds/order', {
                             //         title: 'Order',
                             //         orderList: orderDataList
                             //     });
                             // }).catch(error => console.log('upload error: ', error));
-                            res.render('feeds/order', {
-                                title: 'Order',
-                                orderList: orderDataList
+                            
+                            var history = new History();
+                            history.vendorId = vendorData._id;
+                            history.vendorName = vendorData.api.apiShop;
+                            history.connectorId = connectorData._id;
+                            history.connectorType = connectorData.kwiLocation;
+
+                            history.save().then(() => {
+                                res.render('feeds/shipment', {
+                                    title: 'shipment',
+                                    orderList: orderDataList
+                                });
                             });
                         }
                     });

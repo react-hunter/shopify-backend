@@ -6,6 +6,7 @@ const TSV = require('tsv');
 
 const Vendor = require('../../models/Vendor');
 const Connector = require('../../models/Connector');
+const History = require('../../models/History');
 
 /**
  * GET /
@@ -13,9 +14,10 @@ const Connector = require('../../models/Connector');
  */
 exports.index = async (req, res, next) => {
 
-    var vendorData;
-    var shopify = null;
-    var errorExist = false;
+    let vendorData, connectorData;
+    let returnFileName = '';
+    let shopify = null;
+    let errorExist = false;
     Vendor.findOne({
         _id: req.user.vendorId
     }, (vendorError, vendor) => {
@@ -23,6 +25,7 @@ exports.index = async (req, res, next) => {
             return next(vendorError);
         }
         vendorData = vendor;
+        returnFileName = 'uploads/return-' + vendor.api.apiShop + '.txt';
 
         if (vendorData.api.apiShop == '' || vendorData.api.apiKey == '' || vendorData.api.apiPassword == '') {
             req.flash('errors', {
@@ -80,13 +83,14 @@ exports.index = async (req, res, next) => {
                 res.redirect('/');
                 return next();
             }
+            connectorData = connectors[0];
         });
     });
 
     const sftp = new Client();
     var refundDataList = new Array();
 
-    deleteAndInitialize('uploads/return.txt');
+    deleteAndInitialize(returnFileName);
 
     if (req.user.active !== 'yes') {
         req.flash('errors', {
@@ -97,8 +101,8 @@ exports.index = async (req, res, next) => {
         return next();
     }
     await delay(2000);
-
-    shopify.order.list()
+    if (!errorExist) {
+        shopify.order.list()
         .then(orders => {
             orders.forEach(order => {
                 shopify.refund.list(order.id)
@@ -136,18 +140,26 @@ exports.index = async (req, res, next) => {
                     password: vendorData.sftp.sftpPassword
                 })
                 .then(() => {
-                    fs.writeFile("uploads/return.txt", TSV.stringify(refundDataList), function (err) {
+                    fs.writeFile(returnFileName, TSV.stringify(refundDataList), function (err) {
                         if (err) {
                             console.log(err);
                         } else {
                             var currentDate = new Date();
                             var temp = currentDate.toLocaleString("en-US", {hour12: false}).split('.');
                             var remotePath = '/incoming/returns/return' + temp[0].replace(' ', '').replace(',', '').replace(/\-/g, '').replace(/\//g, '').replace(/\:/g, '') + '.txt';
-                            sftp.put('uploads/return.txt', remotePath)
+                            sftp.put(returnFileName, remotePath)
                                 .then(response => {
-                                    res.render('feeds/refund', {
-                                        title: 'Refund',
-                                        refundList: refundDataList
+                                    var history = new History();
+                                    history.vendorId = vendorData._id;
+                                    history.vendorName = vendorData.api.apiShop;
+                                    history.connectorId = connectorData._id;
+                                    history.connectorType = connectorData.kwiLocation;
+
+                                    history.save().then(() => {
+                                        res.render('feeds/refund', {
+                                            title: 'Refund',
+                                            refundList: refundDataList
+                                        });
                                     });
                                 })
                                 .catch(error => console.log('upload error: ', error));
@@ -156,6 +168,7 @@ exports.index = async (req, res, next) => {
                 });
         })
         .catch(err => console.log(err));
+    }
 };
 
 const deleteAndInitialize = function (filePath) {

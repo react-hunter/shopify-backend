@@ -1,14 +1,5 @@
 extends ../layout
 
 block content
-  h1 Content Commerce Order List
-  p.lead Test for Shopify Admin API.
-  hr
-  .row
-    each order in orderList
-      .col-md-6
-        h2 #{ order.order_number }
-        p Order Price: #{ order.total_total }
-        p Created Date: #{ order.order_date }
-        p Ship Method: #{ order.ship_method }
-        
+  h1 Content Commerce Shipment List
+  p.lead Will upload order data from ftp to store.

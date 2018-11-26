@@ -193,6 +193,7 @@ app.get('/vendors/:vendorId/connectors/inactivate/:connectorId', passportConfig.
 // Call to feeds
 app.get('/product', passportConfig.isAuthenticated, productController.index);
 app.get('/inventory', passportConfig.isAuthenticated, inventoryController.index);
+app.get('/shipment', passportConfig.isAuthenticated, orderController.shipment);
 app.get('/order', passportConfig.isAuthenticated, orderController.index);
 app.get('/refund', passportConfig.isAuthenticated, refundController.index);
 // Utilities
