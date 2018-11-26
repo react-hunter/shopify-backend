@@ -4,10 +4,7 @@ const historySchema = new mongoose.Schema({
   vendorId: String,
   vendorName: String,
   connectorId: String,
-  connectorName: String,
-  
-  hasTransaction: Boolean,
-  activeDate: Date
+  connectorType: String,
 }, { timestamps: true });
 
 /**
