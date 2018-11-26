@@ -6,6 +6,7 @@ const TSV = require('tsv');
 
 const Vendor = require('../../models/Vendor');
 const Connector = require('../../models/Connector');
+const History = require('../../models/History');
 
 /**
  * GET /
@@ -13,7 +14,8 @@ const Connector = require('../../models/Connector');
  */
 exports.index = async (req, res, next) => {
 
-    var vendorData;
+    var vendorData, connectorData;
+    var inventoryFileName = '';
     var shopify = null;
     var errorExist = false;
     Vendor.findOne({
@@ -23,6 +25,7 @@ exports.index = async (req, res, next) => {
             return next(vendorError);
         }
         vendorData = vendor;
+        inventoryFileName = 'uploads/inventory-' + vendor.api.apiShop + '.txt';
 
         if (vendorData.api.apiShop == '' || vendorData.api.apiKey == '' || vendorData.api.apiPassword == '') {
             req.flash('errors', {
@@ -80,6 +83,7 @@ exports.index = async (req, res, next) => {
                 res.redirect('/');
                 return next();
             }
+            connectorData = connectors[0];
         });
     });
 
@@ -87,7 +91,7 @@ exports.index = async (req, res, next) => {
     var inventoryDataList = [];
 
     // Initialize product feed file with empty
-    deleteAndInitialize('uploads/inventory.txt');
+    deleteAndInitialize(inventoryFileName);
 
     // Check user's active/inactive status.
     if (req.user.active !== 'yes') {
@@ -124,7 +128,7 @@ exports.index = async (req, res, next) => {
                     })
                     .then(async () => {
                         await delay(1000);
-                        fs.writeFile("uploads/inventory.txt", TSV.stringify(inventoryDataList), (err) => {
+                        fs.writeFile(inventoryFileName, TSV.stringify(inventoryDataList), (err) => {
                             if (err) {
                                 console.log('Writing File Error: ', err);
                             } else {
@@ -133,11 +137,19 @@ exports.index = async (req, res, next) => {
                                     hour12: false
                                 }).split('.');
                                 var remotePath = '/incoming/inventory/inventory' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '').replace(/\//g, '').replace(',', '') + '.txt';
-                                sftp.put('uploads/inventory.txt', remotePath)
+                                sftp.put(inventoryFileName, remotePath)
                                     .then(response => {
-                                        res.render('feeds/inventory', {
-                                            title: 'Inventory',
-                                            inventoryList: inventoryDataList
+                                        var history = new History();
+                                        history.vendorId = vendorData._id;
+                                        history.vendorName = vendorData.api.apiShop;
+                                        history.connectorId = connectorData._id;
+                                        history.connectorType = connectorData.kwiLocation;
+
+                                        history.save().then(() => {
+                                            res.render('feeds/inventory', {
+                                                title: 'Inventory',
+                                                inventoryList: inventoryDataList
+                                            });
                                         });
                                     })
                                     .catch(error => console.log('upload error: ', error));
