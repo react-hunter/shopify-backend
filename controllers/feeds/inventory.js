@@ -138,21 +138,21 @@ exports.index = async (req, res, next) => {
                                 }).split('.');
                                 var remotePath = '/incoming/inventory/inventory' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '').replace(/\//g, '').replace(',', '') + '.txt';
                                 sftp.put(inventoryFileName, remotePath)
-                                    .then(response => {
-                                        var history = new History();
-                                        history.vendorId = vendorData._id;
-                                        history.vendorName = vendorData.api.apiShop;
-                                        history.connectorId = connectorData._id;
-                                        history.connectorType = connectorData.kwiLocation;
+                                .then(response => {
+                                    var history = new History();
+                                    history.vendorId = vendorData._id;
+                                    history.vendorName = vendorData.api.apiShop;
+                                    history.connectorId = connectorData._id;
+                                    history.connectorType = connectorData.kwiLocation;
 
-                                        history.save().then(() => {
-                                            res.render('feeds/inventory', {
-                                                title: 'Inventory',
-                                                inventoryList: inventoryDataList
-                                            });
+                                    history.save().then(() => {
+                                        res.render('feeds/inventory', {
+                                            title: 'Inventory',
+                                            inventoryList: inventoryDataList
                                         });
-                                    })
-                                    .catch(error => console.log('upload error: ', error));
+                                    });
+                                })
+                                .catch(error => console.log('upload error: ', error));
                             }
                         });
                     })

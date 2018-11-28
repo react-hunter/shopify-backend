@@ -16,6 +16,51 @@ exports.index = async (req, res, next) => {
     res.render('feeds/order', {
         title: 'order'
     });
+    var vendorData;
+
+    Vendor.findOne({
+        _id: req.user.vendorId,
+        active: 'yes'
+    }, (vendorError, vendor) => {
+        if (vendorError) {
+            return next(vendorError);
+        }
+        vendorData = vendor;
+        let shopify = new Shopify({
+            shopName: vendor.api.apiShop,
+            apiKey: vendor.api.apiKey,
+            password: vendor.api.apiPassword,
+        });
+
+        // Get order data from ftp
+        let sftp = new Client();
+        sftp.connect({
+            host: vendorData.sftp.sftpHost,
+            port: process.env.SFTP_PORT,
+            username: vendorData.sftp.sftpUsername,
+            password: vendorData.sftp.sftpPassword
+        }).then(() => {
+            return sftp.list('/outgoing/orders');
+        }).then(sftpFileList => {
+            let fileList = [];
+            sftpFileList.forEach(sftpFile => {
+                if (sftpFile.type == '-') {
+                    fileList.push(sftpFile.name);
+                }
+            });
+
+            // console.log('Files in SFTP: ', fileList);
+            fileList.forEach(fileName => {
+                sftp.get('/outgoing/orders/' + fileName).then(fileData => {
+                    console.log('file data: ', fileData);
+                }).catch(getDataError => {
+                    return next(getDataError);
+                });
+            });
+        }).catch(ftpError => {
+            return next(ftpError);
+        });
+    });
 };
 
 exports.shipment = async (req, res, next) => {
@@ -288,7 +333,7 @@ exports.shipment = async (req, res, next) => {
                             //         orderList: orderDataList
                             //     });
                             // }).catch(error => console.log('upload error: ', error));
-                            
+
                             var history = new History();
                             history.vendorId = vendorData._id;
                             history.vendorName = vendorData.api.apiShop;

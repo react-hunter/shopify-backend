@@ -370,7 +370,7 @@ exports.index = async (req, res, next) => {
                         productData.Cost = '';
                         productData.Price = variant.price;
                         productData.MSRP = MSRP;
-                        productData.Title = product.title;
+                        productData.Title = '"' + product.title.replace(/\r?\n|\r/g, '').replace(/\"/g, '""') + '"';
                         productData.MinQty = MinQty;
                         productData.MaxQty = MaxQty;
                         productData.IsBestSeller = collect.collection_id == bestSellCollectionId ? true : false;
@@ -464,7 +464,7 @@ exports.index = async (req, res, next) => {
                         productData.Cost = '';
                         productData.Price = variant.price;
                         productData.MSRP = variant.price;
-                        productData.Title = product.title;
+                        productData.Title = '"' + product.title.replace(/\r?\n|\r/g, '').replace(/\"/g, '""') + '"';
                         productData.MinQty = MinQty;
                         productData.MaxQty = MaxQty;
                         // productData.IsBestSeller = collect.collection_id == bestSellCollectionId ? true : false;
