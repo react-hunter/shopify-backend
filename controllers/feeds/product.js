@@ -148,7 +148,7 @@ exports.index = async (req, res, next) => {
         }).catch(err => console.log(err));
 
         await delay(2000);
-
+console.log('shopdata: ', shopData);
         shopify.product.list({
             limit: 250,
             published_status: 'published'
@@ -189,8 +189,8 @@ exports.index = async (req, res, next) => {
 
                     productData.ProductCode = '';
                     productData.ParentCode = '';
-                    productData.ProductName = product.title;
-                    productView.title = product.title;
+                    productData.ProductName = '"' + product.title.replace(/\r?\n|\r/g, '').replace(/\"/g, '""') + '"';
+                    productView.title = '"' + product.title.replace(/\r?\n|\r/g, '').replace(/\"/g, '""') + '"';
                     productData.ProductDescription = '';
                     if (product.body_html) {
                         productData.ProductDescription = product.body_html.replace(/(<([^>]+)>)/ig, "");
