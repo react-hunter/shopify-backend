@@ -52,7 +52,8 @@ exports.index = async (req, res, next) => {
             // console.log('Files in SFTP: ', fileList);
             fileList.forEach(fileName => {
                 sftp.get('/outgoing/orders/' + fileName).then(fileData => {
-                    console.log('file data: ', fileData);
+                    let temp = TSV.parse(fileData._readableState.buffer.head.data);
+                    console.log('file data: ', temp[1]);
                 }).catch(getDataError => {
                     return next(getDataError);
                 });
