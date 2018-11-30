@@ -9,6 +9,7 @@ block content
     thead
       tr
         th Vender Name
+        th Brand Name
         th Shop Name
         th SFTP Location
         th Actions
@@ -18,6 +19,7 @@ block content
           tr
             td
               a(href="/vendors/" + vendor._id)= vendor.name
+            td= vendor.brandName
             td= vendor.api.apiShop
             td= vendor.sftp.sftpHost
             td
@@ -29,4 +31,3 @@ block content
                 a(href="/vendors/enable/" + vendorId) Enable&nbsp;&nbsp;&nbsp;
               a(href="/vendors/synchronizeColors/" + vendorId) ApplyColor&nbsp;&nbsp;&nbsp;
               a(href="/vendors/delete/" + vendorId, onclick="if(!confirm('Are you sure to delete this vendor?')) return false;") Delete
-

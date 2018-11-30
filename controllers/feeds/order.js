@@ -43,6 +43,12 @@ exports.index = async (req, res, next) => {
             return sftp.list('/outgoing/orders');
         }).then(sftpFileList => {
             let fileList = [];
+            var orderPost = {};
+            orderPost.order = {};
+            orderPost.order.line_items = [];
+            orderPost.order.billing_address = {};
+            orderPost.order.shipping_address = {};
+
             sftpFileList.forEach(sftpFile => {
                 if (sftpFile.type == '-') {
                     fileList.push(sftpFile.name);
@@ -53,7 +59,54 @@ exports.index = async (req, res, next) => {
             fileList.forEach(fileName => {
                 sftp.get('/outgoing/orders/' + fileName).then(fileData => {
                     let temp = TSV.parse(fileData._readableState.buffer.head.data);
-                    console.log('file data: ', temp[1]);
+                    orderData = temp[1];
+                    orderPost.order.line_items.push({
+                        variant_id: orderData['item_sku'],
+                        quantity: orderData['item_qty_ordered']
+                    });
+                    orderPost.order.billing_address = {
+                        first_name: orderData['bill_firstname'],
+                        last_name: orderData['bill_lastname'],
+                        name: orderData['bill_firstname'] + ' ' + orderData['bill_lastname'],
+                        address1: orderData['bill_street'],
+                        phone: orderData['bill_phone'],
+                        city: orderData['bill_city'],
+                        zip: orderData['bill_postal_code'],
+                        province: orderData['bill_state'],
+                        country: 'US',
+                        address2: orderData['bill_street2'],
+                        company: '',
+                        latitude: '',
+                        longitude: '',
+                        country_code: 'US',
+                        province_code: orderData['ship_postal_code']
+                    };
+
+                    orderPost.order.shipping_address = {
+                        first_name: orderData['ship_firstname'],
+                        last_name: orderData['ship_lastname'],
+                        name: orderData['ship_firstname'] + ' ' + orderData['ship_lastname'],
+                        address1: orderData['ship_street'],
+                        phone: orderData['ship_phone'],
+                        city: orderData['ship_city'],
+                        zip: orderData['ship_postal_code'],
+                        province: orderData['ship_state'],
+                        country: 'US',
+                        address2: orderData['ship_street2'],
+                        company: '',
+                        latitude: '',
+                        longitude: '',
+                        country_code: 'US',
+                        province_code: orderData['bill_postal_code']
+                    };
+                    orderPost.order.email = orderData['customer_email'];
+                    orderPost.buyer_accepts_marketing = false;
+                    orderPost.total_discounts = orderData['discount_total'];
+                    orderPost.total_tax = orderData['tax_total'];
+                    orderPost.total_price = orderData['total_total'];
+                    orderPost.currency = 'USD';
+                    
+                    
                 }).catch(getDataError => {
                     return next(getDataError);
                 });

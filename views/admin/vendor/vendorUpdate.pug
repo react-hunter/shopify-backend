@@ -8,9 +8,13 @@ block content
     input(type='hidden', name='_csrf', value=_csrf)
     input(type='hidden', name='vendorId', value=vendorData._id)
     .form-group.row
-      label.col-md-3.col-form-label.font-weight-bold.text-right(for='name') Name
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='name') Retailer Name
       .col-md-7
         input.form-control(type='text', name='name', id='name', value=vendorData.name)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='brandName') Brand Name
+      .col-md-7
+        input.form-control(type='text', name='brandName', id='brandName', value=vendorData.brandName)
     .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='apiShop') API Shop Name
         span(class='explainText')  (When shop url is xxx.myshopify.com, please insert 'xxx'.)

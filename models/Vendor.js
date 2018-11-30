@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const vendorSchema = new mongoose.Schema({
   name: String,
+  brandName: String,
   active: String,
   colorSynched: String,
   hasTransaction: Boolean,

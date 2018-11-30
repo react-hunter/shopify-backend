@@ -184,7 +184,8 @@ exports.index = async (req, res, next) => {
                 product.variants.forEach((variant) => {
                     var productData = {};
                     var productView = {};
-                    productData.Brand = product.vendor;
+                    // productData.Brand = product.vendor;
+                    productData.Brand = vendorData.brandName;
                     productData.Category = productCategory;
 
                     productData.ProductCode = '';
