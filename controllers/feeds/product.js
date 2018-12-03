@@ -578,14 +578,32 @@ exports.index = async (req, res, next) => {
                                 });
                             });
                         })
-                        .catch(error => console.log('upload error: ', error));
+                        .catch(error => {
+                            console.log('upload error: ', error);
+                            req.flash('errors', {
+                                msg: 'There are problems when trying upload file. Please check your internet connection.'
+                            });
+                            res.redirect('/');
+                        });
                     }
                 });
 
             })
-            .catch(error => console.log('connect error: ', error));
+            .catch(error => {
+                console.log('connect error: ', error);
+                req.flash('errors', {
+                    msg: 'There are problems when trying to connect into sftp. Please make sure that sftp infomation of this vendor is correct.'
+                });
+                res.redirect('/');
+            });
         })
-        .catch(err => console.log('collectError: ', err));
+        .catch(err => {
+            console.log('Products Error: ', err);
+            req.flash('errors', {
+                msg: 'There are problems when trying to get product list from store. Please check your internet connection.'
+            });
+            res.redirect('/');
+        });
     }
 };
 
