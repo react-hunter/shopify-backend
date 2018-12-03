@@ -105,6 +105,14 @@ exports.index = async (req, res, next) => {
                     orderPost.total_tax = orderData['tax_total'];
                     orderPost.total_price = orderData['total_total'];
                     orderPost.currency = 'USD';
+                    orderPost.financial_status = 'paid'; // need to check later, again
+                    if (orderData['item_status'] == 'shipped') {
+                        orderPost.fulfillment_status = 'fulfilled';
+                    } else if (orderData['item_status'] == 'ordered') {
+                        orderPost.fulfillment_status = 'partial';
+                    } else {
+                        orderPost.fulfillment_status = 'failure';
+                    }
                     
                     
                 }).catch(getDataError => {
