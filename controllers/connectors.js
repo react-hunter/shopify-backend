@@ -1,6 +1,5 @@
 const Connector = require('../models/Connector');
 const Vendor = require('../models/Vendor');
-
 const url = require('url');
 
 /**
@@ -56,7 +55,7 @@ exports.addConnector = (req, res, next) => {
 /**
  * POST /vendors/{vendorId}/connectors/add
  * Save new Connector.
- * Redirect Connector List page.
+ * If success, it redirects `Connector List` page. If not, it redirects to `Add` page with inputed data.
  * Input: vendorId, connector data
  */
 exports.saveConnector = (req, res, next) => {

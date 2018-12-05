@@ -15,6 +15,13 @@ block content
       .col-md-7
         input.form-control(type='text', name='brandName', id='brandName', value=vendorData.brandName)
     .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='shipMethod') Shipping Method
+      .col-md-7
+        select.form-control(name='shipMethod', id='shipMethod')
+          option(value='usps', selected= vendorData.shipMethod == 'usps') USPS
+          option(value='fedex', selected= vendorData.shipMethod == 'fedex') Fedex
+          option(value='ups', selected= vendorData.shipMethod == 'ups') UPS
+    .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='apiShop') API Shop Name
         span(class='explainText')  (When shop url is xxx.myshopify.com, please insert 'xxx'.)
       .col-md-7

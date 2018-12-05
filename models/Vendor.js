@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const vendorSchema = new mongoose.Schema({
   name: String,
   brandName: String,
+  shipMethod: String,
   active: String,
   colorSynched: String,
   hasTransaction: Boolean,

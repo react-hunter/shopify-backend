@@ -30,6 +30,12 @@ exports.index = async (req, res, next) => {
             shopName: vendor.api.apiShop,
             apiKey: vendor.api.apiKey,
             password: vendor.api.apiPassword,
+            timeout: 50000,
+            autoLimit: {
+                calls: 2,
+                interval: 1000,
+                bucketSize: 35
+            }
         });
 
         // Get order data from ftp
@@ -43,12 +49,7 @@ exports.index = async (req, res, next) => {
             return sftp.list('/outgoing/orders');
         }).then(sftpFileList => {
             let fileList = [];
-            var orderPost = {};
-            orderPost.order = {};
-            orderPost.order.line_items = [];
-            orderPost.order.billing_address = {};
-            orderPost.order.shipping_address = {};
-
+            
             sftpFileList.forEach(sftpFile => {
                 if (sftpFile.type == '-') {
                     fileList.push(sftpFile.name);
@@ -58,8 +59,15 @@ exports.index = async (req, res, next) => {
             // console.log('Files in SFTP: ', fileList);
             fileList.forEach(fileName => {
                 sftp.get('/outgoing/orders/' + fileName).then(fileData => {
+                    var orderPost = {};
+                    orderPost.order = {};
+                    orderPost.order.line_items = [];
+                    orderPost.order.billing_address = {};
+                    orderPost.order.shipping_address = {};
+
                     let temp = TSV.parse(fileData._readableState.buffer.head.data);
                     orderData = temp[1];
+                    
                     orderPost.order.line_items.push({
                         variant_id: orderData['item_sku'],
                         quantity: orderData['item_qty_ordered']
@@ -73,7 +81,7 @@ exports.index = async (req, res, next) => {
                         city: orderData['bill_city'],
                         zip: orderData['bill_postal_code'],
                         province: orderData['bill_state'],
-                        country: 'US',
+                        country: 'United States',
                         address2: orderData['bill_street2'],
                         company: '',
                         latitude: '',
@@ -91,7 +99,7 @@ exports.index = async (req, res, next) => {
                         city: orderData['ship_city'],
                         zip: orderData['ship_postal_code'],
                         province: orderData['ship_state'],
-                        country: 'US',
+                        country: 'United States',
                         address2: orderData['ship_street2'],
                         company: '',
                         latitude: '',
@@ -100,25 +108,37 @@ exports.index = async (req, res, next) => {
                         province_code: orderData['bill_postal_code']
                     };
                     orderPost.order.email = orderData['customer_email'];
-                    orderPost.buyer_accepts_marketing = false;
-                    orderPost.total_discounts = orderData['discount_total'];
-                    orderPost.total_tax = orderData['tax_total'];
-                    orderPost.total_price = orderData['total_total'];
-                    orderPost.currency = 'USD';
-                    orderPost.financial_status = 'paid'; // need to check later, again
-                    if (orderData['item_status'] == 'shipped') {
-                        orderPost.fulfillment_status = 'fulfilled';
-                    } else if (orderData['item_status'] == 'ordered') {
-                        orderPost.fulfillment_status = 'partial';
-                    } else {
-                        orderPost.fulfillment_status = 'failure';
-                    }
-                    
-                    
+                    orderPost.order.buyer_accepts_marketing = false;
+                    orderPost.order.total_discounts = orderData['discount_total'];
+                    orderPost.order.total_tax = orderData['tax_total'];
+                    orderPost.order.total_price = orderData['total_total'];
+                    orderPost.order.currency = 'USD';
+                    orderPost.order.financial_status = 'paid'; // need to check later, again. There is 'paid' value, too.
+                    orderPost.order.fulfillment_status = 'fulfilled';
+                    orderPost.order.source = orderData['ship_method'];
+                    /*
+                    orderPost.order.shipping_lines.push({
+                        code: ,
+                        price: ,
+                        discount_price: ,
+                        source: ,
+                        title: ,
+                        tax_lines: ,
+                        carrier_identifier: 
+                    });
+                    */
+                    orderPost.order.subtotal_price = orderData['subtotal'];
+                    orderPost.order.total_tax = orderData['tax_total'];
+                    shopify.order.create(orderPost.order).then(createResult => {
+                        console.log('result from shopify order create: ', createResult);
+                    }).catch(createError => {
+                        console.log('Creating Error: ', createError);
+                    });
                 }).catch(getDataError => {
                     return next(getDataError);
                 });
             });
+            
         }).catch(ftpError => {
             return next(ftpError);
         });
