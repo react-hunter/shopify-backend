@@ -303,7 +303,7 @@ exports.synchronizeColors = (req, res, next) => {
         }).then(products => {
             products.forEach(pro => {
                 pro.options.forEach(opt => {
-                    if (opt.name.toLowerCase() == 'color') {
+                    if (opt.name.toLowerCase() === 'color') {
                         opt.values.forEach(colorItem => {
                             if (proColorList.indexOf(colorItem.toLowerCase()) == -1 && dbColorList.indexOf(colorItem.toLowerCase()) == -1) {
                                 proColorList.push(colorItem.toLowerCase());

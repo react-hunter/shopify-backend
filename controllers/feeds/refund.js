@@ -161,6 +161,7 @@ exports.index = async (req, res, next) => {
                                             refundList: refundDataList
                                         });
                                     });
+                                    sftp.end();
                                 })
                                 .catch(error => console.log('upload error: ', error));
                         }

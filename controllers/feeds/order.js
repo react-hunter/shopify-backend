@@ -116,27 +116,34 @@ exports.index = async (req, res, next) => {
                     orderPost.order.financial_status = 'paid'; // need to check later, again. There is 'paid' value, too.
                     orderPost.order.fulfillment_status = 'fulfilled';
                     orderPost.order.source = orderData['ship_method'];
-                    /*
-                    orderPost.order.shipping_lines.push({
-                        code: ,
-                        price: ,
-                        discount_price: ,
-                        source: ,
-                        title: ,
-                        tax_lines: ,
-                        carrier_identifier: 
-                    });
-                    */
+                    orderPost.order.shipping_lines = [{
+                        code: "INT.TP",
+                        price: 4,
+                        discount_price: 1,
+                        source: "usps",
+                        title: "Small Packet International Air",
+                        // tax_lines: ,
+                        carrier_identifier: "third_party_carrier_identifier"
+                    }];
                     orderPost.order.subtotal_price = orderData['subtotal'];
                     orderPost.order.total_tax = orderData['tax_total'];
                     shopify.order.create(orderPost.order).then(createResult => {
-                        console.log('result from shopify order create: ', createResult);
+                        console.log('Created Order based the data from sftp');
                     }).catch(createError => {
                         console.log('Creating Error: ', createError);
                     });
                 }).catch(getDataError => {
                     return next(getDataError);
                 });
+            });
+
+            deleteFiles(sftp, fileList, (deleteErr) => {
+                if (deleteErr) {
+                    return next(deleteErr);
+                } else {
+                    console.log('Deleted processed files');
+                    sftp.end();
+                }
             });
             
         }).catch(ftpError => {
@@ -299,7 +306,6 @@ exports.shipment = async (req, res, next) => {
                         orderData.item_orig_price = 0;
                         shopify.productVariant.get(item.variant_id).then(
                             variant => {
-                                // orderData.item_sku = variant.sku;
                                 orderData.item_sku = variant.id;
                                 orderData.item_orig_price = variant.compare_at_price;
                             },
@@ -449,5 +455,18 @@ const deleteAndInitialize = function (filePath) {
                 console.log('Made inventory file and initialized with empty');
             });
         });
+    }
+}
+
+const deleteFiles = function (sftpObj, filePathList, callback) {
+    if (filePathList.length > 0) {
+        filePathList.forEach(filePath => {
+            sftpObj.delete('/outgoing/orders/' + filePath).then(result => {
+                console.log('App deleted ' + filePath);
+            }).catch(deleteError => {
+                callback(deleteError);
+            });
+        });
+        callback(null);
     }
 }

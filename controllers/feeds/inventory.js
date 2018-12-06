@@ -151,6 +151,7 @@ exports.index = async (req, res, next) => {
                                             inventoryList: inventoryDataList
                                         });
                                     });
+                                    sftp.end();
                                 })
                                 .catch(error => console.log('upload error: ', error));
                             }

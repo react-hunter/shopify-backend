@@ -577,6 +577,7 @@ exports.index = async (req, res, next) => {
                                     vendorUrl: vendorUrl
                                 });
                             });
+                            sftp.end();
                         })
                         .catch(error => {
                             console.log('upload error: ', error);
