@@ -107,8 +107,11 @@ exports.index = async (req, res, next) => {
                         country_code: 'US',
                         province_code: orderData['bill_postal_code']
                     };
-                    orderPost.order.email = orderData['customer_email'];
+                    // orderPost.order.email = orderData['customer_email'];
+                    orderPost.order.email = 'dfeiner@kwi.com';
                     orderPost.order.buyer_accepts_marketing = false;
+                    orderPost.order.send_receipt = false;
+                    orderPost.order.send_fulfillment_receipt = false;
                     orderPost.order.total_discounts = orderData['discount_total'];
                     orderPost.order.total_tax = orderData['tax_total'];
                     orderPost.order.total_price = orderData['total_total'];
@@ -125,10 +128,28 @@ exports.index = async (req, res, next) => {
                         // tax_lines: ,
                         carrier_identifier: "third_party_carrier_identifier"
                     }];
+                    orderPost.order.tags = 'NBCU';
+                    orderPost.order.source_name = 'nbcu';
+                    orderPost.order.metafields = [{
+                        "key": "prefix",
+                        "value": "nbcutest-",
+                        "value_type": "string",
+                        "namespace": "nbcu"
+                    }];
                     orderPost.order.subtotal_price = orderData['subtotal'];
                     orderPost.order.total_tax = orderData['tax_total'];
                     shopify.order.create(orderPost.order).then(createResult => {
-                        console.log('Created Order based the data from sftp');
+                        let originalOrderId = createResult.id;
+                        let nextOrderNumber = createResult.order_number + 1;
+                        orderPost.order.name = "NBCU-" + nextOrderNumber;
+                        orderPost.order.send_receipt = true;
+                        orderPost.order.send_fulfillment_receipt = true;
+
+                        shopify.order.create(orderPost.order).then(createNextOrder => {
+                            shopify.order.delete(originalOrderId).then(deleteResult => {
+                                console.log('deleted original order: ', deleteResult);
+                            });
+                        });
                     }).catch(createError => {
                         console.log('Creating Error: ', createError);
                     });
@@ -137,14 +158,14 @@ exports.index = async (req, res, next) => {
                 });
             });
 
-            deleteFiles(sftp, fileList, (deleteErr) => {
-                if (deleteErr) {
-                    return next(deleteErr);
-                } else {
-                    console.log('Deleted processed files');
-                    sftp.end();
-                }
-            });
+            // deleteFiles(sftp, fileList, (deleteErr) => {
+            //     if (deleteErr) {
+            //         return next(deleteErr);
+            //     } else {
+            //         console.log('Deleted processed files');
+            //         sftp.end();
+            //     }
+            // });
             
         }).catch(ftpError => {
             return next(ftpError);

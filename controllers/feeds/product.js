@@ -382,11 +382,6 @@ exports.index = async (req, res, next) => {
                         // }
                         productData.IsNew = false;
                         productData.IsExclusive = false;
-                        // if(!variant.compare_at_price || variant.price >= variant.compare_at_price) {
-                        //     productData.IsSale = false;
-                        // } else {
-                        //     productData.IsSale = true;
-                        // }
                         productData.IsSale = false;
                         productData.SizeGroup = '';
                         productData.ColorGroup = '';
@@ -401,6 +396,12 @@ exports.index = async (req, res, next) => {
                             productData.SKU = variant.id;
                         }
                         productData.SkuPrice = variant.price;
+                        if (!variant.compare_at_price && variant.compare_at_price > 0) {
+                            productData.IsSale = true;
+                            productData.SkuPrice = variant.compare_at_price?variant.compare_at_price:variant.price;
+                        } else {
+                            productData.IsSale = false;
+                        }
                         productData.UPC = UPC;
                         productData.QtyOnHand = variant.inventory_quantity > 0 ? variant.inventory_quantity : 0;
                         productData.MoreInfo = MoreInfo;
@@ -477,11 +478,7 @@ exports.index = async (req, res, next) => {
                         // }
                         productData.IsNew = false;
                         productData.IsExclusive = false;
-                        if (!variant.compare_at_price || variant.price >= variant.compare_at_price) {
-                            productData.IsSale = false;
-                        } else {
-                            productData.IsSale = true;
-                        }
+                        productData.IsSale = false;
                         productData.SizeGroup = '';
                         productData.ColorGroup = '';
 
@@ -495,6 +492,12 @@ exports.index = async (req, res, next) => {
                             productData.SKU = variant.id;
                         }
                         productData.SkuPrice = variant.price;
+                        if (!variant.compare_at_price && variant.compare_at_price > 0) {
+                            productData.IsSale = true;
+                            productData.SkuPrice = variant.compare_at_price?variant.compare_at_price:variant.price;
+                        } else {
+                            productData.IsSale = false;
+                        }
                         productData.UPC = UPC;
                         productData.QtyOnHand = variant.inventory_quantity > 0 ? variant.inventory_quantity : 0;
                         productData.MoreInfo = MoreInfo;
