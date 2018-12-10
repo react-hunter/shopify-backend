@@ -318,7 +318,7 @@ exports.synchronizeColors = (req, res, next) => {
                 var shortColor = '';
                 shortColor = generateShortColor(colorItem);
                 if (dbColorShortnameList.indexOf(shortColor) != -1) {
-                    // regenerate short color
+                    // If generated colorname exists in db, regenerate short color.
                     shortColor = generateShortColor(colorItem, 1);
                 } else {
                     dbColorList.push(colorItem);

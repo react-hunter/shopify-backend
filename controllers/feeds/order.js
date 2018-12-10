@@ -130,12 +130,7 @@ exports.index = async (req, res, next) => {
                     }];
                     orderPost.order.tags = 'NBCU';
                     orderPost.order.source_name = 'nbcu';
-                    orderPost.order.metafields = [{
-                        "key": "prefix",
-                        "value": "nbcutest-",
-                        "value_type": "string",
-                        "namespace": "nbcu"
-                    }];
+                    
                     orderPost.order.subtotal_price = orderData['subtotal'];
                     orderPost.order.total_tax = orderData['tax_total'];
                     shopify.order.create(orderPost.order).then(createResult => {
