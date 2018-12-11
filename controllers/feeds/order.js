@@ -142,7 +142,33 @@ exports.index = async (req, res, next) => {
 
                         shopify.order.create(orderPost.order).then(createNextOrder => {
                             shopify.order.delete(originalOrderId).then(deleteResult => {
-                                console.log('deleted original order: ', deleteResult);
+                                History.find({
+                                    vendorId: vendorData._id,
+                                    connectorId: '111'
+                                }, (err, histories) => {
+                                    if (err) {
+                                        return next(err);
+                                    }
+                                    if (histories.length == 0) {
+                                        var history = new History();
+                                        history.vendorId = vendorData._id;
+                                        history.vendorName = vendorData.api.apiShop;
+                                        history.connectorId = '111';
+                                        history.connectorType = 'order';
+                                        history.counter = 1;
+
+                                        history.save().then(() => {
+                                            console.log('added new order');
+                                        });
+                                    } else {
+                                        var history = histories[0];
+                                        history.update({ $inc: { counter: 1 }},() => {
+                                            console.log('added new order into shopify store');
+                                        });
+                                    }
+                                });
+
+                                sftp.end();
                             });
                         });
                     }).catch(createError => {
@@ -225,7 +251,7 @@ exports.shipment = async (req, res, next) => {
         // Check order connector
         Connector.find({
             vendorId: vendorData._id,
-            kwiLocation: 'order',
+            kwiLocation: 'ship',
             active: 'yes'
         }, (err, connectors) => {
             if (err) {
@@ -438,17 +464,36 @@ exports.shipment = async (req, res, next) => {
                             //     });
                             // }).catch(error => console.log('upload error: ', error));
 
-                            var history = new History();
-                            history.vendorId = vendorData._id;
-                            history.vendorName = vendorData.api.apiShop;
-                            history.connectorId = connectorData._id;
-                            history.connectorType = connectorData.kwiLocation;
+                            History.find({
+                                vendorId: vendorData._id,
+                                connectorId: connectorData._id
+                            }, (err, histories) => {
+                                if (err) {
+                                    return next(err);
+                                }
+                                if (histories.length == 0) {
+                                    var history = new History();
+                                    history.vendorId = vendorData._id;
+                                    history.vendorName = vendorData.api.apiShop;
+                                    history.connectorId = connectorData._id;
+                                    history.connectorType = connectorData.kwiLocation;
+                                    history.counter = 1;
 
-                            history.save().then(() => {
-                                res.render('feeds/shipment', {
-                                    title: 'shipment',
-                                    orderList: orderDataList
-                                });
+                                    history.save().then(() => {
+                                        res.render('feeds/shipment', {
+                                            title: 'Shipment',
+                                            orderList: orderDataList
+                                        });
+                                    });
+                                } else {
+                                    var history = histories[0];
+                                    history.update({ $inc: { counter: 1 }},() => {
+                                        res.render('feeds/shipment', {
+                                            title: 'Shipment',
+                                            orderList: orderDataList
+                                        });
+                                    });
+                                }
                             });
                         }
                     });

@@ -139,18 +139,38 @@ exports.index = async (req, res, next) => {
                                 var remotePath = '/incoming/inventory/inventory' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '').replace(/\//g, '').replace(',', '') + '.txt';
                                 sftp.put(inventoryFileName, remotePath)
                                 .then(response => {
-                                    var history = new History();
-                                    history.vendorId = vendorData._id;
-                                    history.vendorName = vendorData.api.apiShop;
-                                    history.connectorId = connectorData._id;
-                                    history.connectorType = connectorData.kwiLocation;
+                                    History.find({
+                                        vendorId: vendorData._id,
+                                        connectorId: connectorData._id
+                                    }, (err, histories) => {
+                                        if (err) {
+                                            return next(err);
+                                        }
+                                        if (histories.length == 0) {
+                                            var history = new History();
+                                            history.vendorId = vendorData._id;
+                                            history.vendorName = vendorData.api.apiShop;
+                                            history.connectorId = connectorData._id;
+                                            history.connectorType = connectorData.kwiLocation;
+                                            history.counter = 1;
 
-                                    history.save().then(() => {
-                                        res.render('feeds/inventory', {
-                                            title: 'Inventory',
-                                            inventoryList: inventoryDataList
-                                        });
+                                            history.save().then(() => {
+                                                res.render('feeds/inventory', {
+                                                    title: 'Inventory',
+                                                    inventoryList: inventoryDataList
+                                                });
+                                            });
+                                        } else {
+                                            var history = histories[0];
+                                            history.update({ $inc: { counter: 1 }},() => {
+                                                res.render('feeds/inventory', {
+                                                    title: 'Inventory',
+                                                    inventoryList: inventoryDataList
+                                                });
+                                            });
+                                        }
                                     });
+                                    
                                     sftp.end();
                                 })
                                 .catch(error => console.log('upload error: ', error));

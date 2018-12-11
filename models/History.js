@@ -5,6 +5,7 @@ const historySchema = new mongoose.Schema({
   vendorName: String,
   connectorId: String,
   connectorType: String,
+  counter: Number,
 }, { timestamps: true });
 
 /**

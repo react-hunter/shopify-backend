@@ -567,18 +567,38 @@ exports.index = async (req, res, next) => {
                         sftp.put(productFileName, '/incoming/products/products01.txt')
                         .then(response => {
                             // Add history
-                            var history = new History();
-                            history.vendorId = vendorData._id;
-                            history.vendorName = vendorData.api.apiShop;
-                            history.connectorId = connectorData._id;
-                            history.connectorType = connectorData.kwiLocation;
-                            
-                            history.save().then(() => {
-                                res.render('feeds/product', {
-                                    title: 'Product',
-                                    products: productViewList,
-                                    vendorUrl: vendorUrl
-                                });
+                            History.find({
+                                vendorId: vendorData._id,
+                                connectorId: connectorData._id
+                            }, (err, histories) => {
+                                if (err) {
+                                    return next(err);
+                                }
+                                if (histories.length == 0) {
+                                    var history = new History();
+                                    history.vendorId = vendorData._id;
+                                    history.vendorName = vendorData.api.apiShop;
+                                    history.connectorId = connectorData._id;
+                                    history.connectorType = connectorData.kwiLocation;
+                                    history.counter = 1;
+
+                                    history.save().then(() => {
+                                        res.render('feeds/product', {
+                                            title: 'Product',
+                                            products: productViewList,
+                                            vendorUrl: vendorUrl
+                                        });
+                                    });
+                                } else {
+                                    var history = histories[0];
+                                    history.update({ $inc: { counter: 1 }},() => {
+                                        res.render('feeds/product', {
+                                            title: 'Product',
+                                            products: productViewList,
+                                            vendorUrl: vendorUrl
+                                        });
+                                    });
+                                }
                             });
                             sftp.end();
                         })
