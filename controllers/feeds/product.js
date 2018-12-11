@@ -396,11 +396,9 @@ exports.index = async (req, res, next) => {
                             productData.SKU = variant.id;
                         }
                         productData.SkuPrice = variant.price;
-                        if (!variant.compare_at_price && variant.compare_at_price > 0) {
+                        if (variant.compare_at_price && variant.compare_at_price > 0) {
                             productData.IsSale = true;
                             productData.SkuPrice = variant.compare_at_price?variant.compare_at_price:variant.price;
-                        } else {
-                            productData.IsSale = false;
                         }
                         productData.UPC = UPC;
                         productData.QtyOnHand = variant.inventory_quantity > 0 ? variant.inventory_quantity : 0;
@@ -492,11 +490,9 @@ exports.index = async (req, res, next) => {
                             productData.SKU = variant.id;
                         }
                         productData.SkuPrice = variant.price;
-                        if (!variant.compare_at_price && variant.compare_at_price > 0) {
+                        if (variant.compare_at_price && variant.compare_at_price > 0) {
                             productData.IsSale = true;
                             productData.SkuPrice = variant.compare_at_price?variant.compare_at_price:variant.price;
-                        } else {
-                            productData.IsSale = false;
                         }
                         productData.UPC = UPC;
                         productData.QtyOnHand = variant.inventory_quantity > 0 ? variant.inventory_quantity : 0;
