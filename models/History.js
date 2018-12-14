@@ -6,6 +6,7 @@ const historySchema = new mongoose.Schema({
   connectorId: String,
   connectorType: String,
   counter: Number,
+  status: Number    // 0: failed, 1: pending, 2: success
 }, { timestamps: true });
 
 /**

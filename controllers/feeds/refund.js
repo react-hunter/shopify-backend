@@ -149,46 +149,41 @@ exports.index = async (req, res, next) => {
                             var remotePath = '/incoming/returns/return' + temp[0].replace(' ', '').replace(',', '').replace(/\-/g, '').replace(/\//g, '').replace(/\:/g, '') + '.txt';
                             sftp.put(returnFileName, remotePath)
                                 .then(response => {
-                                    History.find({
-                                        vendorId: vendorInfo._id,
-                                        connectorId: connectorInfo._id
-                                    }, (err, histories) => {
-                                        if (err) {
-                                            return next(err);
-                                        }
-                                        if (histories.length == 0) {
-                                            var history = new History();
-                                            history.vendorId = vendorInfo._id;
-                                            history.vendorName = vendorInfo.api.apiShop;
-                                            history.connectorId = connectorInfo._id;
-                                            history.connectorType = connectorInfo.kwiLocation;
-                                            history.counter = 1;
-
-                                            history.save().then(() => {
-                                                res.render('feeds/refund', {
-                                                    title: 'Refund',
-                                                    refundList: refundDataList
-                                                });
-                                            });
+                                    addHistory(vendorInfo, connectorInfo, 2, (historyErr) => {
+                                        if (historyErr) {
+                                            return next(historyErr);
                                         } else {
-                                            var history = histories[0];
-                                            history.update({ $inc: { counter: 1 }},() => {
-                                                res.render('feeds/refund', {
-                                                    title: 'Refund',
-                                                    refundList: refundDataList
-                                                });
+                                            res.render('feeds/refund', {
+                                                title: 'Refund',
+                                                refundList: refundDataList
                                             });
                                         }
                                     });
                                     
                                     sftp.end();
                                 })
-                                .catch(error => console.log('upload error: ', error));
+                                .catch(error => {
+                                    addHistory(vendorInfo, connectorInfo, 0, (historyErr) => {
+                                        if (historyErr) {
+                                            return next(historyErr);
+                                        } else {
+                                            console.log('upload error: ', error);
+                                        }
+                                    });
+                                });
                         }
                     });
                 });
         })
-        .catch(err => console.log(err));
+        .catch(err => {
+            addHistory(vendorInfo, connectorInfo, 0, (historyErr) => {
+                if (historyErr) {
+                    return next(historyErr);
+                } else {
+                    console.log('Getting refund data Error: ', err);
+                }
+            });
+        });
     }
 };
 
@@ -205,4 +200,34 @@ const deleteAndInitialize = function (filePath) {
             });
         });
     }
-}
+};
+
+const addHistory = (vendor, connector, statusFlag, callback) => {
+    History.find({
+        vendorId: vendor._id,
+        connectorId: connector._id,
+        status: statusFlag
+    }, (err, histories) => {
+        if (err) {
+            callback(err);
+        }
+        if (histories.length == 0) {
+            var history = new History();
+            history.vendorId = vendor._id;
+            history.vendorName = vendor.api.apiShop;
+            history.connectorId = connector._id;
+            history.connectorType = connector.kwiLocation;
+            history.counter = 1;
+            history.status = statusFlag;
+
+            history.save().then(() => {
+                callback(null);
+            });
+        } else {
+            var history = histories[0];
+            history.update({ $inc: { counter: 1 }},() => {
+                callback(null);
+            });
+        }
+    });
+};

@@ -140,34 +140,13 @@ exports.index = async (req, res, next) => {
                         orderPost.order.send_receipt = true;
                         orderPost.order.send_fulfillment_receipt = true;
 
-                        console.log('original id: ', createResult.order_number);
-                        console.log('real id: ', nextOrderNumber);
-
                         shopify.order.create(orderPost.order).then(createNextOrder => {
                             shopify.order.delete(originalOrderId).then(deleteResult => {
-                                History.find({
-                                    vendorId: vendorInfo._id,
-                                    connectorId: '111'
-                                }, (err, histories) => {
-                                    if (err) {
-                                        return next(err);
-                                    }
-                                    if (histories.length == 0) {
-                                        var history = new History();
-                                        history.vendorId = vendorInfo._id;
-                                        history.vendorName = vendorInfo.api.apiShop;
-                                        history.connectorId = '111';
-                                        history.connectorType = 'order';
-                                        history.counter = 1;
-
-                                        history.save().then(() => {
-                                            console.log('added new order');
-                                        });
+                                addHistory(vendorInfo, connectorInfo, 2, (historyErr) => {
+                                    if (historyErr) {
+                                        return next(historyErr);
                                     } else {
-                                        var history = histories[0];
-                                        history.update({ $inc: { counter: 1 }},() => {
-                                            console.log('added new order into shopify store');
-                                        });
+                                        console.log('added new order into shopify store');
                                     }
                                 });
 
@@ -175,10 +154,22 @@ exports.index = async (req, res, next) => {
                             });
                         });
                     }).catch(createError => {
-                        console.log('Creating Error: ', createError);
+                        addHistory(vendorInfo, connectorInfo, 0, (historyErr) => {
+                            if (historyErr) {
+                                return next(historyErr);
+                            } else {
+                                console.log('Creating Error: ', createError);
+                            }
+                        });
                     });
                 }).catch(getDataError => {
-                    return next(getDataError);
+                    addHistory(vendorInfo, connectorInfo, 0, (historyErr) => {
+                        if (historyErr) {
+                            return next(historyErr);
+                        } else {
+                            return next(getDataError);
+                        }
+                    });
                 });
             });
 
@@ -467,43 +458,36 @@ exports.shipment = async (req, res, next) => {
                             //     });
                             // }).catch(error => console.log('upload error: ', error));
 
-                            History.find({
-                                vendorId: vendorInfo._id,
-                                connectorId: connectorInfo._id
-                            }, (err, histories) => {
-                                if (err) {
-                                    return next(err);
-                                }
-                                if (histories.length == 0) {
-                                    var history = new History();
-                                    history.vendorId = vendorInfo._id;
-                                    history.vendorName = vendorInfo.api.apiShop;
-                                    history.connectorId = connectorInfo._id;
-                                    history.connectorType = connectorInfo.kwiLocation;
-                                    history.counter = 1;
-
-                                    history.save().then(() => {
-                                        res.render('feeds/shipment', {
-                                            title: 'Shipment',
-                                            orderList: orderDataList
-                                        });
-                                    });
+                            addHistory(vendorInfo, connectorInfo, 2, (historyErr) => {
+                                if (historyErr) {
+                                    return next(historyErr);
                                 } else {
-                                    var history = histories[0];
-                                    history.update({ $inc: { counter: 1 }},() => {
-                                        res.render('feeds/shipment', {
-                                            title: 'Shipment',
-                                            orderList: orderDataList
-                                        });
+                                    res.render('feeds/shipment', {
+                                        title: 'Shipment',
+                                        orderList: orderDataList
                                     });
                                 }
                             });
                         }
                     });
                 }).catch((e) => {
-                    console.log('SFTP connection error: ', e);
+                    addHistory(vendorInfo, connectorInfo, 0, (historyErr) => {
+                        if (historyErr) {
+                            return next(historyErr);
+                        } else {
+                            console.log('SFTP connection error: ', e);
+                        }
+                    });
                 });
-            }).catch(err => console.log(err));
+            }).catch(err => {
+                addHistory(vendorInfo, connectorInfo, 0, (historyErr) => {
+                    if (historyErr) {
+                        return next(historyErr);
+                    } else {
+                        console.log('Orders Listing Error: ', err)
+                    }
+                });
+            });
     }
 };
 
@@ -534,3 +518,33 @@ const deleteFiles = function (sftpObj, filePathList, callback) {
         callback(null);
     }
 }
+
+const addHistory = (vendor, connector, statusFlag, callback) => {
+    History.find({
+        vendorId: vendor._id,
+        connectorId: connector._id,
+        status: statusFlag
+    }, (err, histories) => {
+        if (err) {
+            callback(err);
+        }
+        if (histories.length == 0) {
+            var history = new History();
+            history.vendorId = vendor._id;
+            history.vendorName = vendor.api.apiShop;
+            history.connectorId = connector._id;
+            history.connectorType = connector.kwiLocation;
+            history.counter = 1;
+            history.status = statusFlag;
+
+            history.save().then(() => {
+                callback(null);
+            });
+        } else {
+            var history = histories[0];
+            history.update({ $inc: { counter: 1 }},() => {
+                callback(null);
+            });
+        }
+    });
+};
