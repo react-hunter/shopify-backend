@@ -14,7 +14,7 @@ const History = require('../../models/History');
  */
 exports.index = async (req, res, next) => {
 
-    let vendorData, connectorData;
+    let vendorInfo, connectorInfo;
     let returnFileName = '';
     let shopify = null;
     let errorExist = false;
@@ -24,10 +24,10 @@ exports.index = async (req, res, next) => {
         if (vendorError) {
             return next(vendorError);
         }
-        vendorData = vendor;
+        vendorInfo = vendor;
         returnFileName = 'uploads/return-' + vendor.api.apiShop + '.txt';
 
-        if (vendorData.api.apiShop == '' || vendorData.api.apiKey == '' || vendorData.api.apiPassword == '') {
+        if (vendorInfo.api.apiShop == '' || vendorInfo.api.apiKey == '' || vendorInfo.api.apiPassword == '') {
             req.flash('errors', {
                 msg: 'You should have API information to manage product feed. Please contact with Administrator.'
             });
@@ -35,7 +35,7 @@ exports.index = async (req, res, next) => {
             res.redirect('/');
             return next();
         }
-        if (vendorData.sftp.sftpHost == '' || vendorData.sftp.sftpPassword == '' || vendorData.sftp.sftpUsername == '') {
+        if (vendorInfo.sftp.sftpHost == '' || vendorInfo.sftp.sftpPassword == '' || vendorInfo.sftp.sftpUsername == '') {
             req.flash('errors', {
                 msg: 'You should have SFTP information to manage product feed. Please contact with Administrator.'
             });
@@ -43,11 +43,11 @@ exports.index = async (req, res, next) => {
             res.redirect('/');
             return next();
         }
-        if (vendorData.active == 'yes') {
+        if (vendorInfo.active == 'yes') {
             shopify = new Shopify({
-                shopName: vendorData.api.apiShop,
-                apiKey: vendorData.api.apiKey,
-                password: vendorData.api.apiPassword,
+                shopName: vendorInfo.api.apiShop,
+                apiKey: vendorInfo.api.apiKey,
+                password: vendorInfo.api.apiPassword,
                 timeout: 50000,
                 autoLimit: {
                     calls: 2,
@@ -57,7 +57,7 @@ exports.index = async (req, res, next) => {
             });
         }
         // Check vendor availability. If vendor's status is inactive, it should redirect to homepage without any action.
-        if (vendorData.active == 'no') {
+        if (vendorInfo.active == 'no') {
             req.flash('errors', {
                 msg: 'Your vendor should be active to manage feed. Please contact with Administrator.'
             });
@@ -68,7 +68,7 @@ exports.index = async (req, res, next) => {
 
         // Check refund connector
         Connector.find({
-            vendorId: vendorData._id,
+            vendorId: vendorInfo._id,
             kwiLocation: 'refund',
             active: 'yes'
         }, (err, connectors) => {
@@ -83,7 +83,7 @@ exports.index = async (req, res, next) => {
                 res.redirect('/');
                 return next();
             }
-            connectorData = connectors[0];
+            connectorInfo = connectors[0];
         });
     });
 
@@ -134,10 +134,10 @@ exports.index = async (req, res, next) => {
         })
         .then(() => {
             sftp.connect({
-                    host: vendorData.sftp.sftpHost,
+                    host: vendorInfo.sftp.sftpHost,
                     port: process.env.SFTP_PORT,
-                    username: vendorData.sftp.sftpUsername,
-                    password: vendorData.sftp.sftpPassword
+                    username: vendorInfo.sftp.sftpUsername,
+                    password: vendorInfo.sftp.sftpPassword
                 })
                 .then(() => {
                     fs.writeFile(returnFileName, TSV.stringify(refundDataList), function (err) {
@@ -150,18 +150,18 @@ exports.index = async (req, res, next) => {
                             sftp.put(returnFileName, remotePath)
                                 .then(response => {
                                     History.find({
-                                        vendorId: vendorData._id,
-                                        connectorId: connectorData._id
+                                        vendorId: vendorInfo._id,
+                                        connectorId: connectorInfo._id
                                     }, (err, histories) => {
                                         if (err) {
                                             return next(err);
                                         }
                                         if (histories.length == 0) {
                                             var history = new History();
-                                            history.vendorId = vendorData._id;
-                                            history.vendorName = vendorData.api.apiShop;
-                                            history.connectorId = connectorData._id;
-                                            history.connectorType = connectorData.kwiLocation;
+                                            history.vendorId = vendorInfo._id;
+                                            history.vendorName = vendorInfo.api.apiShop;
+                                            history.connectorId = connectorInfo._id;
+                                            history.connectorType = connectorInfo.kwiLocation;
                                             history.counter = 1;
 
                                             history.save().then(() => {

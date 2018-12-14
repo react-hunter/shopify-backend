@@ -24,8 +24,8 @@ var colorList = [];
  */
 exports.index = async (req, res, next) => {
 
-    var vendorData;
-    var connectorData;
+    var vendorInfo;
+    var connectorInfo;
     var productFileName = '';
     var shopify = null;
     var metaList;
@@ -45,10 +45,10 @@ exports.index = async (req, res, next) => {
         if (vendorError) {
             return next(vendorError);
         }
-        vendorData = vendor;
+        vendorInfo = vendor;
         productFileName = 'uploads/product-' + vendor.api.apiShop + '.txt';
 
-        if (vendorData.api.apiShop == '' || vendorData.api.apiKey == '' || vendorData.api.apiPassword == '') {
+        if (vendorInfo.api.apiShop == '' || vendorInfo.api.apiKey == '' || vendorInfo.api.apiPassword == '') {
             req.flash('errors', {
                 msg: 'You should have API information to manage product feed. Please contact with Administrator.'
             });
@@ -56,7 +56,7 @@ exports.index = async (req, res, next) => {
             res.redirect('/');
             return next();
         }
-        if (vendorData.sftp.sftpHost == '' || vendorData.sftp.sftpPassword == '' || vendorData.sftp.sftpUsername == '') {
+        if (vendorInfo.sftp.sftpHost == '' || vendorInfo.sftp.sftpPassword == '' || vendorInfo.sftp.sftpUsername == '') {
             req.flash('errors', {
                 msg: 'You should have SFTP information to manage product feed. Please contact with Administrator.'
             });
@@ -64,11 +64,11 @@ exports.index = async (req, res, next) => {
             res.redirect('/');
             return next();
         }
-        if (vendorData.active == 'yes') {
+        if (vendorInfo.active == 'yes') {
             shopify = new Shopify({
-                shopName: vendorData.api.apiShop,
-                apiKey: vendorData.api.apiKey,
-                password: vendorData.api.apiPassword,
+                shopName: vendorInfo.api.apiShop,
+                apiKey: vendorInfo.api.apiKey,
+                password: vendorInfo.api.apiPassword,
                 timeout: 50000,
                 autoLimit: {
                     calls: 2,
@@ -78,7 +78,7 @@ exports.index = async (req, res, next) => {
             });
         }
         // Check vendor availability. If vendor's status is inactive, it should redirect to homepage without any action.
-        if (vendorData.active == 'no') {
+        if (vendorInfo.active == 'no') {
             req.flash('errors', {
                 msg: 'Your vendor should be active to manage feed. Please contact with Administrator.'
             });
@@ -89,7 +89,7 @@ exports.index = async (req, res, next) => {
 
         // Check product connector
         Connector.find({
-            vendorId: vendorData._id,
+            vendorId: vendorInfo._id,
             kwiLocation: 'product',
             active: 'yes'
         }, (err, connectors) => {
@@ -104,7 +104,7 @@ exports.index = async (req, res, next) => {
                 res.redirect('/');
                 return next();
             }
-            connectorData = connectors[0];
+            connectorInfo = connectors[0];
         });
     });
 
@@ -185,7 +185,7 @@ exports.index = async (req, res, next) => {
                     var productData = {};
                     var productView = {};
                     // productData.Brand = product.vendor;
-                    productData.Brand = vendorData.brandName;
+                    productData.Brand = vendorInfo.brandName;
                     productData.Category = productCategory;
 
                     productData.ProductCode = '';
@@ -548,14 +548,14 @@ exports.index = async (req, res, next) => {
         })
         .then(() => {
             sftp.connect({
-                host: vendorData.sftp.sftpHost,
+                host: vendorInfo.sftp.sftpHost,
                 port: process.env.SFTP_PORT,
-                username: vendorData.sftp.sftpUsername,
-                password: vendorData.sftp.sftpPassword
+                username: vendorInfo.sftp.sftpUsername,
+                password: vendorInfo.sftp.sftpPassword
             })
             .then(async () => {
                 await delay(2000);
-                var vendorUrl = 'https://' + vendorData.api.apiShop + '.myshopify.com';
+                var vendorUrl = 'https://' + vendorInfo.api.apiShop + '.myshopify.com';
                 fs.writeFile(productFileName, TSV.stringify(productDataList), (err) => {
                     if (err) {
                         console.log(err);
@@ -564,18 +564,18 @@ exports.index = async (req, res, next) => {
                         .then(response => {
                             // Add history
                             History.find({
-                                vendorId: vendorData._id,
-                                connectorId: connectorData._id
+                                vendorId: vendorInfo._id,
+                                connectorId: connectorInfo._id
                             }, (err, histories) => {
                                 if (err) {
                                     return next(err);
                                 }
                                 if (histories.length == 0) {
                                     var history = new History();
-                                    history.vendorId = vendorData._id;
-                                    history.vendorName = vendorData.api.apiShop;
-                                    history.connectorId = connectorData._id;
-                                    history.connectorType = connectorData.kwiLocation;
+                                    history.vendorId = vendorInfo._id;
+                                    history.vendorName = vendorInfo.api.apiShop;
+                                    history.connectorId = connectorInfo._id;
+                                    history.connectorType = connectorInfo.kwiLocation;
                                     history.counter = 1;
 
                                     history.save().then(() => {
