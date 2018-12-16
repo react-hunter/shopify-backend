@@ -105,7 +105,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use((req, res, next) => {
-  if (req.path === '/api/upload' || req.path === '/webhook') {
+  if ( req.path === '/api/upload' || req.path.indexOf('/webhook') > -1 ) {
     next();
   } else {
     lusca.csrf()(req, res, next);
@@ -200,7 +200,10 @@ app.get('/refund', passportConfig.isAuthenticated, refundController.index);
 app.get('/vendors/synchronizeColors/:vendorId', passportConfig.isSuper, vendorsController.synchronizeColors);
 
 // Test for webhook
-app.post('/webhook', webhookController.index);
+app.post('/webhook/productCreate', webhookController.productCreate);
+app.post('/webhook/productUpdate', webhookController.productUpdate);
+app.post('/webhook/productDelete', webhookController.productDelete);
+
 // To test some code.
 app.get('/testcode', testcodeController.index);
 

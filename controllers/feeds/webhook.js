@@ -13,7 +13,7 @@ var csrfMiddleware = lusca.csrf();
  */
 
 var productHookList = {};
-exports.index = (req, res) => {
+exports.productCreate = (req, res) => {
     
     var hookHeaders = req.headers;
     var hookBody = req.body;
@@ -22,18 +22,31 @@ exports.index = (req, res) => {
     var fromStore = temp[0];
     
     // productHookList[fromStore + '-update'] = [];
-    if (hookHeaders['x-shopify-topic'] == 'products/update') {
-        if (contains.call(productHookList[fromStore + '-update'], hookHeaders['x-shopify-product-id'])) {
-            console.log('updated product id: ', hookHeaders['x-shopify-product-id']);
-            console.log('updated product title: ', hookBody.title);
+    if (hookHeaders['x-shopify-topic'] == 'products/create') {
+        if (contains.call(productHookList[fromStore + '-create'], hookHeaders['x-shopify-product-id'])) {
+            console.log('created product id: ', hookHeaders['x-shopify-product-id']);
+            console.log('created product title: ', hookBody.title);
             console.log('////////////////////////////////////////////////////////////////////');
             res.status(200).send();
-            productHookList[fromStore + '-update'] = [];
+            productHookList[fromStore + '-create'] = [];
         } else {
-            productHookList[fromStore + '-update'] = [];
-            productHookList[fromStore + '-update'].push(hookHeaders['x-shopify-product-id']);
+            productHookList[fromStore + '-create'] = [];
+            productHookList[fromStore + '-create'].push(hookHeaders['x-shopify-product-id']);
         }
     }
+};
+
+exports.productUpdate = (req, res, next) => {
+    console.log('arrive webhook for product update');
+    // res.status(200).send();
+    console.log('headers: ', req.headers);
+    res.redirect('/product');
+    return next();
+};
+
+exports.productDelete = (req, res) => {
+    console.log('arrive webhook for product Delete');
+    res.status(200).send();
 };
 
 var contains = function(needle) {

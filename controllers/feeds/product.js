@@ -15,6 +15,7 @@ const Vendor = require('../../models/Vendor');
 const Connector = require('../../models/Connector');
 const Color = require('../../models/Color');
 const History = require('../../models/History');
+const Status = require('../../models/Status');
 
 var colorList = [];
 
@@ -562,9 +563,9 @@ exports.index = async (req, res, next) => {
                     } else {
                         sftp.put(productFileName, '/incoming/products/products01.txt')
                         .then(response => {
-                            addHistory(vendorInfo, connectorInfo, 2, (historyErr) => {
-                                if (historyErr) {
-                                    return next(historyErr);
+                            addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
+                                if (statusErr) {
+                                    return next(statusErr);
                                 } else {
                                     res.render('feeds/product', {
                                         title: 'Product',
@@ -577,9 +578,9 @@ exports.index = async (req, res, next) => {
                             sftp.end();
                         })
                         .catch(error => {
-                            addHistory(vendorInfo, connectorInfo, 0, (historyErr) => {
-                                if (historyErr) {
-                                    return next(historyErr);
+                            addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
+                                if (statusErr) {
+                                    return next(statusErr);
                                 } else {
                                     req.flash('errors', {
                                         msg: 'There are problems when trying upload file. Please check your internet connection.'
@@ -593,9 +594,9 @@ exports.index = async (req, res, next) => {
 
             })
             .catch(error => {
-                addHistory(vendorInfo, connectorInfo, 0, (historyErr) => {
-                    if (historyErr) {
-                        return next(historyErr);
+                addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
+                    if (statusErr) {
+                        return next(statusErr);
                     } else {
                         req.flash('errors', {
                             msg: 'There are problems when trying to connect into sftp. Please make sure that sftp infomation of this vendor is correct.'
@@ -606,9 +607,9 @@ exports.index = async (req, res, next) => {
             });
         })
         .catch(err => {
-            addHistory(vendorInfo, connectorInfo, 0, (historyErr) => {
-                if (historyErr) {
-                    return next(historyErr);
+            addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
+                if (statusErr) {
+                    return next(statusErr);
                 } else {
                     req.flash('errors', {
                         msg: 'There are problems when trying to get product list from store. Please check your internet connection.'
@@ -658,35 +659,62 @@ const deleteAndInitialize = function (filePath) {
     }
 }
 
-const addHistory = (vendor, connector, statusFlag, callback) => {
-    History.find({
+const addStatus = (vendor, connector, statusFlag, callback) => {
+    Status.find({
         vendorId: vendor._id,
         connectorId: connector._id,
         status: statusFlag
-    }, (err, histories) => {
+    }, (err, statuses) => {
         if (err) {
             callback(err);
-        }
-        if (histories.length == 0) {
-            var history = new History();
-            history.vendorId = vendor._id;
-            history.vendorName = vendor.api.apiShop;
-            history.connectorId = connector._id;
-            history.connectorType = connector.kwiLocation;
-            history.counter = 1;
-            history.status = statusFlag;
-
-            history.save().then(() => {
-                callback(null);
-            });
         } else {
-            var history = histories[0];
-            history.update({ $inc: { counter: 1 }},() => {
-                callback(null);
-            });
+            if (statuses.length == 0) {
+                var status = new Status();
+                status.vendorId = vendor._id;
+                status.vendorName = vendor.api.apiShop;
+                status.connectorId = connector._id;
+                status.connectorType = connector.kwiLocation;
+                status.counter = 1;
+                status.status = statusFlag;
+    
+                status.save().then(() => {
+                    addHistory(vendor, connector, statusFlag, () => {
+                        if(historyErr) {
+                            callback(historyErr);
+                        } else {
+                            callback(null);
+                        }
+                    });
+                });
+            } else {
+                var status = statuses[0];
+                status.update({ $inc: { counter: 1 }},() => {
+                    addHistory(vendor, connector, statusFlag, () => {
+                        if(historyErr) {
+                            callback(historyErr);
+                        } else {
+                            callback(null);
+                        }
+                    });
+                });
+            }
         }
     });
 };
+
+const addHistory = (vendor, connector, flag, callback) => {
+    var history = new History();
+    history.vendorId = vendor._id;
+    history.vendorName = vendor.api.apiShop;
+    history.connectorId = connector._id;
+    history.connectorType = connector.kwiLocation;
+    history.status = flag;
+
+    history.save().then(() => {
+        callback(null);
+    });
+};
+
 /*
 const writeProductFile = function (data, isFirst, callback) {
     if (isFirst == 1) {

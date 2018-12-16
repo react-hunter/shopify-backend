@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 
-const historySchema = new mongoose.Schema({
+const statusSchema = new mongoose.Schema({
   vendorId: String,
   vendorName: String,
   connectorId: String,
   connectorType: String,
+  counter: Number,
   status: Number    // 0: failed, 1: pending, 2: success
 }, { timestamps: true });
 
@@ -12,6 +13,6 @@ const historySchema = new mongoose.Schema({
  * Password hash middleware.
  */
 
-const History = mongoose.model('History', historySchema);
+const Status = mongoose.model('Status', statusSchema);
 
-module.exports = History;
+module.exports = Status;
