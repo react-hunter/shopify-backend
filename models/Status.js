@@ -5,8 +5,9 @@ const statusSchema = new mongoose.Schema({
   vendorName: String,
   connectorId: String,
   connectorType: String,
-  counter: Number,
-  status: Number    // 0: failed, 1: pending, 2: success
+  success: Number,
+  pending: Number,
+  error: Number
 }, { timestamps: true });
 
 /**

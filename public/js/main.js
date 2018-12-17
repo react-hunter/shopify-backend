@@ -9,7 +9,9 @@ var CHARACTER_SETS = [
 $(document).ready(() => {
   // Place JavaScript code here...
   $("#users-table").DataTable();
-  $("#vendors-table").DataTable();
+	$("#vendors-table").DataTable();
+	$("#systemstatus-table").DataTable();
+	$("#history-table").DataTable();
 
   $('.delete-item').on('click', function (e) {
     e.preventDefault();

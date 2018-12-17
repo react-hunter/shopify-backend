@@ -3,3 +3,49 @@ extends ../layout
 block content
   .pb-2.mt-2.mb-4.border-bottom
     h3 System Status
+  - var feedList = ['product', 'inventory', 'order', 'ship', 'refund'];
+  table#systemstatus-table.table.table-bordered.table-sm
+    thead
+      tr
+        th Feed Name
+        th Success
+        th Pending
+        th Error
+        th Retries
+        th Last Checked
+        th Next Check
+    tbody
+      if statusList
+        for feed in feedList
+          for status in statusList
+            if (feed == status.connectorType)
+              tr
+                td= feed
+                td= status.success
+                td= status.pending
+                td= status.error
+                td= 10
+                td= '2018/12/18'
+                td= '2018/12/18'
+  .pb-2.mt-2.mb-4.border-bottom
+    h3 Recent Transactions
+  table#history-table.table.table-bordered.table-sm
+    thead
+      tr
+        th Vendor
+        th Type
+        th In / Out
+        th Config Type
+        th Status
+        th Time
+    tbody
+      if recentHistoryList
+        for history in recentHistoryList
+          - var historyStatus = history.status==2?'OK':'Error';
+          tr
+            td= history.vendorName
+            td= history.connectorType
+            td= 'In'
+            td= 'Shopify/EDI'
+            td= historyStatus
+            td= '3:59pm'

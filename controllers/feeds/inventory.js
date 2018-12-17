@@ -206,8 +206,7 @@ const deleteAndInitialize = function (filePath) {
 const addStatus = (vendor, connector, statusFlag, callback) => {
     Status.find({
         vendorId: vendor._id,
-        connectorId: connector._id,
-        status: statusFlag
+        connectorId: connector._id
     }, (err, statuses) => {
         if (err) {
             callback(err);
@@ -218,11 +217,21 @@ const addStatus = (vendor, connector, statusFlag, callback) => {
                 status.vendorName = vendor.api.apiShop;
                 status.connectorId = connector._id;
                 status.connectorType = connector.kwiLocation;
-                status.counter = 1;
-                status.status = statusFlag;
-    
+                status.success = 0;
+                status.pending = 0;
+                status.error = 0;
+                switch (statusFlag) {
+                    case 0:
+                        status.error = 1;
+                        break;
+                    case 1:
+                        status.pending = 1;
+                        break;
+                    default:
+                        status.success = 1;
+                }
                 status.save().then(() => {
-                    addHistory(vendor, connector, statusFlag, () => {
+                    addHistory(vendor, connector, statusFlag, (historyErr) => {
                         if(historyErr) {
                             callback(historyErr);
                         } else {
@@ -232,8 +241,19 @@ const addStatus = (vendor, connector, statusFlag, callback) => {
                 });
             } else {
                 var status = statuses[0];
-                status.update({ $inc: { counter: 1 }},() => {
-                    addHistory(vendor, connector, statusFlag, () => {
+                let statusQuery = '';
+                switch (statusFlag) {
+                    case 0:
+                        statusQuery = {error: 1};
+                        break;
+                    case 1:
+                        statusQuery = {pending: 1};
+                        break;
+                    default:
+                        statusQuery = {success: 1};
+                }
+                status.updateOne({ $inc: statusQuery},() => {
+                    addHistory(vendor, connector, statusFlag, (historyErr) => {
                         if(historyErr) {
                             callback(historyErr);
                         } else {
@@ -256,5 +276,7 @@ const addHistory = (vendor, connector, flag, callback) => {
 
     history.save().then(() => {
         callback(null);
+    }).catch(err => {
+        callback(err);
     });
 };

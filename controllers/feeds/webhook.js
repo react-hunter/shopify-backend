@@ -14,7 +14,8 @@ var csrfMiddleware = lusca.csrf();
 
 var productHookList = {};
 exports.productCreate = (req, res) => {
-    
+    console.log('req header from store: ', req.headers);
+    console.log('req session from store: ', req.session);
     var hookHeaders = req.headers;
     var hookBody = req.body;
 
