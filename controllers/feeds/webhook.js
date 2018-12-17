@@ -1,11 +1,18 @@
 const Shopify = require('shopify-api-node');
+const fs = require('fs');
+// const request = require('request');
+const Client = require('ssh2-sftp-client');
+const TaxCodeList = require('../../config/constants').TaxCodeList;
+const ProductTypeList = require('../../config/constants').ProductTypeList;
+const TaxonomyList = require('../../config/constants').TaxonomyList;
 const delay = require('delay');
+const TSV = require('tsv');
 
 const Vendor = require('../../models/Vendor');
 const Connector = require('../../models/Connector');
-const lusca = require('lusca');
-
-var csrfMiddleware = lusca.csrf();
+const Color = require('../../models/Color');
+const History = require('../../models/History');
+const Status = require('../../models/Status');
 
 /**
  * POST /
@@ -76,3 +83,119 @@ var contains = function(needle) {
 
     return indexOf.call(this, needle) > -1;
 }
+
+const getVariantImage = function (images, image_id) {
+    var image_url = '';
+    images.forEach(image => {
+        if (image.id == image_id) {
+            image_url = image.src;
+        }
+    });
+
+    return image_url;
+}
+
+const jsUcfirst = function (string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+const getShortenColorName = function (str) {
+    var returnColor = '';
+    colorList.forEach(colorItem => {
+        if (colorItem.colorName == str.toLowerCase()) {
+            returnColor = colorItem.shortName;
+        }
+    });
+    return returnColor;
+}
+const deleteAndInitialize = function (filePath) {
+    if (fs.existsSync(filePath)) {
+        fs.unlink(filePath, (err) => {
+            if (err) throw err;
+            console.log('product file has been deleted');
+            fs.writeFile(filePath, '', function (initErr) {
+                if (initErr) {
+                    console.log(initErr);
+                }
+                console.log('Made product file and initialized with empty');
+            });
+        });
+    }
+}
+
+const addStatus = (vendor, connector, statusFlag, callback) => {
+    Status.find({
+        vendorId: vendor._id,
+        connectorId: connector._id
+    }, (err, statuses) => {
+        if (err) {
+            callback(err);
+        } else {
+            if (statuses.length == 0) {
+                var status = new Status();
+                status.vendorId = vendor._id;
+                status.vendorName = vendor.api.apiShop;
+                status.connectorId = connector._id;
+                status.connectorType = connector.kwiLocation;
+                status.success = 0;
+                status.pending = 0;
+                status.error = 0;
+                switch (statusFlag) {
+                    case 0:
+                        status.error = 1;
+                        break;
+                    case 1:
+                        status.pending = 1;
+                        break;
+                    default:
+                        status.success = 1;
+                }
+                status.save().then(() => {
+                    addHistory(vendor, connector, statusFlag, (historyErr) => {
+                        if(historyErr) {
+                            callback(historyErr);
+                        } else {
+                            callback(null);
+                        }
+                    });
+                });
+            } else {
+                var status = statuses[0];
+                let statusQuery = '';
+                switch (statusFlag) {
+                    case 0:
+                        statusQuery = {error: 1};
+                        break;
+                    case 1:
+                        statusQuery = {pending: 1};
+                        break;
+                    default:
+                        statusQuery = {success: 1};
+                }
+                status.updateOne({ $inc: statusQuery},() => {
+                    addHistory(vendor, connector, statusFlag, (historyErr) => {
+                        if(historyErr) {
+                            callback(historyErr);
+                        } else {
+                            callback(null);
+                        }
+                    });
+                });
+            }
+        }
+    });
+};
+
+const addHistory = (vendor, connector, flag, callback) => {
+    var history = new History();
+    history.vendorId = vendor._id;
+    history.vendorName = vendor.api.apiShop;
+    history.connectorId = connector._id;
+    history.connectorType = connector.kwiLocation;
+    history.status = flag;
+
+    history.save().then(() => {
+        callback(null);
+    }).catch(err => {
+        callback(err);
+    });
+};

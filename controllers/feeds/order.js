@@ -16,8 +16,25 @@ exports.index = async (req, res, next) => {
     res.render('feeds/order', {
         title: 'order'
     });
-    var vendorInfo;
-
+    var vendorInfo, connectorInfo;
+    Connector.find({
+        vendorId: req.user.vendorId,
+        kwiLocation: 'order',
+        active: 'yes'
+    }, (err, connectors) => {
+        if (err) {
+            return next(err);
+        }
+        if (connectors.length == 0) {
+            req.flash('errors', {
+                msg: 'Your vendor does not include order connector or it is inactive. Please contact with Administrator or Admin User.'
+            });
+            errorExist = true;
+            res.redirect('/');
+            return next();
+        }
+        connectorInfo = connectors[0];
+    });
     Vendor.findOne({
         _id: req.user.vendorId,
         active: 'yes'
@@ -108,7 +125,7 @@ exports.index = async (req, res, next) => {
                         province_code: orderData['bill_postal_code']
                     };
                     // orderPost.order.email = orderData['customer_email'];
-                    orderPost.order.email = 'dfeiner@kwi.com';
+                    orderPost.order.email = 'shopsatnbcu+orders@balanceagent.com';
                     orderPost.order.buyer_accepts_marketing = false;
                     orderPost.order.send_receipt = false;
                     orderPost.order.send_fulfillment_receipt = false;
@@ -150,7 +167,7 @@ exports.index = async (req, res, next) => {
                                     }
                                 });
 
-                                sftp.end();
+                                // sftp.end();
                             });
                         });
                     }).catch(createError => {
