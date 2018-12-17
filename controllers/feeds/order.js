@@ -83,7 +83,7 @@ exports.index = async (req, res, next) => {
                     orderPost.order.shipping_address = {};
 
                     let temp = TSV.parse(fileData._readableState.buffer.head.data);
-                    orderData = temp[1];
+                    var orderData = temp[1];
                     
                     orderPost.order.line_items.push({
                         variant_id: orderData['item_sku'],
