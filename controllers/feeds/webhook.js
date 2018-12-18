@@ -370,7 +370,6 @@ const processProductFeed = async (vendorInfo, connectorInfo, callback) => {
                         if (e !== BreakException) throw e;
                     }
 
-                    // Regenerate the `Category` field by `ProductType`
                     try {
                         taxonomyKeys.forEach(taxoKey => {
                             var temp = TaxonomyList[taxoKey].toLowerCase();
@@ -648,13 +647,9 @@ const processProductFeed = async (vendorInfo, connectorInfo, callback) => {
                         .then(response => {
                             addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
                                 if (statusErr) {
-                                    return next(statusErr);
+                                    callback(statusErr);
                                 } else {
-                                    res.render('feeds/product', {
-                                        title: 'Product',
-                                        products: productViewList,
-                                        vendorUrl: vendorUrl
-                                    });
+                                    res.status(200).send();
                                 }
                             });
                             
@@ -663,12 +658,9 @@ const processProductFeed = async (vendorInfo, connectorInfo, callback) => {
                         .catch(error => {
                             addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                                 if (statusErr) {
-                                    return next(statusErr);
+                                    callback(statusErr);
                                 } else {
-                                    req.flash('errors', {
-                                        msg: 'There are problems when trying upload file. Please check your internet connection.'
-                                    });
-                                    res.redirect('/');
+                                    callback({error: 'There are problems when trying upload file. Please check your internet connection.'});
                                 }
                             });
                         });
@@ -679,12 +671,9 @@ const processProductFeed = async (vendorInfo, connectorInfo, callback) => {
             .catch(error => {
                 addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                     if (statusErr) {
-                        return next(statusErr);
+                        callback(statusErr);
                     } else {
-                        req.flash('errors', {
-                            msg: 'There are problems when trying to connect into sftp. Please make sure that sftp infomation of this vendor is correct.'
-                        });
-                        res.redirect('/');
+                        callback({error: 'There are problems when trying to connect into sftp. Please make sure that sftp infomation of this vendor is correct.'});
                     }
                 });
             });
@@ -692,12 +681,9 @@ const processProductFeed = async (vendorInfo, connectorInfo, callback) => {
         .catch(err => {
             addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                 if (statusErr) {
-                    return next(statusErr);
+                    callback(statusErr);
                 } else {
-                    req.flash('errors', {
-                        msg: 'There are problems when trying to get product list from store. Please check your internet connection.'
-                    });
-                    res.redirect('/');
+                    callback({error: 'There are problems when trying to get product list from store. Please check your internet connection.'});
                 }
             });
         });
