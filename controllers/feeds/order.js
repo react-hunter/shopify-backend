@@ -73,7 +73,6 @@ exports.index = async (req, res, next) => {
                 }
             });
 
-            // console.log('Files in SFTP: ', fileList);
             fileList.forEach(fileName => {
                 sftp.get('/outgoing/orders/' + fileName).then(fileData => {
                     var orderPost = {};
@@ -124,7 +123,6 @@ exports.index = async (req, res, next) => {
                         country_code: 'US',
                         province_code: orderData['bill_postal_code']
                     };
-                    // orderPost.order.email = orderData['customer_email'];
                     orderPost.order.email = 'shopsatnbcu+orders@balanceagent.com';
                     orderPost.order.buyer_accepts_marketing = false;
                     orderPost.order.send_receipt = false;
@@ -164,10 +162,13 @@ exports.index = async (req, res, next) => {
                                         return next(statusErr);
                                     } else {
                                         console.log('added new order into shopify store');
+                                        sftp.delete('/outgoing/orders/' + fileName).then(result => {
+                                            console.log('App deleted ' + fileName);
+                                        }).catch(deleteError => {
+                                            console.log('Error in deleting order file of sftp: ', deleteError);
+                                        });
                                     }
                                 });
-
-                                // sftp.end();
                             });
                         });
                     }).catch(createError => {
@@ -190,14 +191,6 @@ exports.index = async (req, res, next) => {
                 });
             });
 
-            // deleteFiles(sftp, fileList, (deleteErr) => {
-            //     if (deleteErr) {
-            //         return next(deleteErr);
-            //     } else {
-            //         console.log('Deleted processed files');
-            //         sftp.end();
-            //     }
-            // });
             
         }).catch(ftpError => {
             return next(ftpError);

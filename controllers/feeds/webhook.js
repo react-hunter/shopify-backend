@@ -211,7 +211,7 @@ const getInfo = (vendorName, callback) => {
 };
 
 // make product feed
-const processProductFeed = (vendorInfo, connectorInfo, callback) => {
+const processProductFeed = async (vendorInfo, connectorInfo, callback) => {
     var productFileName = '';
     var shopify = null;
     var metaList;
@@ -239,37 +239,12 @@ const processProductFeed = (vendorInfo, connectorInfo, callback) => {
                 bucketSize: 35
             }
         });
-    }
-    // Check vendor availability. If vendor's status is inactive, it should redirect to homepage without any action.
-    if (vendorInfo.active == 'no') {
-        req.flash('errors', {
-            msg: 'Your vendor should be active to manage feed. Please contact with Administrator.'
-        });
-        errorExist = true;
-        res.redirect('/');
-        return next();
-    }
-
-    // Check product connector
-    Connector.find({
-        vendorId: vendorInfo._id,
-        kwiLocation: 'product',
-        active: 'yes'
-    }, (err, connectors) => {
-        if (err) {
-            return next(err);
+    } else {
+        if (vendorInfo.active == 'no') {
+            callback({error: 'Your vendor should be active to manage feed. Please contact with Administrator.'});
         }
-        if (connectors.length == 0) {
-            req.flash('errors', {
-                msg: 'Your vendor does not include product connector or it is inactive. Please contact with Administrator or Admin User.'
-            });
-            errorExist = true;
-            res.redirect('/');
-            return next();
-        }
-        connectorInfo = connectors[0];
-    });
-
+    }
+    
     const sftp = new Client(); // sftp client
     var taxCodeKeys = Object.keys(TaxCodeList);
     var taxonomyKeys = Object.keys(TaxonomyList);
@@ -283,17 +258,6 @@ const processProductFeed = (vendorInfo, connectorInfo, callback) => {
     // Initialize product feed file with empty
     deleteAndInitialize(productFileName);
 
-    // Check user's active/inactive status.
-    if (req.user.active !== 'yes') {
-        req.flash('errors', {
-            msg: 'Your account is inactive now. Please contact with Administrator.'
-        });
-        errorExist = true;
-        res.redirect('/');
-        return next();
-    }
-
-    await delay(2000);
     if (!errorExist) {
         shopify.metafield.list().then(async metas => {
             metaList = metas.reduce((r, a) => {
@@ -315,38 +279,14 @@ const processProductFeed = (vendorInfo, connectorInfo, callback) => {
             limit: 250,
             published_status: 'published'
         }).then(products => {
-            // Code to make a file with raw data. Should delete after finishing this feed.
-            /*products.forEach(product => {
-                var temp = product;
-                temp.body_html = 'product description';
-                writeProductFile(JSON.stringify(temp), 0, (writeError, writeResponse) => {
-                    isFirstVariant = false;
-                    if(writeError){
-                        console.log('writeError: ', writeError);
-                    }
-                    if(writeResponse == 'success') {
-                        console.log('Writing ...');
-                    }
-                });
-            });
-            tempProducts = [];
-            products.forEach(product => {
-                var temp = product;
-                temp.body_html = 'product description';
-                tempProducts.push(temp);
-            });
-            fs.writeFile("uploads/backup/product-raw-hedge.tsv", TSV.stringify(tempProducts));*/
             products.forEach(product => {
                 const metafields = metaList[product.id];
                 var productCategory = '';
                 var isFirstVariant = true;
                 var firstVariantColor = '';
-                // var firstVariantSku = '';
-                // var firstVariantId = '';
                 product.variants.forEach((variant) => {
                     var productData = {};
                     var productView = {};
-                    // productData.Brand = product.vendor;
                     productData.Brand = vendorInfo.brandName;
                     productData.Category = productCategory;
 
@@ -375,8 +315,6 @@ const processProductFeed = (vendorInfo, connectorInfo, callback) => {
                             publishSeason = 'Winter';
                         }
                     }
-                    // var today = new Date();
-                    // var daysDifference = daysBetween(product.published_at, today);
                     var ColorName = '';
                     var Size = '';
                     var ProductCodeOption = '';
@@ -537,11 +475,6 @@ const processProductFeed = (vendorInfo, connectorInfo, callback) => {
                         productData.MinQty = MinQty;
                         productData.MaxQty = MaxQty;
                         productData.IsBestSeller = collect.collection_id == bestSellCollectionId ? true : false;
-                        // if(daysDifference > 30) {
-                        //     productData.IsNew = false;
-                        // } else {
-                        //     productData.IsNew = true;
-                        // }
                         productData.IsNew = false;
                         productData.IsExclusive = false;
                         productData.IsSale = false;
@@ -551,10 +484,8 @@ const processProductFeed = (vendorInfo, connectorInfo, callback) => {
                         productData.ZoomImage1 = '';
                         productData.ProductVideo = ProductVideo;
                         if (variant.sku != '') {
-                            // productData.SKU = variant.sku + getShortenColorName(ColorName) + Size;
                             productData.SKU = variant.id;
                         } else {
-                            // productData.SKU = productData.ProductCode;
                             productData.SKU = variant.id;
                         }
                         productData.SkuPrice = variant.price;
@@ -629,13 +560,7 @@ const processProductFeed = (vendorInfo, connectorInfo, callback) => {
                         productData.Title = '"' + product.title.replace(/\r?\n|\r/g, '').replace(/\"/g, '""') + '"';
                         productData.MinQty = MinQty;
                         productData.MaxQty = MaxQty;
-                        // productData.IsBestSeller = collect.collection_id == bestSellCollectionId ? true : false;
                         productData.IsBestSeller = false;
-                        // if (daysDifference > 30) {
-                        //     productData.IsNew = false;
-                        // } else {
-                        //     productData.IsNew = true;
-                        // }
                         productData.IsNew = false;
                         productData.IsExclusive = false;
                         productData.IsSale = false;
@@ -645,10 +570,8 @@ const processProductFeed = (vendorInfo, connectorInfo, callback) => {
                         productData.ZoomImage1 = '';
                         productData.ProductVideo = '';
                         if (variant.sku != '') {
-                            // productData.SKU = variant.sku + getShortenColorName(ColorName) + Size;
                             productData.SKU = variant.id;
                         } else {
-                            // productData.SKU = productData.ProductCode;
                             productData.SKU = variant.id;
                         }
                         productData.SkuPrice = variant.price;
@@ -681,7 +604,6 @@ const processProductFeed = (vendorInfo, connectorInfo, callback) => {
                         productData.WarehouseCode = "001".toString();
                     }
 
-                    // productData.ColorSwatchImage = "";
                     if (variant.image_id) {
                         var variant_image = getVariantImage(product.images, variant.image_id);
                         var temp0 = variant_image.split('.');
