@@ -45,7 +45,7 @@ block content
           tr
             td= history.vendorName
             td= history.connectorType
-            td= 'In'
+            td= history.connectorType=='order'?'Out':'In'
             td= 'Shopify/EDI'
             td= historyStatus
             td= '3:59pm'
