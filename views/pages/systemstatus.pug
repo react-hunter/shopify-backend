@@ -25,8 +25,8 @@ block content
                 td= status.pending
                 td= status.error
                 td= 10
-                td= '2018/12/18'
-                td= '2018/12/18'
+                td= lastCheckDate
+                td= lastCheckDate
   .pb-2.mt-2.mb-4.border-bottom
     h3 Recent Transactions
   table#history-table.table.table-bordered.table-sm
@@ -42,10 +42,11 @@ block content
       if recentHistoryList
         for history in recentHistoryList
           - var historyStatus = history.status==2?'OK':'Error';
+          - var createdDateTime = new Date(history.createdAt);
           tr
             td= history.vendorName
             td= history.connectorType
             td= history.connectorType=='order'?'Out':'In'
             td= 'Shopify/EDI'
             td= historyStatus
-            td= '3:59pm'
+            td= createdDateTime.toLocaleString('en-US')

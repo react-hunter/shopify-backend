@@ -123,7 +123,6 @@ exports.index = async (req, res, next) => {
                         country_code: 'US',
                         province_code: orderData['bill_postal_code']
                     };
-                    // orderPost.order.email = orderData['customer_email'];
                     orderPost.order.customer = {
                         first_name: orderData['bill_firstname'],
                         last_name: orderData['bill_lastname'],
