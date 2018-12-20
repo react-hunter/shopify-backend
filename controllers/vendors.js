@@ -132,7 +132,7 @@ exports.updateVendor = (req, res, next) => {
             apiShop: req.body.apiShop,
             apiKey: req.body.apiKey,
             apiPassword: req.body.apiPassword,
-            sharedSecret: req.body.sharedSecret
+            sharedSecret: req.body.sharedSecret,
         };
         vendor.sftp = {
             sftpHost: req.body.sftpHost,
