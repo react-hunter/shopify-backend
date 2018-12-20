@@ -30,18 +30,13 @@ exports.productCreate = (req, res) => {
     var fromStore = temp[0];
     
     // productHookList[fromStore + '-update'] = [];
-    if (hookHeaders['x-shopify-topic'] == 'products/create') {
-        if (contains.call(productHookList[fromStore + '-create'], hookHeaders['x-shopify-product-id'])) {
-            console.log('created product id: ', hookHeaders['x-shopify-product-id']);
-            console.log('created product title: ', hookBody.title);
-            console.log('////////////////////////////////////////////////////////////////////');
-            res.status(200).send();
-            productHookList[fromStore + '-create'] = [];
+    verifyWebhook(hmac, hookHeaders, (err, result) => {
+        if (err) {
+            console.log('failed in verifying webhook');
         } else {
-            productHookList[fromStore + '-create'] = [];
-            productHookList[fromStore + '-create'].push(hookHeaders['x-shopify-product-id']);
+            console.log('result: ', result);
         }
-    }
+    })
 };
 
 exports.productUpdate = (req, res, next) => {
@@ -207,6 +202,17 @@ const verifyWebhook = (hmac, headers, callback) => {
 
 // get information of vendor and connector by using vendorName
 const getInfo = (vendorName, callback) => {
+    Vendor.findOne({
+        'api.apiShop': vendorName,
+        active: 'yes',
+        colorSynched: 'yes'
+    }, (vendorError, vendor) => {
+        if (vendorError) {
+            callback(vendorError);
+        } else {
+            callback(null, vendor);
+        }
+    })
 
 };
 
@@ -638,7 +644,6 @@ const processProductFeed = async (vendorInfo, connectorInfo, callback) => {
             })
             .then(async () => {
                 await delay(2000);
-                var vendorUrl = 'https://' + vendorInfo.api.apiShop + '.myshopify.com';
                 fs.writeFile(productFileName, TSV.stringify(productDataList), (err) => {
                     if (err) {
                         console.log(err);

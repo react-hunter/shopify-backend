@@ -1,15 +1,11 @@
 const Shopify = require('shopify-api-node');
 const fs = require('fs');
-// const request = require('request');
 const Client = require('ssh2-sftp-client');
 const TaxCodeList = require('../../config/constants').TaxCodeList;
 const ProductTypeList = require('../../config/constants').ProductTypeList;
 const TaxonomyList = require('../../config/constants').TaxonomyList;
 const delay = require('delay');
 const TSV = require('tsv');
-// const eachSeries = require('async/eachSeries');
-// const eachOfSeries = require('async/eachOfSeries');
-// const async = require('async');
 
 const Vendor = require('../../models/Vendor');
 const Connector = require('../../models/Connector');

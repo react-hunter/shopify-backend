@@ -8,6 +8,7 @@ const Vendor = require('../../models/Vendor');
 const Connector = require('../../models/Connector');
 const History = require('../../models/History');
 const Status = require('../../models/Status');
+
 /**
  * GET /
  * Order page.
