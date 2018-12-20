@@ -140,7 +140,6 @@ exports.updateVendor = (req, res, next) => {
             sftpPassword: req.body.sftpPassword
         };
 
-        console.log('vendor data after setting: ', vendor);
         if (req.body.brandName == '' || req.body.shipMethod == '' || req.body.apiShop == '' || req.body.apiKey == '' || req.body.apiPassword == '' || req.body.sharedSecret == '' || req.body.sftpHost == '' || req.body.sftpUsername == '' || req.body.sftpPassword == '') {
             req.flash('errors', {
                 msg: 'Shopify API and SFTP information are required. Please try again.'
