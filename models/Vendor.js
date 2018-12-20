@@ -10,7 +10,8 @@ const vendorSchema = new mongoose.Schema({
   api: {
     apiShop: String,
     apiKey: String,
-    apiPassword: String
+    apiPassword: String,
+    sharedSecret: String,
   },
   sftp: {
     sftpHost: String,

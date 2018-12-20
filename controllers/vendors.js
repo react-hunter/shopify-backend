@@ -36,6 +36,9 @@ exports.addVendor = (req, res, next) => {
     if (req.query.apiKey) {
         vendor.apiKey = req.query.apiKey;
     }
+    if (req.query.sharedSecret) {
+        vendor.sharedSecret = req.query.sharedSecret;
+    }
     if (req.query.apiPassword) {
         vendor.apiPassword = req.query.apiPassword;
     }
@@ -63,7 +66,8 @@ exports.saveVendor = (req, res, next) => {
         api: {
             apiShop: req.body.apiShop,
             apiKey: req.body.apiKey,
-            apiPassword: req.body.apiPassword
+            apiPassword: req.body.apiPassword,
+            sharedSecret: req.body.sharedSecret,
         },
         sftp: {
             sftpHost: req.body.sftpHost,
@@ -71,7 +75,7 @@ exports.saveVendor = (req, res, next) => {
             sftpPassword: req.body.sftpPassword
         }
     });
-    if (req.body.brandName == '' || req.body.shipMethod == '' || req.body.apiShop == '' || req.body.apiKey == '' || req.body.apiPassword == '' || req.body.sftpHost == '' || req.body.sftpUsername == '' || req.body.sftpPassword == '') {
+    if (req.body.brandName == '' || req.body.shipMethod == '' || req.body.apiShop == '' || req.body.apiKey == '' || req.body.apiPassword == '' || req.body.sharedSecret == '' || req.body.sftpHost == '' || req.body.sftpUsername == '' || req.body.sftpPassword == '') {
         req.flash('errors', {
             msg: 'Shopify API and SFTP information are required. Please try again.'
         });
@@ -84,6 +88,7 @@ exports.saveVendor = (req, res, next) => {
                 apiShop: req.body.apiShop,
                 apiKey: req.body.apiKey,
                 apiPassword: req.body.apiPassword,
+                sharedSecret: req.body.sharedSecret,
                 sftpHost: req.body.sftpHost,
                 sftpUsername: req.body.sftpUsername,
                 sftpPassword: req.body.sftpPassword
@@ -118,20 +123,25 @@ exports.updateVendor = (req, res, next) => {
         if (err) {
             return next(err);
         }
-
         vendor.active = 'no';
         vendor.name = req.body.name;
         vendor.brandName = req.body.brandName;
         vendor.shipMethod = req.body.shipMethod;
 
-        vendor.api.apiShop = req.body.apiShop;
-        vendor.api.apiKey = req.body.apiKey;
-        vendor.api.apiPassword = req.body.apiPassword;
-        vendor.sftp.sftpHost = req.body.sftpHost;
-        vendor.sftp.sftpUsername = req.body.sftpUsername;
-        vendor.sftp.sftpPassword = req.body.sftpPassword;
+        vendor.api = {
+            apiShop: req.body.apiShop,
+            apiKey: req.body.apiKey,
+            apiPassword: req.body.apiPassword,
+            sharedSecret: req.body.sharedSecret
+        };
+        vendor.sftp = {
+            sftpHost: req.body.sftpHost,
+            sftpUsername: req.body.sftpUsername,
+            sftpPassword: req.body.sftpPassword
+        };
 
-        if (req.body.brandName == '' || req.body.shipMethod == '' || req.body.apiShop == '' || req.body.apiKey == '' || req.body.apiPassword == '' || req.body.sftpHost == '' || req.body.sftpUsername == '' || req.body.sftpPassword == '') {
+        console.log('vendor data after setting: ', vendor);
+        if (req.body.brandName == '' || req.body.shipMethod == '' || req.body.apiShop == '' || req.body.apiKey == '' || req.body.apiPassword == '' || req.body.sharedSecret == '' || req.body.sftpHost == '' || req.body.sftpUsername == '' || req.body.sftpPassword == '') {
             req.flash('errors', {
                 msg: 'Shopify API and SFTP information are required. Please try again.'
             });

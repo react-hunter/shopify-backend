@@ -36,6 +36,10 @@ block content
       .col-md-7
         input.form-control(type='text', name='apiPassword', id='apiPassword', value=vendorData.api.apiPassword)
     .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='sharedSecret') Shared Secret
+      .col-md-7
+        input.form-control(type='text', name='sharedSecret', id='sharedSecret', value=vendorData.api.sharedSecret)
+    .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='sftpHost') SFTP Host
       .col-md-7
         input.form-control(type='text', name='sftpHost', id='sftpHost', value=vendorData.sftp.sftpHost)
