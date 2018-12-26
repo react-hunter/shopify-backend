@@ -52,6 +52,11 @@ exports.productDelete = (req, res) => {
     res.status(200).send();
 };
 
+exports.kwiOrderCreate = (req, res) => {
+    console.log('data from kwi: ', req.body);
+    res.status(200).send();
+};
+
 var contains = function(needle) {
     // Per spec, the way to identify NaN is that it is not equal to itself
     var findNaN = needle !== needle;
@@ -212,8 +217,7 @@ const getInfo = (vendorName, callback) => {
         } else {
             callback(null, vendor);
         }
-    })
-
+    });
 };
 
 // make product feed

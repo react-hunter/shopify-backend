@@ -49,6 +49,7 @@ const orderController = require('./controllers/feeds/order');
 const refundController = require('./controllers/feeds/refund');
 
 const webhookController = require('./controllers/feeds/webhook');
+
 const testcodeController = require('./controllers/testcode');
 
 /**
@@ -203,6 +204,9 @@ app.get('/vendors/synchronizeColors/:vendorId', passportConfig.isSuper, vendorsC
 app.post('/webhook/productCreate', webhookController.productCreate);
 app.post('/webhook/productUpdate', webhookController.productUpdate);
 app.post('/webhook/productDelete', webhookController.productDelete);
+
+// From KWI
+app.post('/kwi/orderCreate', webhookController.kwiOrderCreate);
 
 // To test some code.
 app.get('/testcode', testcodeController.index);

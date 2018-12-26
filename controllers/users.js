@@ -47,7 +47,7 @@ exports.addUser = (req, res, next) => {
         user.domain = req.query.domain;
     }
 
-    Vendor.find({}, (err, vendors) => {
+    Vendor.find({}).sort({name: 'ASC'}).exec((err, vendors) => {
         if (err) {
             return next(err);
         }
@@ -120,7 +120,7 @@ exports.getUser = (req, res, next) => {
             return next(err);
         }
 
-        Vendor.find({}, (vendorError, vendors) => {
+        Vendor.find({}).sort({ name: 'ASC' }).exec((vendorError, vendors) => {
             if (vendorError) {
                 return next(vendorError);
             }
