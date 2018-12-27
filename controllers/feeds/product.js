@@ -211,7 +211,7 @@ exports.index = async (req, res, next) => {
                         }
                     }
                     // var today = new Date();
-                    // var daysDifference = daysBetween(product.published_at, today);
+                    // var daysDifference = daysBetween(product.published_at);
                     var ColorName = '';
                     var Size = '';
                     var ProductCodeOption = '';
@@ -270,9 +270,9 @@ exports.index = async (req, res, next) => {
                     // Regenerate the `Category` field by `ProductType`
                     try {
                         taxonomyKeys.forEach(taxoKey => {
-                            var temp = TaxonomyList[taxoKey].toLowerCase();
-                            var temp1 = temp.split(' > ');
-                            var taxoItem = temp1[temp1.length - 1];
+                            var lowercaseTaxonomy = TaxonomyList[taxoKey].toLowerCase();
+                            var splittedTaxonomyByGreater = lowercaseTaxonomy.split(' > ');
+                            var taxoItem = splittedTaxonomyByGreater[splittedTaxonomyByGreater.length - 1];
                             if (taxoItem.indexOf(ProductType.toLowerCase()) != -1) {
                                 productData.Category = TaxonomyList[taxoKey];
                                 throw BreakException;
@@ -519,16 +519,16 @@ exports.index = async (req, res, next) => {
                     // productData.ColorSwatchImage = "";
                     if (variant.image_id) {
                         var variant_image = getVariantImage(product.images, variant.image_id);
-                        var temp0 = variant_image.split('.');
-                        var lastBlock = '.' + temp0[temp0.length - 1];
-                        var temp1 = variant_image.split(lastBlock);
-                        productView.img1 = temp1[0] + '_1024x' + lastBlock;
+                        var splittedByDot = variant_image.split('.');
+                        var lastBlock = '.' + splittedByDot[splittedByDot.length - 1];
+                        var splittedByExtend = variant_image.split(lastBlock);
+                        productView.img1 = splittedByExtend[0] + '_1024x' + lastBlock;
                     } else {
                         if (product.image) {
-                            var temp0 = product.image.src.split('.');
-                            var lastBlock = '.' + temp0[temp0.length - 1];
-                            var temp1 = product.image.src.split(lastBlock);
-                            productView.img1 = temp1[0] + '_1024x' + lastBlock;
+                            var splittedByDot = product.image.src.split('.');
+                            var extendOfFile = '.' + splittedByDot[splittedByDot.length - 1];
+                            var splittedByExtend = product.image.src.split(extendOfFile);
+                            productView.img1 = splittedByExtend[0] + '_1024x' + extendOfFile;
                         }
                     }
 
@@ -751,13 +751,14 @@ const writeProductFile = function (data, isFirst, callback) {
         callback(null, 'success');
     }
 }
-const daysBetween = function (date1, date2) {
+const daysBetween = function (publishDate) {
     var one_day = 1000 * 60 * 60 * 24;
-    var temp = new Date(date1);
-    var date1_ms = temp.getTime();
-    var date2_ms = date2;
+    var publishDateTime = new Date(publishDate);
+    var date_ms1 = publishDateTime.getTime();
+    var currentDateTime = new Date();
+    var date_ms2 = currentDateTime.getTime();
 
-    var difference_ms = date2_ms - date1_ms;
+    var difference_ms = date_ms2 - date_ms1;
 
     return Math.round(difference_ms / one_day);
 }

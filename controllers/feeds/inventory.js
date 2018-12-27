@@ -134,10 +134,10 @@ exports.index = async (req, res, next) => {
                                 console.log('Writing File Error: ', err);
                             } else {
                                 var currentDate = new Date();
-                                var temp = currentDate.toLocaleString("en-US", {
+                                var isoDate = currentDate.toLocaleString("en-US", {
                                     hour12: false
                                 }).split('.');
-                                var remotePath = '/incoming/inventory/inventory' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '').replace(/\//g, '').replace(',', '') + '.txt';
+                                var remotePath = '/incoming/inventory/inventory' + isoDate[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '').replace(/\//g, '').replace(',', '') + '.txt';
                                 sftp.put(inventoryFileName, remotePath)
                                 .then(response => {
                                     addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {

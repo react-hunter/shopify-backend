@@ -82,8 +82,8 @@ exports.index = async (req, res, next) => {
                     orderPost.order.billing_address = {};
                     orderPost.order.shipping_address = {};
 
-                    let temp = TSV.parse(fileData._readableState.buffer.head.data);
-                    var orderData = temp[1];
+                    let dataFromSFTP = TSV.parse(fileData._readableState.buffer.head.data);
+                    var orderData = dataFromSFTP[1];
                     
                     orderPost.order.line_items.push({
                         variant_id: orderData['item_sku'],
@@ -392,8 +392,6 @@ exports.shipment = async (req, res, next) => {
                         orderData.order_gift_recepient = '';
                         orderData.order_gift_message = '';
 
-                        // var temp = order.order_status_url.split('?key=');
-                        // orderData.auth_code = temp[1];
                         orderData.auth_code = order.checkout_token;
                         orderData.final_sale = false;
                         orderData.tracking_number = '';
@@ -408,8 +406,8 @@ exports.shipment = async (req, res, next) => {
                             order.fulfillments.forEach((fulfillment) => {
                                 if (fulfillment.status == 'success') {
                                     fulfillmentId = parseInt(fulfillment.id);
-                                    var tempDate = new Date(fulfillment.created_at);
-                                    orderData.ship_date = (tempDate.getMonth() + 1) + '/' + tempDate.getDate() + '/' + tempDate.getFullYear();
+                                    let fulfillmentCreateDate = new Date(fulfillment.created_at);
+                                    orderData.ship_date = (fulfillmentCreateDate.getMonth() + 1) + '/' + fulfillmentCreateDate.getDate() + '/' + fulfillmentCreateDate.getFullYear();
                                     if (fulfillment.line_items.length > 0) {
                                         try {
                                             fulfillment.line_items.forEach(fulfillmentItem => {
@@ -464,10 +462,10 @@ exports.shipment = async (req, res, next) => {
                             console.log('Writing File Error: ', err);
                         } else {
                             // var currentDate = new Date();
-                            // var temp = currentDate.toLocaleString("en-US", {
+                            // var isoDate = currentDate.toLocaleString("en-US", {
                             //     hour12: false
                             // }).split('.');
-                            // var remotePath = '/incoming/orders/order' + temp[0].replace(' ', '').replace(/\-/g, '').replace(/\//g, '').replace(',', '').replace(/\:/g, '') + '.txt';
+                            // var remotePath = '/incoming/orders/order' + isoDate[0].replace(' ', '').replace(/\-/g, '').replace(/\//g, '').replace(',', '').replace(/\:/g, '') + '.txt';
                             // sftp.put(orderFileName, remotePath).then(response => {
                             //     res.render('feeds/order', {
                             //         title: 'Order',

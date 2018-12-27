@@ -112,7 +112,6 @@ exports.index = async (req, res, next) => {
                             if (refund.refund_line_items.length > 0) {
                                 refund.refund_line_items.forEach(refundItem => {
                                     var refundData = {};
-                                    // console.log('refund item data:', refundItem.line_item);
                                     refundData.original_order_number = refund.order_id;
                                     // refundData.rma_number = 
                                     refundData.item_sku = refundItem.sku;
@@ -146,8 +145,8 @@ exports.index = async (req, res, next) => {
                             console.log(err);
                         } else {
                             var currentDate = new Date();
-                            var temp = currentDate.toLocaleString("en-US", {hour12: false}).split('.');
-                            var remotePath = '/incoming/returns/return' + temp[0].replace(' ', '').replace(',', '').replace(/\-/g, '').replace(/\//g, '').replace(/\:/g, '') + '.txt';
+                            var splittedISODateByDot = currentDate.toLocaleString("en-US", {hour12: false}).split('.');
+                            var remotePath = '/incoming/returns/return' + splittedISODateByDot[0].replace(' ', '').replace(',', '').replace(/\-/g, '').replace(/\//g, '').replace(/\:/g, '') + '.txt';
                             sftp.put(returnFileName, remotePath)
                                 .then(response => {
                                     addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {

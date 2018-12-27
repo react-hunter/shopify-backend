@@ -1,6 +1,5 @@
 const Shopify = require('shopify-api-node');
 const fs = require('fs');
-// const request = require('request');
 const Client = require('ssh2-sftp-client');
 const TaxCodeList = require('../../config/constants').TaxCodeList;
 const ProductTypeList = require('../../config/constants').ProductTypeList;
@@ -20,36 +19,39 @@ const Status = require('../../models/Status');
  */
 
 var productHookList = {};
-exports.productCreate = (req, res) => {
-    console.log('req header from store: ', req.headers);
-    console.log('req session from store: ', req.session);
+exports.productCreate = (req, res, next) => {
+    res.status(200).send();
     var hookHeaders = req.headers;
     var hookBody = req.body;
 
-    var temp = hookHeaders['x-shopify-shop-domain'].split('.');
-    var fromStore = temp[0];
+    var splittedDomainByDot = hookHeaders['x-shopify-shop-domain'].split('.');
+    var vendorName = splittedDomainByDot[0];
     
-    // productHookList[fromStore + '-update'] = [];
+    var hmac = hookHeaders['x-shopify-hmac-sha256'];
+    const createdProductIndex = hookHeaders['x-shopify-product-id'];
+    console.log('create hmac : ', hmac);
+    // return next();
+    /*
     verifyWebhook(hmac, hookHeaders, (err, result) => {
         if (err) {
             console.log('failed in verifying webhook');
         } else {
             console.log('result: ', result);
         }
-    })
+    });
+    */
 };
 
 exports.productUpdate = (req, res, next) => {
-    console.log('arrive webhook for product update');
-    // res.status(200).send();
-    console.log('headers: ', req.headers);
-    res.redirect('/product');
-    return next();
+    res.status(200).send();
+    console.log('update hmac : ', req.headers['x-shopify-hmac-sha256']);
+    // return next();
 };
 
-exports.productDelete = (req, res) => {
-    console.log('arrive webhook for product Delete');
+exports.productDelete = (req, res, next) => {
     res.status(200).send();
+    console.log('Delete hmac : ', req.headers['x-shopify-hmac-sha256']);
+    // return next();
 };
 
 exports.kwiOrderCreate = (req, res) => {
@@ -382,9 +384,9 @@ const processProductFeed = async (vendorInfo, connectorInfo, callback) => {
 
                     try {
                         taxonomyKeys.forEach(taxoKey => {
-                            var temp = TaxonomyList[taxoKey].toLowerCase();
-                            var temp1 = temp.split(' > ');
-                            var taxoItem = temp1[temp1.length - 1];
+                            var lowercaseTaxonomy = TaxonomyList[taxoKey].toLowerCase();
+                            var splittedTaxonomyByGreater = lowercaseTaxonomy.split(' > ');
+                            var taxoItem = splittedTaxonomyByGreater[splittedTaxonomyByGreater.length - 1];
                             if (taxoItem.indexOf(ProductType.toLowerCase()) != -1) {
                                 productData.Category = TaxonomyList[taxoKey];
                                 throw BreakException;
@@ -615,16 +617,16 @@ const processProductFeed = async (vendorInfo, connectorInfo, callback) => {
 
                     if (variant.image_id) {
                         var variant_image = getVariantImage(product.images, variant.image_id);
-                        var temp0 = variant_image.split('.');
-                        var lastBlock = '.' + temp0[temp0.length - 1];
-                        var temp1 = variant_image.split(lastBlock);
-                        productView.img1 = temp1[0] + '_1024x' + lastBlock;
+                        var splittedByDot = variant_image.split('.');
+                        var extendOfFile = '.' + splittedByDot[splittedByDot.length - 1];
+                        var splittedByExtend = variant_image.split(extendOfFile);
+                        productView.img1 = splittedByExtend[0] + '_1024x' + extendOfFile;
                     } else {
                         if (product.image) {
-                            var temp0 = product.image.src.split('.');
-                            var lastBlock = '.' + temp0[temp0.length - 1];
-                            var temp1 = product.image.src.split(lastBlock);
-                            productView.img1 = temp1[0] + '_1024x' + lastBlock;
+                            var splittedByDot = product.image.src.split('.');
+                            var extendOfFile = '.' + splittedByDot[splittedByDot.length - 1];
+                            var splittedByExtend = product.image.src.split(extendOfFile);
+                            productView.img1 = splittedByExtend[0] + '_1024x' + extendOfFile;
                         }
                     }
 
