@@ -1,7 +1,6 @@
 const passport = require('passport');
 const { Strategy: LocalStrategy } = require('passport-local');
 var crypto = require('crypto');
-var ShopifyValidate = require('shopify-validate')
 
 
 
