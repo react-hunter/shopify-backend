@@ -61,7 +61,7 @@ module.exports = {
             }).then(() => {
                 fs.writeFile(returnFileName, TSV.stringify(refundDataList), function (err) {
                     if (err) {
-                        callback('fs')
+                        callback('file')
                     } else {
                         var currentDate = new Date()
                         var splittedISODateByDot = currentDate.toLocaleString("en-US", {hour12: false}).split('.')

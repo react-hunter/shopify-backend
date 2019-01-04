@@ -10,7 +10,7 @@ const TSV = require('tsv')
 const Color = require('../models/Color')
 
 module.exports = {
-    createFeed: async (vendorInfo, connectorInfo, callback) => {
+    productFeedInCreate: async (vendorInfo, connectorInfo, callback) => {
         var metaList
         const sftp = new Client()
         var taxCodeKeys = Object.keys(TaxCodeList)

@@ -166,7 +166,7 @@ module.exports = {
         })
     },
 
-    orderFeedInCreate: async (vendorInfo, connectorInfo, callback) => {
+    orderFeedInCreate: async (vendorInfo, connectorInfo, orderData, callback) => {
         const orderFileName = 'uploads/shipment-' + vendorInfo.api.apiShop + '.txt'
         const sftp = new Client()
         var orderDataList = new Array()

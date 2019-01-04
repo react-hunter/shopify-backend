@@ -1,5 +1,6 @@
 const History = require('../models/History');
 const Status = require('../models/Status');
+const fs = require('fs');
 
 module.exports = {
     test: () => {
@@ -40,7 +41,7 @@ module.exports = {
                     if (initErr) {
                         console.log(initErr);
                     }
-                    console.log('Made inventory file and initialized with empty');
+                    console.log('Made new file and initialized with empty');
                 });
             });
         }
@@ -74,7 +75,7 @@ module.exports = {
                             status.success = 1;
                     }
                     status.save().then(() => {
-                        addHistory(vendor, connector, statusFlag, (historyErr) => {
+                        module.exports.addHistory(vendor, connector, statusFlag, (historyErr) => {
                             if(historyErr) {
                                 callback(historyErr);
                             } else {
@@ -96,7 +97,7 @@ module.exports = {
                             statusQuery = {success: 1};
                     }
                     status.updateOne({ $inc: statusQuery},() => {
-                        addHistory(vendor, connector, statusFlag, (historyErr) => {
+                        module.exports.addHistory(vendor, connector, statusFlag, (historyErr) => {
                             if(historyErr) {
                                 callback(historyErr);
                             } else {

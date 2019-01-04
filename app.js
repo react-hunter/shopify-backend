@@ -89,17 +89,18 @@ app.use(sass({
   dest: path.join(__dirname, 'public')
 }));
 app.use(logger('dev'));
-app.use(bodyParser.json({
-  type:'*/*',
-  limit: '50mb',
-  verify: function(req, res, buf) {
-    console.log('url: ', req.url);
-    if (req.url.startsWith('/webhook/')){
-      req.rawBody = buf;
-    }
-  }
- })
-);
+// app.use(
+//   bodyParser.json({
+//     type:'*/*',
+//     limit: '50mb',
+//     verify: function(req, res, buf) {
+//       if (req.url.startsWith('/webhook/')) {
+//         req.rawBody = buf;
+//       }
+//     }
+//   })
+// );
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(expressValidator());
 app.use(session({
@@ -214,7 +215,7 @@ app.get('/vendors/synchronizeColors/:vendorId', passportConfig.isSuper, vendorsC
 // Test for webhook
 
 
-app.post('/webhook/productChange', passportConfig.verifyWebHook, webhookController.productChange);
+app.post('/webhook/productChange', /*passportConfig.verifyWebHook, */webhookController.productChange);
 app.post('/webhook/fulfill', webhookController.orderFulfill);
 
 // From KWI
@@ -257,8 +258,6 @@ User.find({type: 'superadmin'}, (err, superusers) => {
         console.log(saveErr);
       }
     });
-
-    
   }
 });
 Color.find({}, (err, colors) => {

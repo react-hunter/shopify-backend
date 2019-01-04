@@ -51,7 +51,7 @@ module.exports = {
                     fs.writeFile(inventoryFileName, TSV.stringify(inventoryDataList), (err) => {
                         if (err) {
                             console.log('Writing File Error: ', err)
-                            callback({error: 'fs'})
+                            callback({error: 'file'})
                         } else {
                             var currentDate = new Date()
                             var isoDate = currentDate.toLocaleString("en-US", {
