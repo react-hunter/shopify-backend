@@ -89,7 +89,17 @@ app.use(sass({
   dest: path.join(__dirname, 'public')
 }));
 app.use(logger('dev'));
-app.use(bodyParser.json());
+app.use(bodyParser.json({
+  type:'*/*',
+  limit: '50mb',
+  verify: function(req, res, buf) {
+    console.log('url: ', req.url);
+    if (req.url.startsWith('/webhook/')){
+      req.rawBody = buf;
+    }
+  }
+ })
+);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(expressValidator());
 app.use(session({
@@ -133,6 +143,7 @@ app.use((req, res, next) => {
   }
   next();
 });
+
 app.use('/', express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/popper.js/dist/umd'), { maxAge: 31557600000 }));
 app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js'), { maxAge: 31557600000 }));
@@ -201,9 +212,10 @@ app.get('/refund', passportConfig.isAuthenticated, refundController.index);
 app.get('/vendors/synchronizeColors/:vendorId', passportConfig.isSuper, vendorsController.synchronizeColors);
 
 // Test for webhook
-app.post('/webhook/productCreate', webhookController.productCreate);
-app.post('/webhook/productUpdate', webhookController.productUpdate);
-app.post('/webhook/productDelete', webhookController.productDelete);
+
+
+app.post('/webhook/productChange', passportConfig.verifyWebHook, webhookController.productChange);
+app.post('/webhook/fulfill', webhookController.orderFulfill);
 
 // From KWI
 app.post('/kwi/orderCreate', webhookController.kwiOrderCreate);

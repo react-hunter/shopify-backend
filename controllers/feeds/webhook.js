@@ -13,78 +13,33 @@ const Color = require('../../models/Color');
 const History = require('../../models/History');
 const Status = require('../../models/Status');
 
+const productFeedHelper = require('../../helpers/productFeed')
+const inventoryFeedHelper = require('../../helpers/inventoryFeed')
+const orderFeedHelper = require('../../helpers/orderFeed')
+const refundFeedHelper = require('../../helpers/refundFeed')
+
 /**
  * POST /
  * Feed Trigger Action
  */
 
-var productHookList = {};
-exports.productCreate = (req, res, next) => {
+exports.productChange = async (req, res) => {
     res.status(200).send();
-    var hookHeaders = req.headers;
-    var hookBody = req.body;
-
-    var splittedDomainByDot = hookHeaders['x-shopify-shop-domain'].split('.');
-    var vendorName = splittedDomainByDot[0];
+    const vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14);
+    console.log('vendor name: ', vendorName);
     
-    var hmac = hookHeaders['x-shopify-hmac-sha256'];
-    const createdProductIndex = hookHeaders['x-shopify-product-id'];
-    console.log('create hmac : ', hmac);
-    // return next();
-    /*
-    verifyWebhook(hmac, hookHeaders, (err, result) => {
-        if (err) {
-            console.log('failed in verifying webhook');
-        } else {
-            console.log('result: ', result);
-        }
-    });
-    */
 };
 
-exports.productUpdate = (req, res, next) => {
-    res.status(200).send();
-    console.log('update hmac : ', req.headers['x-shopify-hmac-sha256']);
-    // return next();
+exports.orderFulfill = (req, res) => {
+    console.log('arrive order fulfillment');
 };
 
-exports.productDelete = (req, res, next) => {
-    res.status(200).send();
-    console.log('Delete hmac : ', req.headers['x-shopify-hmac-sha256']);
-    // return next();
-};
-
+// receive request whenever kwi creates order file
 exports.kwiOrderCreate = (req, res) => {
     console.log('data from kwi: ', req.body);
     res.status(200).send();
 };
 
-var contains = function(needle) {
-    // Per spec, the way to identify NaN is that it is not equal to itself
-    var findNaN = needle !== needle;
-    var indexOf;
-
-    if(!findNaN && typeof Array.prototype.indexOf === 'function') {
-        indexOf = Array.prototype.indexOf;
-    } else {
-        indexOf = function(needle) {
-            var i = -1, index = -1;
-
-            for(i = 0; i < this.length; i++) {
-                var item = this[i];
-
-                if((findNaN && item !== item) || item === needle) {
-                    index = i;
-                    break;
-                }
-            }
-
-            return index;
-        };
-    }
-
-    return indexOf.call(this, needle) > -1;
-}
 
 const getVariantImage = function (images, image_id) {
     var image_url = '';
@@ -200,11 +155,6 @@ const addHistory = (vendor, connector, flag, callback) => {
     }).catch(err => {
         callback(err);
     });
-};
-
-// check if this request is from shopify store.
-const verifyWebhook = (hmac, headers, callback) => {
-
 };
 
 // get information of vendor and connector by using vendorName
