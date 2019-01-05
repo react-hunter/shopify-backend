@@ -1,7 +1,7 @@
-const Vendor = require('../models/Vendor');
-const Color  = require('../models/Color');
-const Shopify = require('shopify-api-node');
-const url = require('url');
+const Vendor = require('../models/Vendor')
+const Color  = require('../models/Color')
+const Shopify = require('shopify-api-node')
+const url = require('url')
 
 /**
  * GET /
@@ -9,53 +9,53 @@ const url = require('url');
  */
 exports.index = (req, res, next) => {
     Vendor.find({}, (err, vendors) => {
-        if (err) return next(err);
+        if (err) return next(err)
 
         res.render('admin/vendor/vendors', {
             title: 'Vendors',
             vendors: vendors
-        });
-    });
-};
+        })
+    })
+}
 
 exports.addVendor = (req, res, next) => {
-    var vendor = new Vendor();
+    var vendor = new Vendor()
 
     if (req.query.name) {
-        vendor.name = req.query.name;
+        vendor.name = req.query.name
     }
     if (req.query.brandName) {
-        vendor.brandName = req.query.brandName;
+        vendor.brandName = req.query.brandName
     }
     if (req.query.shipMethod) {
-        vendor.shipMethod = req.query.shipMethod;
+        vendor.shipMethod = req.query.shipMethod
     }
     if (req.query.apiShop) {
-        vendor.apiShop = req.query.apiShop;
+        vendor.apiShop = req.query.apiShop
     }
     if (req.query.apiKey) {
-        vendor.apiKey = req.query.apiKey;
+        vendor.apiKey = req.query.apiKey
     }
     if (req.query.sharedSecret) {
-        vendor.sharedSecret = req.query.sharedSecret;
+        vendor.sharedSecret = req.query.sharedSecret
     }
     if (req.query.apiPassword) {
-        vendor.apiPassword = req.query.apiPassword;
+        vendor.apiPassword = req.query.apiPassword
     }
     if (req.query.sftpHost) {
-        vendor.sftpHost = req.query.sftpHost;
+        vendor.sftpHost = req.query.sftpHost
     }
     if (req.query.sftpUsername) {
-        vendor.sftpUsername = req.query.sftpUsername;
+        vendor.sftpUsername = req.query.sftpUsername
     }
     if (req.query.sftpPassword) {
-        vendor.sftpPassword = req.query.sftpPassword;
+        vendor.sftpPassword = req.query.sftpPassword
     }
     res.render('admin/vendor/vendorAdd', {
         title: 'Adding Vendor',
         vendorData: vendor
-    });
-};
+    })
+}
 
 exports.saveVendor = (req, res, next) => {
     var vendor = new Vendor({
@@ -74,11 +74,11 @@ exports.saveVendor = (req, res, next) => {
             sftpUsername: req.body.sftpUsername,
             sftpPassword: req.body.sftpPassword
         }
-    });
+    })
     if (req.body.brandName == '' || req.body.shipMethod == '' || req.body.apiShop == '' || req.body.apiKey == '' || req.body.apiPassword == '' || req.body.sharedSecret == '' || req.body.sftpHost == '' || req.body.sftpUsername == '' || req.body.sftpPassword == '') {
         req.flash('errors', {
             msg: 'Shopify API and SFTP information are required. Please try again.'
-        });
+        })
         res.redirect(url.format({
             pathname: '/vendors/add',
             query: {
@@ -93,82 +93,82 @@ exports.saveVendor = (req, res, next) => {
                 sftpUsername: req.body.sftpUsername,
                 sftpPassword: req.body.sftpPassword
             }
-        }));
-        return next();
+        }))
+        return next()
     }
 
     vendor.save(err => {
         if (err) {
-            return next(err);
+            return next(err)
         }
-        res.redirect('/vendors');
-    });
-};
+        res.redirect('/vendors')
+    })
+}
 
 exports.getVendor = (req, res, next) => {
     Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
-            return next(err);
+            return next(err)
         }
 
         res.render('admin/vendor/vendorUpdate', {
             title: 'Update Vendor',
             vendorData: vendor
-        });
-    });
-};
+        })
+    })
+}
 
 exports.updateVendor = (req, res, next) => {
     Vendor.findById(req.body.vendorId, (err, vendor) => {
         if (err) {
-            return next(err);
+            return next(err)
         }
-        vendor.active = 'no';
-        vendor.name = req.body.name;
-        vendor.brandName = req.body.brandName;
-        vendor.shipMethod = req.body.shipMethod;
+        vendor.active = 'no'
+        vendor.name = req.body.name
+        vendor.brandName = req.body.brandName
+        vendor.shipMethod = req.body.shipMethod
 
         vendor.api = {
             apiShop: req.body.apiShop,
             apiKey: req.body.apiKey,
             apiPassword: req.body.apiPassword,
             sharedSecret: req.body.sharedSecret,
-        };
+        }
         vendor.sftp = {
             sftpHost: req.body.sftpHost,
             sftpUsername: req.body.sftpUsername,
             sftpPassword: req.body.sftpPassword
-        };
+        }
 
         if (req.body.brandName == '' || req.body.shipMethod == '' || req.body.apiShop == '' || req.body.apiKey == '' || req.body.apiPassword == '' || req.body.sharedSecret == '' || req.body.sftpHost == '' || req.body.sftpUsername == '' || req.body.sftpPassword == '') {
             req.flash('errors', {
                 msg: 'Shopify API and SFTP information are required. Please try again.'
-            });
-            res.redirect('/vendors/' + req.body.vendorId);
-            return next();
+            })
+            res.redirect('/vendors/' + req.body.vendorId)
+            return next()
         } else {
             vendor.save(err => {
                 if (err) {
-                    return next(err);
+                    return next(err)
                 }
                 if (req.user.type == 'superadmin') {
-                    res.redirect('/vendors');
-                    return next();
+                    res.redirect('/vendors')
+                    return next()
                 } else {
                     req.flash('success', {
                         msg: 'You have updated vendor data successfully.'
-                    });
-                    res.redirect('/');
+                    })
+                    res.redirect('/')
                 }
-            });
+            })
         }
-    });
-};
+    })
+}
 
 exports.enableVendor = (req, res, next) => {
     Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
-            return next(err);
+            return next(err)
         }
 
         const shopify = new Shopify({
@@ -181,7 +181,7 @@ exports.enableVendor = (req, res, next) => {
                 interval: 1000,
                 bucketSize: 35
             }
-        });
+        })
         shopify.product.list({
             limit: 2,
             published_status: 'published'
@@ -189,110 +189,110 @@ exports.enableVendor = (req, res, next) => {
             if (products.length < 1) {
                 req.flash('errors', {
                     msg: 'This vendor does not have any published products.'
-                });
-                res.redirect('/vendors');
-                return next();
+                })
+                res.redirect('/vendors')
+                return next()
             } else {
-                vendor.active = 'yes';
-                vendor.activeDate = Date();
+                vendor.active = 'yes'
+                vendor.activeDate = Date()
                 vendor.save(err => {
                     if (err) {
-                        return next(err);
+                        return next(err)
                     }
                     req.flash('info', {
                         msg: 'You have enabled vendor successfully.'
-                    });
-                    res.redirect('/vendors');
-                    return next();
-                });
+                    })
+                    res.redirect('/vendors')
+                    return next()
+                })
             }
         }).catch(e => {
             req.flash('errors', {
                 msg: 'This vendor does not have correct information. You can not get products from store with this vendor.'
-            });
-            res.redirect('/vendors');
-        });
-    });
-};
+            })
+            res.redirect('/vendors')
+        })
+    })
+}
 
 exports.disableVendor = (req, res, next) => {
     Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
-            return next(err);
+            return next(err)
         }
 
         if (vendor.hasTransaction) {
             req.flash('info', {
                 msg: 'This vendor has transactions. You can not disable this user now.'
-            });
-            res.redirect('/vendors');
-            return next();
+            })
+            res.redirect('/vendors')
+            return next()
         }
 
-        vendor.active = 'no';
+        vendor.active = 'no'
         vendor.save(err => {
             if (err) {
-                return next(err);
+                return next(err)
             }
-            res.redirect('/vendors');
-        });
-    });
-};
+            res.redirect('/vendors')
+        })
+    })
+}
 
 exports.deleteVendor = (req, res, next) => {
     Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
-            return next(err);
+            return next(err)
         }
 
         if (vendor.hasTransaction) {
             req.flash('info', {
                 msg: 'This vendor has transactions. You can not delete this user now.'
-            });
-            res.redirect('/vendors');
-            return next();
+            })
+            res.redirect('/vendors')
+            return next()
         } else {
             Vendor.deleteOne({
                 _id: req.params.vendorId
             }, err => {
                 if (err) {
-                    return next(err);
+                    return next(err)
                 }
                 req.flash('success', {
                     msg: 'Vendor has been deleted successfully.'
-                });
-                res.redirect('/vendors');
-            });
+                })
+                res.redirect('/vendors')
+            })
         }
-    });
-};
+    })
+}
 
 exports.synchronizeColors = (req, res, next) => {
     Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
-            return next(err);
+            return next(err)
         }
         if (vendor.active != 'yes') {
-            console.log('enter inactive vendor');
+            console.log('enter inactive vendor')
             req.flash('errors', {
                 msg: 'To apply colors, you should enable this vendor.'
-            });
-            res.redirect('/vendors');
-            return next();
+            })
+            res.redirect('/vendors')
+            return next()
         }
-        var dbColors = [], dbColorList = [], dbColorShortnameList = [], originalColorValue;
-        var proColorList = [];
+        var dbColors = [], dbColorList = [], dbColorShortnameList = [], originalColorValue
+        var proColorList = []
         // Get current color list in db.
         Color.findOne({}, (colorError, colorValue) => {
             if (colorError) {
-                return next(colorError);
+                return next(colorError)
             }
-            originalColorValue = colorValue;
-            dbColors = colorValue.colorList;
+            originalColorValue = colorValue
+            dbColors = colorValue.colorList
             dbColors.forEach(dbColor => {
-                dbColorList.push(dbColor.colorName);
-                dbColorShortnameList.push(dbColor.shortName);
-            });
+                dbColorList.push(dbColor.colorName)
+                dbColorShortnameList.push(dbColor.shortName)
+            })
         })
         
         const shopify = new Shopify({
@@ -305,7 +305,7 @@ exports.synchronizeColors = (req, res, next) => {
                 interval: 1000,
                 bucketSize: 35
             }
-        });
+        })
 
         shopify.product.list({
             limit: 250
@@ -315,59 +315,59 @@ exports.synchronizeColors = (req, res, next) => {
                     if (opt.name.toLowerCase() === 'color') {
                         opt.values.forEach(colorItem => {
                             if (proColorList.indexOf(colorItem.toLowerCase()) == -1 && dbColorList.indexOf(colorItem.toLowerCase()) == -1) {
-                                proColorList.push(colorItem.toLowerCase());
+                                proColorList.push(colorItem.toLowerCase())
                             }
-                        });
+                        })
                     }
-                });
-            });
-            return proColorList;
+                })
+            })
+            return proColorList
         }).then(colors => {
             colors.forEach(colorItem => {
-                var shortColor = '';
-                shortColor = generateShortColor(colorItem);
+                var shortColor = ''
+                shortColor = generateShortColor(colorItem)
                 if (dbColorShortnameList.indexOf(shortColor) != -1) {
                     // If generated colorname exists in db, regenerate short color.
-                    shortColor = generateShortColor(colorItem, 1);
+                    shortColor = generateShortColor(colorItem, 1)
                 } else {
-                    dbColorList.push(colorItem);
-                    dbColorShortnameList.push(shortColor);
-                    dbColors.push({colorName: colorItem, shortName: shortColor});
+                    dbColorList.push(colorItem)
+                    dbColorShortnameList.push(shortColor)
+                    dbColors.push({colorName: colorItem, shortName: shortColor})
                 }
-            });
-            originalColorValue.colorList = dbColors;
+            })
+            originalColorValue.colorList = dbColors
             originalColorValue.save(() => {
-                vendor.colorSynched = 'yes';
+                vendor.colorSynched = 'yes'
                 vendor.save(() => {
                     req.flash('success', {
                         msg: 'You have applied the colors in products of this store successfully.'
-                    });
-                    res.redirect('/vendors');
-                    return next();
-                });
-            });
+                    })
+                    res.redirect('/vendors')
+                    return next()
+                })
+            })
         }).catch(e => {
             req.flash('errors', {
                 msg: 'This vendor does not have correct information. You can not get products from store with this vendor.'
-            });
-            res.redirect('/vendors');
+            })
+            res.redirect('/vendors')
         })
-    });
-};
+    })
+}
 
 const generateShortColor = (originalColor, flag = 0) => {
-    var splittedColorString = [];
-    var shortenColor = '';
+    var splittedColorString = []
+    var shortenColor = ''
     
     // split string with special sign if it includes
     if (originalColor.indexOf(' ') != -1) {
-        splittedColorString = originalColor.split(' ');
+        splittedColorString = originalColor.split(' ')
     } else if (originalColor.indexOf('-') != -1) {
-        splittedColorString = originalColor.split('-');
+        splittedColorString = originalColor.split('-')
     } else if (originalColor.indexOf('/') != -1) {
-        splittedColorString = originalColor.split('/');
+        splittedColorString = originalColor.split('/')
     } else {
-        splittedColorString.push(originalColor);
+        splittedColorString.push(originalColor)
     }
 
     if (splittedColorString.length == 1) {
@@ -375,8 +375,8 @@ const generateShortColor = (originalColor, flag = 0) => {
     } else if (splittedColorString.length == 2) {
         shortenColor = splittedColorString[0].substr(0, 1) + splittedColorString[1].substr(0, 1) + splittedColorString[1].substr(-1)
     } else if (splittedColorString.length > 2) {
-        shortenColor = splittedColorString[0].substr(0, 1) + splittedColorString[1].substr(0, 1) + splittedColorString[2].substr(0, 1);
+        shortenColor = splittedColorString[0].substr(0, 1) + splittedColorString[1].substr(0, 1) + splittedColorString[2].substr(0, 1)
     }
     
-    return shortenColor.toUpperCase();
-};
+    return shortenColor.toUpperCase()
+}
