@@ -1,18 +1,18 @@
-const passport = require('passport');
-const { Strategy: LocalStrategy } = require('passport-local');
-var crypto = require('crypto');
+const passport = require('passport')
+const { Strategy: LocalStrategy } = require('passport-local')
+var crypto = require('crypto')
 
-const User = require('../models/User');
+const User = require('../models/User')
 
 passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
+  done(null, user.id)
+})
 
 passport.deserializeUser((id, done) => {
   User.findById(id, (err, user) => {
-    done(err, user);
-  });
-});
+    done(err, user)
+  })
+})
 
 /**
  * Sign in using Email and Password.
@@ -24,77 +24,77 @@ passport.use(new LocalStrategy({
     email: email.toLowerCase()
   }, (err, user) => {
     if (err) {
-      return done(err);
+      return done(err)
     }
     if (!user) {
       return done(null, false, {
         msg: `Email ${email} not found.`
-      });
+      })
     }
     user.comparePassword(password, (err, isMatch) => {
       if (err) {
-        return done(err);
+        return done(err)
       }
       if (isMatch) {
-        return done(null, user);
+        return done(null, user)
       }
       return done(null, false, {
         msg: 'Invalid email or password.'
-      });
-    });
-  });
-}));
+      })
+    })
+  })
+}))
 
 /**
  * Login Required middleware.
  */
 exports.isAuthenticated = (req, res, next) => {
   if (req.isAuthenticated()) {
-    return next();
+    return next()
   } else {
-    res.redirect('/login');
+    res.redirect('/login')
   }
-};
+}
 
 exports.isSuper = (req, res, next) => {
   if (req.isAuthenticated()) {
 
     if (req.user.type == 'superadmin') {
-      return next();
+      return next()
     } else {
       req.flash('info', {
         msg: 'Only Super Admin can access this page.'
-      });
-      res.redirect('/');
+      })
+      res.redirect('/')
     }
   } else {
-    res.redirect('/login');
+    res.redirect('/login')
   }
 }
 exports.isAdmin = (req, res, next) => {
   if (req.isAuthenticated() && req.user.active == 'yes') {
 
     if (req.user.type == 'superadmin' || req.user.type == 'admin') {
-      return next();
+      return next()
     } else {
       req.flash('info', {
         msg: 'Only Super Administrator and Admin User can access this page.'
-      });
-      res.redirect('/');
+      })
+      res.redirect('/')
     }
   } else {
-    res.redirect('/login');
+    res.redirect('/login')
   }
 }
 
 exports.isUser = (req, res, next) => {
   if (req.isAuthenticated() && req.user.active == 'yes') {
-    return next();
+    return next()
   } else {
     req.flash('info', {
       msg: 'Only registered Users can access this page.'
-    });
-    res.redirect('/login');
+    })
+    res.redirect('/login')
   }
 }
 
@@ -102,14 +102,14 @@ exports.isUser = (req, res, next) => {
  * Authorization Required middleware.
  */
 exports.isAuthorized = (req, res, next) => {
-  const provider = req.path.split('/').slice(-1)[0];
-  const token = req.user.tokens.find(token => token.kind === provider);
+  const provider = req.path.split('/').slice(-1)[0]
+  const token = req.user.tokens.find(token => token.kind === provider)
   if (token) {
-    next();
+    next()
   } else {
-    res.redirect(`/auth/${provider}`);
+    res.redirect(`/auth/${provider}`)
   }
-};
+}
 
 exports.verifyWebHook = (req, res, next) => {
   res.status(200).send()

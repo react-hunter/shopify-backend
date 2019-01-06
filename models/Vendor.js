@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const vendorSchema = new mongoose.Schema({
   name: String,
@@ -19,12 +19,12 @@ const vendorSchema = new mongoose.Schema({
     sftpPassword: String
   },
   activeDate: Date
-}, { timestamps: true });
+}, { timestamps: true })
 
 /**
  * Password hash middleware.
  */
 
-const Vendor = mongoose.model('Vendor', vendorSchema);
+const Vendor = mongoose.model('Vendor', vendorSchema)
 
-module.exports = Vendor;
+module.exports = Vendor

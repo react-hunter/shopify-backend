@@ -50,7 +50,7 @@ exports.orderFulfill = (req, res) => {
                         if (orderFeedErr) {
                             console.log(orderFeedErr)
                         } else {
-                            console.log('order feed success in vendor: ', vendorName)
+                            console.log('order inFeed success in vendor: ', vendorName)
                         }
                     })
                 }

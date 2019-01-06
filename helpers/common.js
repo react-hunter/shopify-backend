@@ -1,6 +1,6 @@
-const History = require('../models/History');
-const Status = require('../models/Status');
-const fs = require('fs');
+const History = require('../models/History')
+const Status = require('../models/Status')
+const fs = require('fs')
 
 module.exports = {
     test: () => {
@@ -8,42 +8,42 @@ module.exports = {
     },
 
     getVariantImage: (images, imageId) => {
-        var imageUrl = '';
+        var imageUrl = ''
         images.forEach(image => {
             if (image.id == imageId) {
-                imageUrl = image.src;
+                imageUrl = image.src
             }
-        });
+        })
     
-        return imageUrl;
+        return imageUrl
     },
 
     jsUcfirst: (string) => {
-        return string.charAt(0).toUpperCase() + string.slice(1);
+        return string.charAt(0).toUpperCase() + string.slice(1)
     },
 
     getShortenColorName: (str) => {
-        var returnColor = '';
+        var returnColor = ''
         colorList.forEach(colorItem => {
             if (colorItem.colorName == str.toLowerCase()) {
-                returnColor = colorItem.shortName;
+                returnColor = colorItem.shortName
             }
         });
-        return returnColor;
+        return returnColor
     },
     
     deleteAndInitialize: (filePath) => {
         if (fs.existsSync(filePath)) {
             fs.unlink(filePath, (err) => {
-                if (err) throw err;
-                console.log(filePath + ' file has been deleted');
+                if (err) throw err
+                console.log(filePath + ' file has been deleted')
                 fs.writeFile(filePath, '', function (initErr) {
                     if (initErr) {
-                        console.log(initErr);
+                        console.log(initErr)
                     }
-                    console.log('Made new file and initialized with empty');
-                });
-            });
+                    console.log('Made new file and initialized with empty')
+                })
+            })
         }
     },
     
@@ -53,112 +53,112 @@ module.exports = {
             connectorId: connector._id
         }, (err, statuses) => {
             if (err) {
-                callback(err);
+                callback(err)
             } else {
                 if (statuses.length == 0) {
-                    var status = new Status();
-                    status.vendorId = vendor._id;
-                    status.vendorName = vendor.api.apiShop;
-                    status.connectorId = connector._id;
-                    status.connectorType = connector.kwiLocation;
-                    status.success = 0;
-                    status.pending = 0;
-                    status.error = 0;
+                    var status = new Status()
+                    status.vendorId = vendor._id
+                    status.vendorName = vendor.api.apiShop
+                    status.connectorId = connector._id
+                    status.connectorType = connector.kwiLocation
+                    status.success = 0
+                    status.pending = 0
+                    status.error = 0
                     switch (statusFlag) {
                         case 0:
-                            status.error = 1;
-                            break;
+                            status.error = 1
+                            break
                         case 1:
-                            status.pending = 1;
-                            break;
+                            status.pending = 1
+                            break
                         default:
-                            status.success = 1;
+                            status.success = 1
                     }
                     status.save().then(() => {
                         module.exports.addHistory(vendor, connector, statusFlag, (historyErr) => {
                             if(historyErr) {
-                                callback(historyErr);
+                                callback(historyErr)
                             } else {
-                                callback(null);
+                                callback(null)
                             }
-                        });
-                    });
+                        })
+                    })
                 } else {
-                    var status = statuses[0];
-                    let statusQuery = '';
+                    var status = statuses[0]
+                    let statusQuery = ''
                     switch (statusFlag) {
                         case 0:
-                            statusQuery = {error: 1};
-                            break;
+                            statusQuery = {error: 1}
+                            break
                         case 1:
-                            statusQuery = {pending: 1};
-                            break;
+                            statusQuery = {pending: 1}
+                            break
                         default:
-                            statusQuery = {success: 1};
+                            statusQuery = {success: 1}
                     }
                     status.updateOne({ $inc: statusQuery},() => {
                         module.exports.addHistory(vendor, connector, statusFlag, (historyErr) => {
                             if(historyErr) {
-                                callback(historyErr);
+                                callback(historyErr)
                             } else {
-                                callback(null);
+                                callback(null)
                             }
-                        });
-                    });
+                        })
+                    })
                 }
             }
-        });
+        })
     },
     
     addHistory: (vendor, connector, flag, callback) => {
-        var history = new History();
-        history.vendorId = vendor._id;
-        history.vendorName = vendor.api.apiShop;
-        history.connectorId = connector._id;
-        history.connectorType = connector.kwiLocation;
-        history.status = flag;
+        var history = new History()
+        history.vendorId = vendor._id
+        history.vendorName = vendor.api.apiShop
+        history.connectorId = connector._id
+        history.connectorType = connector.kwiLocation
+        history.status = flag
     
         history.save().then(() => {
-            callback(null);
+            callback(null)
         }).catch(err => {
-            callback(err);
-        });
+            callback(err)
+        })
     },
 
     writeProductFile: (data, isFirst, callback) => {
         if (isFirst == 1) {
             fs.appendFile("uploads/product-original-hedge.txt", data, function (err) {
                 if (err) {
-                    callback(err);
+                    callback(err)
                 }
-            });
-            callback(null, 'success');
+            })
+            callback(null, 'success')
         } else {
             fs.appendFile("uploads/product-original.txt", ', ' + data, function (err) {
                 if (err) {
-                    callback(err);
+                    callback(err)
                 }
-            });
-            callback(null, 'success');
+            })
+            callback(null, 'success')
         }
     },
 
     daysBetween: (publishDate) => {
-        var one_day = 1000 * 60 * 60 * 24;
-        var publishDateTime = new Date(publishDate);
-        var date_ms1 = publishDateTime.getTime();
-        var currentDateTime = new Date();
-        var date_ms2 = currentDateTime.getTime();
+        var one_day = 1000 * 60 * 60 * 24
+        var publishDateTime = new Date(publishDate)
+        var date_ms1 = publishDateTime.getTime()
+        var currentDateTime = new Date()
+        var date_ms2 = currentDateTime.getTime()
     
-        var difference_ms = date_ms2 - date_ms1;
+        var difference_ms = date_ms2 - date_ms1
     
-        return Math.round(difference_ms / one_day);
+        return Math.round(difference_ms / one_day)
     },
 
     downloadImage: (uri, filename, callback) => {
         request.head(uri, (err, res, body) => {
-            request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
-        });
+            request(uri).pipe(fs.createWriteStream(filename)).on('close', callback)
+        })
     },
 
     deleteImageList: (fileList, callback) => {
@@ -166,24 +166,24 @@ module.exports = {
             fileList.forEach(file => {
                 if (fs.existsSync(file[1])) {
                     fs.unlink(file[1], (err) => {
-                        if (err) throw err;
-                    });
+                        if (err) throw err
+                    })
                 }
             })
         }
-        callback(null);
+        callback(null)
     },
 
     deleteFiles: (sftpObj, filePathList, callback) => {
         if (filePathList.length > 0) {
             filePathList.forEach(filePath => {
                 sftpObj.delete('/outgoing/orders/' + filePath).then(result => {
-                    console.log('App deleted ' + filePath);
+                    console.log('App deleted ' + filePath)
                 }).catch(deleteError => {
-                    callback(deleteError);
-                });
-            });
-            callback(null);
+                    callback(deleteError)
+                })
+            })
+            callback(null)
         }
     },
 

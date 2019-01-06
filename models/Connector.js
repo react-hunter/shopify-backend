@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const connectorSchema = new mongoose.Schema({
   vendorId: String,
@@ -11,8 +11,8 @@ const connectorSchema = new mongoose.Schema({
   lastActivityProcessed: String,
   processedTransactionAmount: Number
   
-}, { timestamps: true });
+}, { timestamps: true })
 
-const Connector = mongoose.model('Connector', connectorSchema);
+const Connector = mongoose.model('Connector', connectorSchema)
 
-module.exports = Connector;
+module.exports = Connector

@@ -31,7 +31,7 @@ module.exports = {
                 interval: 1000,
                 bucketSize: 35
             }
-        });
+        })
         // Get color list from db
         Color.findOne({}, (colorError, color) => {
             if (colorError) {
@@ -39,7 +39,7 @@ module.exports = {
             } else {
                 colorList = color.colorList
             }
-        });
+        })
         
         // Initialize product feed file with empty
         commonHelper.deleteAndInitialize(productFileName)
@@ -54,14 +54,14 @@ module.exports = {
         }).catch((e) => {
             console.log(e)
             callback({error: 'meta'})
-        });
+        })
 
         shopify.shop.get().then((shop) => {
             shopData = shop
         }).catch(err => {
             console.log('Error in getting shop information', err)
             callback({error: 'shop'})
-        });
+        })
 
         await delay(2000)
 
@@ -127,7 +127,7 @@ module.exports = {
                             }
 
                             keyIndex++
-                        });
+                        })
                     }
                     if (firstVariantColor == '' && isFirstVariant) {
                         firstVariantId = variant.id
@@ -168,7 +168,7 @@ module.exports = {
                                 productData.Category = TaxonomyList[taxoKey]
                                 throw BreakException
                             }
-                        });
+                        })
                     } catch (e) {
                         if (e !== BreakException) throw e
                     }
@@ -217,7 +217,7 @@ module.exports = {
                             if (meta.key == 'warehouseCode') {
                                 WarehouseCode = meta.value
                             }
-                        });
+                        })
                     }
                     if (metafields && metafields.length > 0) {
                         productData.ProductDescription2 = ProductDescription2
@@ -295,7 +295,7 @@ module.exports = {
                                         throw BreakException
                                     }
                                 })
-                            });
+                            })
                         } catch (e) {
                             if (e !== BreakException) throw e
                         }
@@ -384,7 +384,7 @@ module.exports = {
                                         throw BreakException
                                     }
                                 })
-                            });
+                            })
                         } catch (e) {
                             if (e !== BreakException) throw e
                         }
@@ -415,7 +415,7 @@ module.exports = {
                     productData.FreeShip = true
                     productData.Action = 'Activate'
 
-                    productDataList.push(productData);
+                    productDataList.push(productData)
                 });
             });
         })
@@ -440,7 +440,7 @@ module.exports = {
                                 } else {
                                     callback(null)
                                 }
-                            });
+                            })
                             
                             sftp.end()
                         })
@@ -451,10 +451,10 @@ module.exports = {
                                 } else {
                                     callback({error: 'upload'})
                                 }
-                            });
-                        });
+                            })
+                        })
                     }
-                });
+                })
 
             })
             .catch(error => {
@@ -464,8 +464,8 @@ module.exports = {
                     } else {
                         callback({error: 'connect'})
                     }
-                });
-            });
+                })
+            })
         })
         .catch(err => {
             commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
@@ -474,8 +474,8 @@ module.exports = {
                 } else {
                     callback({error: 'store'})
                 }
-            });
-        });
+            })
+        })
     },
     
     bar: () => {

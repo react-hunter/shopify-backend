@@ -1,5 +1,5 @@
-const Status = require('../models/Status');
-const History = require('../models/History');
+const Status = require('../models/Status')
+const History = require('../models/History')
 
 /**
  * GET /
@@ -8,19 +8,19 @@ const History = require('../models/History');
 exports.index = (req, res, next) => {
     
     Status.find({}, (statusErr, statusList) => {
-        if (statusErr) return next(statusErr);
+        if (statusErr) return next(statusErr)
 
-        const currentDate = new Date();
+        const currentDate = new Date()
         
         History.find({}, null, {sort: {updatedAt: -1}, limit: 10}, (historyErr, recentHistoryList) => {
-            if (historyErr) return next(historyErr);
+            if (historyErr) return next(historyErr)
 
             res.render('pages/systemstatus', {
                 title: 'System Status',
                 statusList: statusList,
                 recentHistoryList: recentHistoryList,
                 lastCheckDate: currentDate.toLocaleString('en-US')
-            });
-        });
-    });
-};
+            })
+        })
+    })
+}

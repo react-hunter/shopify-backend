@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const statusSchema = new mongoose.Schema({
   vendorId: String,
@@ -8,12 +8,12 @@ const statusSchema = new mongoose.Schema({
   success: Number,
   pending: Number,
   error: Number
-}, { timestamps: true });
+}, { timestamps: true })
 
 /**
  * Password hash middleware.
  */
 
-const Status = mongoose.model('Status', statusSchema);
+const Status = mongoose.model('Status', statusSchema)
 
-module.exports = Status;
+module.exports = Status

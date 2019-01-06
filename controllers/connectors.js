@@ -1,6 +1,6 @@
-const Connector = require('../models/Connector');
-const Vendor = require('../models/Vendor');
-const url = require('url');
+const Connector = require('../models/Connector')
+const Vendor = require('../models/Vendor')
+const url = require('url')
 
 /**
  * GET /vendors/{vendorId}/connectors
@@ -13,16 +13,16 @@ exports.listConnector = (req, res, next) => {
         vendorId: req.params.vendorId
     }, (err, connectors) => {
         if (err) {
-            return next(err);
+            return next(err)
         }
 
         res.render('admin/connector/connectors', {
             title: 'Connector List',
             connectors: connectors,
             vendorId: req.params.vendorId
-        });
-    });
-};
+        })
+    })
+}
 
 /**
  * GET /vendors/{vendorId}/connectors/add
@@ -31,26 +31,26 @@ exports.listConnector = (req, res, next) => {
  * Output: vendorId, connector data
  */
 exports.addConnector = (req, res, next) => {
-    var connector = new Connector();
+    var connector = new Connector()
 
     if (req.query.name) {
-        connector.name = req.query.name;
+        connector.name = req.query.name
     }
     if (req.query.kwiLocation) {
-        connector.kwiLocation = req.query.kwiLocation;
+        connector.kwiLocation = req.query.kwiLocation
     }
 
     Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
-            return next(err);
+            return next(err)
         }
         res.render('admin/connector/connectorAdd', {
             title: 'Add Connector for ' + vendor.name,
             connectorData: connector,
             vendorId: req.params.vendorId
-        });
-    });
-};
+        })
+    })
+}
 
 /**
  * POST /vendors/{vendorId}/connectors/add
@@ -59,7 +59,7 @@ exports.addConnector = (req, res, next) => {
  * Input: vendorId, connector data
  */
 exports.saveConnector = (req, res, next) => {
-    var connector = new Connector();
+    var connector = new Connector()
 
     if (req.body.kwiLocation === 'product') {
         // Get all colors of this vendor and add colors into db
@@ -67,45 +67,45 @@ exports.saveConnector = (req, res, next) => {
             if (vendor.colorSynched != 'yes') {
                 req.flash('errors', {
                     msg: 'To create product connector, you should apply colors in products of this store firstly.'
-                });
+                })
                 res.redirect(url.format({
                     pathname: '/vendors/' + req.body.vendorId + '/connectors/add',
                     query: {
                         name: req.body.name,
                         kwiLocation: req.body.kwiLocation
                     }
-                }));
-                return next();
+                }))
+                return next()
             }
-        });
+        })
     }
-    connector.vendorId = req.body.vendorId;
-    connector.name = req.body.name;
-    connector.kwiLocation = req.body.kwiLocation;
+    connector.vendorId = req.body.vendorId
+    connector.name = req.body.name
+    connector.kwiLocation = req.body.kwiLocation
 
     if (req.body.name == '') {
         req.flash('errors', {
             msg: 'Input is not correct. Please try again.'
-        });
+        })
         res.redirect(url.format({
             pathname: '/vendors/' + req.body.vendorId + '/connectors/add',
             query: {
                 name: req.body.name,
                 kwiLocation: req.body.kwiLocation
             }
-        }));
-        return next();
+        }))
+        return next()
     }
     connector.save(err => {
         if (err) {
-            return next(err);
+            return next(err)
         }
         req.flash('success', {
             msg: 'Connector has been added successfully.'
-        });
-        res.redirect('/vendors/' + req.body.vendorId + '/connectors');
-    });
-};
+        })
+        res.redirect('/vendors/' + req.body.vendorId + '/connectors')
+    })
+}
 
 /**
  * GET /vendors/{vendorId}/connectors/{connectorId}
@@ -116,22 +116,22 @@ exports.saveConnector = (req, res, next) => {
 exports.getConnector = (req, res, next) => {
     Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
-            return next(err);
+            return next(err)
         } else {
             Connector.findById(req.params.connectorId, (error, connector) => {
                 if (error) {
-                    return next(error);
+                    return next(error)
                 } else {
                     res.render('admin/connector/connectorUpdate', {
                         title: 'Edit Connector ' + vendor.name,
                         connectorData: connector,
                         vendorId: req.params.vendorId
-                    });
+                    })
                 }
-            });
+            })
         }
-    });
-};
+    })
+}
 
 /**
  * POST /vendors/{vendorId}/connectors/update
@@ -143,36 +143,36 @@ exports.getConnector = (req, res, next) => {
 exports.updateConnector = (req, res, next) => {
     Vendor.findById(req.body.vendorId, (err, vendor) => {
         if (err) {
-            return next(err);
+            return next(err)
         } else {
             Connector.findById(req.body.connectorId, (getErr, connector) => {
                 if (getErr) {
-                    return next(getErr);
+                    return next(getErr)
                 } else {
-                    connector.name = req.body.name;
-                    connector.kwiLocation = req.body.kwiLocation;
+                    connector.name = req.body.name
+                    connector.kwiLocation = req.body.kwiLocation
                     if (req.body.name == '') {
                         req.flash('errors', {
                             msg: 'Please insert correctly.'
-                        });
-                        res.redirect('/vendors/' + req.body.vendorId + '/connectors/' + req.body.connectorId);
-                        return next();
+                        })
+                        res.redirect('/vendors/' + req.body.vendorId + '/connectors/' + req.body.connectorId)
+                        return next()
                     }
                     connector.save(connectorErr => {
                         if (connectorErr) {
-                            return next(connectorErr);
+                            return next(connectorErr)
                         } else {
                             req.flash('success', {
                                 msg: 'Connector has been updated successfully.'
-                            });
-                            res.redirect('/vendors/' + req.body.vendorId + '/connectors');
+                            })
+                            res.redirect('/vendors/' + req.body.vendorId + '/connectors')
                         }
-                    });
+                    })
                 }
-            });
+            })
         }
-    });
-};
+    })
+}
 
 /**
  * GET /vendors/{vendorId}/connectors/delete/{connectorId}
@@ -185,14 +185,14 @@ exports.deleteConnector = (req, res, next) => {
         _id: req.params.connectorId
     }, err => {
         if (err) {
-            return next(err);
+            return next(err)
         }
         req.flash('success', {
             msg: 'Connector has been deleted successfully.'
-        });
-        res.redirect('/vendors/' + req.params.vendorId + '/connectors');
-    });
-};
+        })
+        res.redirect('/vendors/' + req.params.vendorId + '/connectors')
+    })
+}
 
 /**
  * GET /vendors/{vendorId}/connectors/activate/{connectorId}
@@ -203,37 +203,37 @@ exports.deleteConnector = (req, res, next) => {
 exports.activateConnector = (req, res, next) => {
     Connector.findById(req.params.connectorId, (getErr, connector) => {
         if (getErr) {
-            return next(getErr);
+            return next(getErr)
         } else {
             Vendor.findById(req.params.vendorId, (vendorError, vendor) => {
                 if (vendorError) {
-                    return next(vendorError);
+                    return next(vendorError)
                 }
                 if (vendor.colorSynched != 'yes') {
                     req.flash('errors', {
                         msg: 'To create product connector, you should apply colors in products of this store firstly.'
-                    });
-                    res.redirect('/vendors');
-                    return next();
+                    })
+                    res.redirect('/vendors')
+                    return next()
                 } else {
-                    connector.active = 'yes';
-                    connector.activeDate = new Date();
+                    connector.active = 'yes'
+                    connector.activeDate = new Date()
         
                     connector.save(err => {
                         if (err) {
-                            return next(err);
+                            return next(err)
                         } else {
                             req.flash('success', {
                                 msg: 'Connector has been activated successfully.'
-                            });
-                            res.redirect('/vendors/' + req.params.vendorId + '/connectors');
+                            })
+                            res.redirect('/vendors/' + req.params.vendorId + '/connectors')
                         }
-                    });
+                    })
                 }
-            });
+            })
         }
-    });
-};
+    })
+}
 
 /**
  * GET /vendors/{vendorId}/connectors/inactivate/{connectorId}
@@ -244,20 +244,20 @@ exports.activateConnector = (req, res, next) => {
 exports.inactivateConnector = (req, res, next) => {
     Connector.findById(req.params.connectorId, (getErr, connector) => {
         if (getErr) {
-            return next(getErr);
+            return next(getErr)
         } else {
-            connector.active = 'no';
+            connector.active = 'no'
 
             connector.save(err => {
                 if (err) {
-                    return next(err);
+                    return next(err)
                 } else {
                     req.flash('success', {
                         msg: 'Connector has been inactivated successfully.'
-                    });
-                    res.redirect('/vendors/' + req.params.vendorId + '/connectors');
+                    })
+                    res.redirect('/vendors/' + req.params.vendorId + '/connectors')
                 }
-            });
+            })
         }
-    });
-};
+    })
+}
