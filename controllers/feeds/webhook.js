@@ -38,6 +38,7 @@ exports.productChange = async (req, res) => {
 
 exports.orderFulfill = (req, res) => {
     res.status(200).send()
+    console.log('arrive orderFulfill in webhook')
     const vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14)
     getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
         if (vendorErr) {
