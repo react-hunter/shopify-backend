@@ -167,7 +167,6 @@ module.exports = {
     },
 
     orderFeedInCreate: async (vendorInfo, connectorInfo, fulfilledOrder, callback) => {
-        console.log('arrive order feed in create in orderfeed helper')
         const order = fulfilledOrder
         const orderFileName = 'uploads/shipment-' + vendorInfo.api.apiShop + '.txt'
         const sftp = new Client()
