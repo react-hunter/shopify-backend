@@ -1,5 +1,6 @@
 const Vendor = require('../../models/Vendor')
 const Connector = require('../../models/Connector')
+const Order = require('../../models/Order')
 
 const productFeedHelper = require('../../helpers/productFeed')
 const inventoryFeedHelper = require('../../helpers/inventoryFeed')
@@ -46,12 +47,21 @@ exports.orderFulfill = (req, res) => {
                 if (connectorErr) {
                     console.log('There is no connector for this.')
                 } else {
-                    orderFeedHelper.orderFeedInCreate(vendorInfo, connectorInfo, req.body, (orderFeedErr) => {
-                        if (orderFeedErr) {
-                            console.log(orderFeedErr)
-                        } else {
-                            console.log('order inFeed success in vendor: ', vendorName)
-                        }
+                    const hookOrderId = req.headers['x-shopify-order-id']
+                    Order.find({
+                        vendorId: vendorInfo._id
+                    }).then(orders => {
+                        orders.forEach(orderItem => {
+                            if (orderItem.orderId == hookOrderId) {
+                                orderFeedHelper.orderFeedInCreate(vendorInfo, connectorInfo, req.body, (orderFeedErr) => {
+                                    if (orderFeedErr) {
+                                        console.log(orderFeedErr)
+                                    } else {
+                                        console.log('order inFeed success in vendor: ', vendorName)
+                                    }
+                                })
+                            }
+                        })
                     })
                 }
             })

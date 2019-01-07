@@ -8,6 +8,7 @@ const Vendor = require('../../models/Vendor')
 const Connector = require('../../models/Connector')
 const History = require('../../models/History')
 const Status = require('../../models/Status')
+const Order = require('../../models/Order')
 
 /**
  * GET /
@@ -172,6 +173,13 @@ exports.index = async (req, res, next) => {
                                         console.log('added new order into shopify store')
                                         sftp.delete('/outgoing/orders/' + fileName).then(result => {
                                             console.log('App deleted ' + fileName)
+                                            var orderDataDB = new Order()
+                                            orderDataDB.vendorId = vendor._id
+                                            orderDataDB.orderId = createNextOrder.id
+
+                                            orderDataDB.save().then(() => {
+                                                console.log('Add order data into DB')
+                                            })
                                         }).catch(deleteError => {
                                             console.log('Error in deleting order file of sftp: ', deleteError)
                                         })

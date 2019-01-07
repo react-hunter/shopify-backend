@@ -198,7 +198,7 @@ exports.enableVendor = (req, res, next) => {
                     'address': 'https://content-commerce.herokuapp.com/',
                     'format': 'json'
                 }
-                shopify.webhook.list().then(productWebhookResponse => {
+                shopify.webhook.create(productWebhook).then(productWebhookResponse => {
                     console.log('product create webhook response: ', productWebhookResponse)
                     vendor.active = 'yes'
                     vendor.activeDate = Date()
