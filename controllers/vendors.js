@@ -1,5 +1,5 @@
 const Vendor = require('../models/Vendor')
-const Color  = require('../models/Color')
+const Color = require('../models/Color')
 const Shopify = require('shopify-api-node')
 const url = require('url')
 
@@ -193,14 +193,29 @@ exports.enableVendor = (req, res, next) => {
                 res.redirect('/vendors')
                 return next()
             } else {
-                vendor.active = 'yes'
-                vendor.activeDate = Date()
-                vendor.save(err => {
-                    if (err) {
-                        return next(err)
-                    }
-                    req.flash('info', {
-                        msg: 'You have enabled vendor successfully.'
+                var productWebhook = {
+                    'topic': 'products/create',
+                    'address': 'https://content-commerce.herokuapp.com/',
+                    'format': 'json'
+                }
+                shopify.webhook.list().then(productWebhookResponse => {
+                    console.log('product create webhook response: ', productWebhookResponse)
+                    vendor.active = 'yes'
+                    vendor.activeDate = Date()
+                    vendor.save(err => {
+                        if (err) {
+                            return next(err)
+                        }
+                        req.flash('info', {
+                            msg: 'You have enabled vendor successfully.'
+                        })
+                        res.redirect('/vendors')
+                        return next()
+                    })
+                }).catch(productWebhookError => {
+                    console.log(productWebhookError)
+                    req.flash('errors', {
+                        msg: 'Error in creating product webhook.'
                     })
                     res.redirect('/vendors')
                     return next()
@@ -280,7 +295,10 @@ exports.synchronizeColors = (req, res, next) => {
             res.redirect('/vendors')
             return next()
         }
-        var dbColors = [], dbColorList = [], dbColorShortnameList = [], originalColorValue
+        var dbColors = [],
+            dbColorList = [],
+            dbColorShortnameList = [],
+            originalColorValue
         var proColorList = []
         // Get current color list in db.
         Color.findOne({}, (colorError, colorValue) => {
@@ -294,7 +312,7 @@ exports.synchronizeColors = (req, res, next) => {
                 dbColorShortnameList.push(dbColor.shortName)
             })
         })
-        
+
         const shopify = new Shopify({
             shopName: vendor.api.apiShop,
             apiKey: vendor.api.apiKey,
@@ -332,7 +350,10 @@ exports.synchronizeColors = (req, res, next) => {
                 } else {
                     dbColorList.push(colorItem)
                     dbColorShortnameList.push(shortColor)
-                    dbColors.push({colorName: colorItem, shortName: shortColor})
+                    dbColors.push({
+                        colorName: colorItem,
+                        shortName: shortColor
+                    })
                 }
             })
             originalColorValue.colorList = dbColors
@@ -358,7 +379,7 @@ exports.synchronizeColors = (req, res, next) => {
 const generateShortColor = (originalColor, flag = 0) => {
     var splittedColorString = []
     var shortenColor = ''
-    
+
     // split string with special sign if it includes
     if (originalColor.indexOf(' ') != -1) {
         splittedColorString = originalColor.split(' ')
@@ -371,12 +392,12 @@ const generateShortColor = (originalColor, flag = 0) => {
     }
 
     if (splittedColorString.length == 1) {
-        shortenColor = splittedColorString[0].substr(0, 1) + splittedColorString[0].substr(Math.round((splittedColorString[0].length + flag) / 2)-1, 1) + splittedColorString[0].substr(-1)
+        shortenColor = splittedColorString[0].substr(0, 1) + splittedColorString[0].substr(Math.round((splittedColorString[0].length + flag) / 2) - 1, 1) + splittedColorString[0].substr(-1)
     } else if (splittedColorString.length == 2) {
         shortenColor = splittedColorString[0].substr(0, 1) + splittedColorString[1].substr(0, 1) + splittedColorString[1].substr(-1)
     } else if (splittedColorString.length > 2) {
         shortenColor = splittedColorString[0].substr(0, 1) + splittedColorString[1].substr(0, 1) + splittedColorString[2].substr(0, 1)
     }
-    
+
     return shortenColor.toUpperCase()
 }
