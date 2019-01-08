@@ -334,6 +334,9 @@ module.exports = {
             }
 
         })
+
+        await delay(3000)
+
         sftp.connect({
             host: vendorInfo.sftp.sftpHost,
             port: process.env.SFTP_PORT,
