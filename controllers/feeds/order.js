@@ -84,11 +84,16 @@ exports.index = async (req, res, next) => {
                     orderPost.order.shipping_address = {}
 
                     let dataFromSFTP = TSV.parse(fileData._readableState.buffer.head.data)
+                    // console.log('data from sftp', dataFromSFTP)
                     var orderData = dataFromSFTP[1]
                     
-                    orderPost.order.line_items.push({
-                        variant_id: orderData['item_sku'],
-                        quantity: orderData['item_qty_ordered']
+                    dataFromSFTP.forEach(dataFromSFTPRow => {
+                        if (dataFromSFTPRow.order_number != '') {
+                            orderPost.order.line_items.push({
+                                variant_id: orderData['item_sku'],
+                                quantity: orderData['item_qty_ordered']
+                            })
+                        }
                     })
                     orderPost.order.billing_address = {
                         first_name: orderData['bill_firstname'],
@@ -142,9 +147,10 @@ exports.index = async (req, res, next) => {
                     orderPost.order.financial_status = 'paid' // need to check later, again. There is 'paid' value, too.
                     orderPost.order.fulfillment_status = null
                     orderPost.order.source = orderData['ship_method']
+                    const ship_price = orderData['total_total'] - orderData['subtotal'] - orderData['tax_total']
                     orderPost.order.shipping_lines = [{
                         code: "INT.TP",
-                        price: 4,
+                        price: ship_price,
                         discount_price: 1,
                         source: "usps",
                         title: "Small Packet International Air",

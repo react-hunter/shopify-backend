@@ -272,7 +272,7 @@ exports.disableVendor = (req, res, next) => {
         if (err) {
             return next(err)
         }
-
+        
         if (vendor.hasTransaction) {
             req.flash('info', {
                 msg: 'This vendor has transactions. You can not disable this user now.'
@@ -280,14 +280,42 @@ exports.disableVendor = (req, res, next) => {
             res.redirect('/vendors')
             return next()
         }
-
-        vendor.active = 'no'
-        vendor.save(err => {
-            if (err) {
-                return next(err)
+        
+        var shopify = new Shopify({
+            shopName: vendor.api.apiShop,
+            apiKey: vendor.api.apiKey,
+            password: vendor.api.apiPassword,
+            timeout: 50000,
+            autoLimit: {
+                calls: 2,
+                interval: 1000,
+                bucketSize: 35
             }
-            res.redirect('/vendors')
         })
+        
+        shopify.webhook.list().then(webhookList => {
+            var webhookPromises = []
+            webhookList.forEach(webhookItem => {
+                webhookPromises.push(shopify.webhook.delete(webhookItem.id))
+            })
+            Promise.all(webhookPromises).then(webhookDeleteResponse => {
+                vendor.active = 'no'
+                vendor.save(err => {
+                    if (err) {
+                        return next(err)
+                    }
+                    res.redirect('/vendors')
+                })
+            }).catch(webhookDeleteError => {
+                console.log('Error in deleting webhooks')
+                req.flash('errors', {
+                    msg: 'There is a problem in deleting webhooks.'
+                })
+                res.redirect('/vendors')
+                return next()
+            })
+        })
+
     })
 }
 
@@ -304,16 +332,43 @@ exports.deleteVendor = (req, res, next) => {
             res.redirect('/vendors')
             return next()
         } else {
-            Vendor.deleteOne({
-                _id: req.params.vendorId
-            }, err => {
-                if (err) {
-                    return next(err)
+            var shopify = new Shopify({
+                shopName: vendor.api.apiShop,
+                apiKey: vendor.api.apiKey,
+                password: vendor.api.apiPassword,
+                timeout: 50000,
+                autoLimit: {
+                    calls: 2,
+                    interval: 1000,
+                    bucketSize: 35
                 }
-                req.flash('success', {
-                    msg: 'Vendor has been deleted successfully.'
+            })
+
+            shopify.webhook.list().then(webhookList => {
+                var webhookPromises = []
+                webhookList.forEach(webhookItem => {
+                    webhookPromises.push(shopify.webhook.delete(webhookItem.id))
                 })
-                res.redirect('/vendors')
+                Promise.all(webhookPromises).then(webhookDeleteResponse => {
+                    Vendor.deleteOne({
+                        _id: req.params.vendorId
+                    }, err => {
+                        if (err) {
+                            return next(err)
+                        }
+                        req.flash('success', {
+                            msg: 'Vendor has been deleted successfully.'
+                        })
+                        res.redirect('/vendors')
+                    })
+                }).catch(webhookDeleteError => {
+                    console.log('Error in deleting webhooks')
+                    req.flash('errors', {
+                        msg: 'There is a problem in deleting webhooks.'
+                    })
+                    res.redirect('/vendors')
+                    return next()
+                })
             })
         }
     })
