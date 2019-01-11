@@ -232,7 +232,7 @@ const addStatus = (vendor, connector, statusFlag, callback) => {
                 }
                 status.save().then(() => {
                     addHistory(vendor, connector, statusFlag, (historyErr) => {
-                        if(historyErr) {
+                        if (historyErr) {
                             callback(historyErr)
                         } else {
                             callback(null)
@@ -254,7 +254,7 @@ const addStatus = (vendor, connector, statusFlag, callback) => {
                 }
                 status.updateOne({ $inc: statusQuery},() => {
                     addHistory(vendor, connector, statusFlag, (historyErr) => {
-                        if(historyErr) {
+                        if (historyErr) {
                             callback(historyErr)
                         } else {
                             callback(null)

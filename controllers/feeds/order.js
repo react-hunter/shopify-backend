@@ -82,6 +82,7 @@ exports.index = async (req, res, next) => {
                     orderPost.order.line_items = []
                     orderPost.order.billing_address = {}
                     orderPost.order.shipping_address = {}
+                    outgoingOrderNumbers = []
 
                     let dataFromSFTP = TSV.parse(fileData._readableState.buffer.head.data)
                     // console.log('data from sftp', dataFromSFTP)
@@ -93,6 +94,7 @@ exports.index = async (req, res, next) => {
                                 variant_id: orderData['item_sku'],
                                 quantity: orderData['item_qty_ordered']
                             })
+                            outgoingOrderNumbers.push(dataFromSFTPRow.order_number)
                         }
                     })
                     orderPost.order.billing_address = {
@@ -181,6 +183,7 @@ exports.index = async (req, res, next) => {
                                             var orderDataDB = new Order()
                                             orderDataDB.vendorId = vendor._id
                                             orderDataDB.orderId = createNextOrder.id
+                                            orderDataDB.outgoingOrderNumbers = outgoingOrderNumbers
 
                                             orderDataDB.save().then(() => {
                                                 console.log('Add order data into DB')
@@ -576,7 +579,7 @@ const addStatus = (vendor, connector, statusFlag, callback) => {
                 }
                 status.save().then(() => {
                     addHistory(vendor, connector, statusFlag, (historyErr) => {
-                        if(historyErr) {
+                        if (historyErr) {
                             callback(historyErr)
                         } else {
                             callback(null)
@@ -598,7 +601,7 @@ const addStatus = (vendor, connector, statusFlag, callback) => {
                 }
                 status.updateOne({ $inc: statusQuery},() => {
                     addHistory(vendor, connector, statusFlag, (historyErr) => {
-                        if(historyErr) {
+                        if (historyErr) {
                             callback(historyErr)
                         } else {
                             callback(null)

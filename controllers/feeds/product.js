@@ -158,10 +158,10 @@ exports.index = async (req, res, next) => {
                 temp.body_html = 'product description'
                 writeProductFile(JSON.stringify(temp), 0, (writeError, writeResponse) => {
                     isFirstVariant = false
-                    if(writeError){
+                    if (writeError){
                         console.log('writeError: ', writeError)
                     }
-                    if(writeResponse == 'success') {
+                    if (writeResponse == 'success') {
                         console.log('Writing ...')
                     }
                 })
@@ -374,7 +374,7 @@ exports.index = async (req, res, next) => {
                         productData.MinQty = MinQty
                         productData.MaxQty = MaxQty
                         productData.IsBestSeller = collect.collection_id == bestSellCollectionId ? true : false
-                        // if(daysDifference > 30) {
+                        // if (daysDifference > 30) {
                         //     productData.IsNew = false
                         // } else {
                         //     productData.IsNew = true
@@ -686,7 +686,7 @@ const addStatus = (vendor, connector, statusFlag, callback) => {
                 }
                 status.save().then(() => {
                     addHistory(vendor, connector, statusFlag, (historyErr) => {
-                        if(historyErr) {
+                        if (historyErr) {
                             callback(historyErr)
                         } else {
                             callback(null)
@@ -708,7 +708,7 @@ const addStatus = (vendor, connector, statusFlag, callback) => {
                 }
                 status.updateOne({ $inc: statusQuery},() => {
                     addHistory(vendor, connector, statusFlag, (historyErr) => {
-                        if(historyErr) {
+                        if (historyErr) {
                             callback(historyErr)
                         } else {
                             callback(null)

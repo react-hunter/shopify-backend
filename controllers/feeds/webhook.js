@@ -53,7 +53,7 @@ exports.orderFulfill = (req, res) => {
                     }).then(orders => {
                         orders.forEach(orderItem => {
                             if (orderItem.orderId == hookOrderId) {
-                                orderFeedHelper.orderFeedInCreate(vendorInfo, connectorInfo, req.body, (orderFeedErr) => {
+                                orderFeedHelper.orderFeedInCreate(vendorInfo, connectorInfo, req.body, orderItem.outgoingOrderNumbers, (orderFeedErr) => {
                                     if (orderFeedErr) {
                                         console.log(orderFeedErr)
                                     } else {

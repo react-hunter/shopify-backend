@@ -166,7 +166,7 @@ module.exports = {
         })
     },
 
-    orderFeedInCreate: async (vendorInfo, connectorInfo, fulfilledOrder, callback) => {
+    orderFeedInCreate: async (vendorInfo, connectorInfo, fulfilledOrder, outgoingOrderNumbers, callback) => {
         const order = fulfilledOrder
         const orderFileName = 'uploads/shipment-' + vendorInfo.api.apiShop + '.txt'
         const sftp = new Client()
@@ -188,9 +188,10 @@ module.exports = {
 
         await delay(2000)
 
-        order.line_items.forEach(item => {
+        order.line_items.forEach((item, index) => {
             var orderData = {}
-            orderData.order_number = order.order_number
+            // orderData.order_number = order.order_number
+            orderData.order_number = outgoingOrderNumbers[index]
             orderData.order_date = order.created_at.substr(5, 2) + '/' + order.created_at.substr(8, 2) + '/' + order.created_at.substr(0, 4)
             orderData.order_payment_method = order.gateway
             orderData.transaction_id = order.checkout_id

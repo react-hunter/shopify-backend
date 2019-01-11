@@ -76,7 +76,7 @@ module.exports = {
                     }
                     status.save().then(() => {
                         module.exports.addHistory(vendor, connector, statusFlag, (historyErr) => {
-                            if(historyErr) {
+                            if (historyErr) {
                                 callback(historyErr)
                             } else {
                                 callback(null)
@@ -98,7 +98,7 @@ module.exports = {
                     }
                     status.updateOne({ $inc: statusQuery},() => {
                         module.exports.addHistory(vendor, connector, statusFlag, (historyErr) => {
-                            if(historyErr) {
+                            if (historyErr) {
                                 callback(historyErr)
                             } else {
                                 callback(null)
