@@ -69,10 +69,50 @@ exports.orderFulfill = (req, res) => {
     })
 }
 
+exports.refundCreate = (req, res) => {
+    res.status(200).send()
+    console.log('refund headers: ', req.headers)
+    console.log('refund body: ', req.body)
+    const vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14)
+    getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
+        if (vendorErr) {
+            console.log('There is no vendor for this.')
+        } else {
+            getConnectorInfo(vendorInfo, 'order', (connectorErr, connectorInfo) => {
+                if (connectorErr) {
+                    console.log('There is no connector for this.')
+                } else {
+                    // const hookOrderId = req.headers['x-shopify-order-id']
+                    // Order.find({
+                    //     vendorId: vendorInfo._id
+                    // }).then(orders => {
+                    //     orders.forEach(orderItem => {
+                    //         if (orderItem.orderId == hookOrderId) {
+                    //             orderFeedHelper.orderFeedInCreate(vendorInfo, connectorInfo, req.body, orderItem.outgoingOrderNumbers, (orderFeedErr) => {
+                    //                 if (orderFeedErr) {
+                    //                     console.log(orderFeedErr)
+                    //                 } else {
+                    //                     console.log('order inFeed success in vendor: ', vendorName)
+                    //                 }
+                    //             })
+                    //         }
+                    //     })
+                    // })
+                }
+            })
+        }
+    })
+}
+
 // receive request whenever kwi creates order file
 exports.kwiOrderCreate = (req, res) => {
     res.status(200).send()
-    console.log('data from kwi: ', req.body)
+    console.log('order data from kwi: ', req.body)
+}
+
+exports.kwiRefundCreate = (req, res) => {
+    res.status(200).send()
+    console.log('refund data from kwi: ', req.body)
 }
 
 // get information of vendor and connector by using vendorName

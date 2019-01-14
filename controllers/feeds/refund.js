@@ -15,10 +15,27 @@ const Status = require('../../models/Status')
  */
 exports.index = async (req, res, next) => {
 
-    let vendorInfo, connectorInfo
-    let returnFileName = ''
-    let shopify = null
-    let errorExist = false
+    res.render('feeds/refund', {
+        title: 'refund'
+    })
+    var vendorInfo, connectorInfo
+    Connector.find({
+        vendorId: req.user.vendorId,
+        kwiLocation: 'refund',
+        active: 'yes'
+    }, (err, connectors) => {
+        if (err) {
+            return next(err)
+        }
+        if (connectors.length == 0) {
+            req.flash('errors', {
+                msg: 'Your vendor does not include refund connector or it is inactive. Please contact with Administrator or Admin User.'
+            })
+            res.redirect('/')
+            return next()
+        }
+        connectorInfo = connectors[0]
+    })
     Vendor.findOne({
         _id: req.user.vendorId
     }, (vendorError, vendor) => {

@@ -217,9 +217,11 @@ app.get('/vendors/synchronizeColors/:vendorId', passportConfig.isSuper, vendorsC
 
 app.post('/webhook/productChange', /*passportConfig.verifyWebHook, */webhookController.productChange);
 app.post('/webhook/fulfill', webhookController.orderFulfill);
+app.post('/webhook/refund', webhookController.refundCreate);
 
 // From KWI
 app.post('/kwi/orderCreate', webhookController.kwiOrderCreate);
+app.post('/kwi/refundCreate', webhookController.kwiRefundCreate)
 
 // To test some code.
 app.get('/testcode', testcodeController.index);

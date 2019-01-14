@@ -17,7 +17,7 @@ const Order = require('../../models/Order')
 exports.index = async (req, res, next) => {
     res.render('feeds/order', {
         title: 'order'
-    });
+    })
     var vendorInfo, connectorInfo
     Connector.find({
         vendorId: req.user.vendorId,
@@ -91,8 +91,8 @@ exports.index = async (req, res, next) => {
                     dataFromSFTP.forEach(dataFromSFTPRow => {
                         if (dataFromSFTPRow.order_number != '') {
                             orderPost.order.line_items.push({
-                                variant_id: orderData['item_sku'],
-                                quantity: orderData['item_qty_ordered']
+                                variant_id: dataFromSFTPRow['item_sku'],
+                                quantity: dataFromSFTPRow['item_qty_ordered']
                             })
                             outgoingOrderNumbers.push(dataFromSFTPRow.order_number)
                         }
