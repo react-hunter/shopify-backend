@@ -87,7 +87,7 @@ exports.index = async (req, res, next) => {
                     dataFromSFTP.forEach(dataFromSFTPRow => {
                         if (dataFromSFTPRow.original_order_number != '') {
                             refundCalculate.refund_line_items.push({
-                                // line_item_id: ,
+                                // line_item_id: dataFromSFTPRow['line_item_id'],
                                 quantity: dataFromSFTPRow['qty_requested'],
                                 restock_type: 'return'
                             })
@@ -101,16 +101,18 @@ exports.index = async (req, res, next) => {
                             full_refund: true
                         }
     
-                        dataFromSFTP.forEach(dataFromSFTPRow => {
+                        dataFromSFTP.forEach((dataFromSFTPRow, index) => {
                             if (dataFromSFTPRow.original_order_number != '') {
                                 refundPost.refund_line_items.push({
-                                    // line_item_id: ,
+                                    // line_item_id: dataFromSFTPRow['line_item_id'],
                                     restock_type: 'return',
-                                    // location_id: ,
+                                    // location_id: dataFromSFTPRow['refund_line_items'][index]['location_id'],
                                     quantity: dataFromSFTPRow['qty_requested']
                                 })
                             }
                         })
+
+                        refundPost.transactions = calculateResponse.transactions
                         
                         console.log('refund data: ', refundPost)
                     }).catch(calculateError => {
