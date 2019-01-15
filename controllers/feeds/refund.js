@@ -37,173 +37,91 @@ exports.index = async (req, res, next) => {
         connectorInfo = connectors[0]
     })
     Vendor.findOne({
-        _id: req.user.vendorId
+        _id: req.user.vendorId,
+        active: 'yes'
     }, (vendorError, vendor) => {
         if (vendorError) {
             return next(vendorError)
         }
         vendorInfo = vendor
-        returnFileName = 'uploads/return-' + vendor.api.apiShop + '.txt'
+        shopify = new Shopify({
+            shopName: vendorInfo.api.apiShop,
+            apiKey: vendorInfo.api.apiKey,
+            password: vendorInfo.api.apiPassword,
+            timeout: 50000,
+            autoLimit: {
+                calls: 2,
+                interval: 1000,
+                bucketSize: 35
+            }
+        })
+        
+        const sftp = new Client()
 
-        if (vendorInfo.api.apiShop == '' || vendorInfo.api.apiKey == '' || vendorInfo.api.apiPassword == '') {
-            req.flash('errors', {
-                msg: 'You should have API information to manage product feed. Please contact with Administrator.'
-            })
-            errorExist = true
-            res.redirect('/')
-            return next()
-        }
-        if (vendorInfo.sftp.sftpHost == '' || vendorInfo.sftp.sftpPassword == '' || vendorInfo.sftp.sftpUsername == '') {
-            req.flash('errors', {
-                msg: 'You should have SFTP information to manage product feed. Please contact with Administrator.'
-            })
-            errorExist = true
-            res.redirect('/')
-            return next()
-        }
-        if (vendorInfo.active == 'yes') {
-            shopify = new Shopify({
-                shopName: vendorInfo.api.apiShop,
-                apiKey: vendorInfo.api.apiKey,
-                password: vendorInfo.api.apiPassword,
-                timeout: 50000,
-                autoLimit: {
-                    calls: 2,
-                    interval: 1000,
-                    bucketSize: 35
+        sftp.connect({
+            host: vendorInfo.sftp.sftpHost,
+            port: process.env.SFTP_PORT,
+            username: vendorInfo.sftp.sftpUsername,
+            password: vendorInfo.sftp.sftpPassword
+        }).then(() => {
+            return sftp.list('/outgoing/returns')
+        }).then(sftpFileList => {
+            let fileList = []
+            sftpFileList.forEach(sftpFile => {
+                if (sftpFile.type == '-') {
+                    fileList.push(sftpFile.name)
                 }
             })
-        }
-        // Check vendor availability. If vendor's status is inactive, it should redirect to homepage without any action.
-        if (vendorInfo.active == 'no') {
-            req.flash('errors', {
-                msg: 'Your vendor should be active to manage feed. Please contact with Administrator.'
-            })
-            errorExist = true
-            res.redirect('/')
-            return next()
-        }
+            fileList.forEach(fileName => {
+                sftp.get('/outgoing/returns/' + fileName).then(fileData => {
+                    var refundPost = {}, refundCalculate = {}
+                    refundPost.refund_line_items = [], refundCalculate.refund_line_items = []
+                    var dataFromSFTP = TSV.parse(fileData._readableState.buffer.head.data)
+                    var refundData = dataFromSFTPRow[1]
 
-        // Check refund connector
-        Connector.find({
-            vendorId: vendorInfo._id,
-            kwiLocation: 'refund',
-            active: 'yes'
-        }, (err, connectors) => {
-            if (err) {
-                return next(err)
-            }
-            if (connectors.length == 0) {
-                req.flash('errors', {
-                    msg: 'Your vendor does not include refund connector or it is inactive. Please contact with Administrator or Admin User.'
-                })
-                errorExist = true
-                res.redirect('/')
-                return next()
-            }
-            connectorInfo = connectors[0]
-        })
-    })
-
-    const sftp = new Client()
-    var refundDataList = new Array()
-
-    deleteAndInitialize(returnFileName)
-
-    if (req.user.active !== 'yes') {
-        req.flash('errors', {
-            msg: 'Your account is inactive now. Please contact with Administrator.'
-        })
-        errorExist = true
-        res.redirect('/')
-        return next()
-    }
-    await delay(2000)
-    if (!errorExist) {
-        shopify.order.list()
-        .then(orders => {
-            orders.forEach(order => {
-                shopify.refund.list(order.id)
-                .then(refunds => {
-                    refunds.forEach(refund => {
-                        if (refund.refund_line_items.length > 0) {
-                            refund.refund_line_items.forEach(refundItem => {
-                                var refundData = {}
-                                refundData.original_order_number = refund.order_id
-                                // refundData.rma_number = 
-                                refundData.item_sku = refundItem.sku
-                                refundData.date_requested = refund.created_at
-                                refundData.qty_requested = refundItem.quantity
-                                refundData.date_received = refund.processed_at
-                                // refundData.qty_received = 
-                                refundData.reason = refund.order_adjustments[0].reason
-                                refundData.retailer_order_number = order.number
-                                // refundData.retailer_rma_number = 
-                                refundData.item_status = refundItem.line_item.fulfillment_status
-
-                                refundDataList.push(refundData)
+                    // Calculate refund
+                    refundCalculate.currency = 'USD'
+                    refundCalculate.shipping = {
+                        full_refund: true
+                    }
+                    dataFromSFTP.forEach(dataFromSFTPRow => {
+                        if (dataFromSFTPRow.original_order_number != '') {
+                            refundCalculate.refund_line_items.push({
+                                // line_item_id: ,
+                                quantity: dataFromSFTPRow['qty_requested'],
+                                restock_type: 'return'
                             })
                         }
                     })
-                })
-                .catch(err => {
-                    console.log(err)
-                });
-            });
-        })
-        .then(() => {
-            sftp.connect({
-                host: vendorInfo.sftp.sftpHost,
-                port: process.env.SFTP_PORT,
-                username: vendorInfo.sftp.sftpUsername,
-                password: vendorInfo.sftp.sftpPassword
-            })
-            .then(() => {
-                fs.writeFile(returnFileName, TSV.stringify(refundDataList), function (err) {
-                    if (err) {
-                        console.log(err)
-                    } else {
-                        var currentDate = new Date()
-                        var splittedISODateByDot = currentDate.toLocaleString("en-US", {hour12: false}).split('.')
-                        var remotePath = '/incoming/returns/return' + splittedISODateByDot[0].replace(' ', '').replace(',', '').replace(/\-/g, '').replace(/\//g, '').replace(/\:/g, '') + '.txt'
-                        sftp.put(returnFileName, remotePath)
-                        .then(response => {
-                            addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
-                                if (statusErr) {
-                                    return next(statusErr)
-                                } else {
-                                    res.render('feeds/refund', {
-                                        title: 'Refund',
-                                        refundList: refundDataList
-                                    })
-                                }
-                            })
-                            
-                            sftp.end()
+                    shopify.refund.calculate(refundData['original_order_number'], refundCalculate).then(calculateResponse => {
+                        // Create refund
+                        refundPost.currency = 'USD'
+                        refundPost.notify = true
+                        refundPost.shipping = {
+                            full_refund: true
+                        }
+    
+                        dataFromSFTP.forEach(dataFromSFTPRow => {
+                            if (dataFromSFTPRow.original_order_number != '') {
+                                refundPost.refund_line_items.push({
+                                    // line_item_id: ,
+                                    restock_type: 'return',
+                                    // location_id: ,
+                                    quantity: dataFromSFTPRow['qty_requested']
+                                })
+                            }
                         })
-                        .catch(error => {
-                            addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
-                                if (statusErr) {
-                                    return next(statusErr)
-                                } else {
-                                    console.log('upload error: ', error)
-                                }
-                            })
-                        })
-                    }
+                        
+                        console.log('refund data: ', refundPost)
+                    }).catch(calculateError => {
+                        console.log('Error in calculating refund: ', calculateError)
+                    })
+                }).then(sftpError => {
+                    console.log('Error in getting refund data from sftp: ', sftpError)
                 })
             })
         })
-        .catch(err => {
-            addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
-                if (statusErr) {
-                    return next(statusErr)
-                } else {
-                    console.log('Getting refund data Error: ', err)
-                }
-            })
-        })
-    }
+    })
 }
 
 const deleteAndInitialize = function (filePath) {

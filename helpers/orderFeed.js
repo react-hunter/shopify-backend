@@ -331,9 +331,11 @@ module.exports = {
                     .catch(err => console.log('fulfillmentEvent error: ', err))
             } else {
                 orderData.delivery_date = 'Not Sure'
-                orderDataList.push(orderData)
             }
-
+            orderData.order_id = order.id
+            orderData.line_item_id = item.id
+            
+            orderDataList.push(orderData)
         })
 
         await delay(3000)
