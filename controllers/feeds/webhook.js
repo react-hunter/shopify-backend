@@ -19,10 +19,12 @@ exports.productChange = async (req, res) => {
         if (vendorErr) {
             console.log('There are no vendor for this.')
         } else {
+            res.status(200).send()
             getConnectorInfo(vendorInfo, 'product', (connectorErr, connectorInfo) => {
                 if (connectorErr) {
                     console.log('There is no connector for this.')
                 } else {
+                    res.status(200).send()
                     productFeedHelper.productFeedInCreate(vendorInfo, connectorInfo, (productFeedErr) => {
                         if (productFeedErr) {
                             console.log(productFeedErr)
@@ -43,10 +45,12 @@ exports.orderFulfill = (req, res) => {
         if (vendorErr) {
             console.log('There are no vendor for this.')
         } else {
+            res.status(200).send()
             getConnectorInfo(vendorInfo, 'order', (connectorErr, connectorInfo) => {
                 if (connectorErr) {
                     console.log('There is no connector for this.')
                 } else {
+                    res.status(200).send()
                     const hookOrderId = req.headers['x-shopify-order-id']
                     Order.find({
                         vendorId: vendorInfo._id
@@ -78,10 +82,12 @@ exports.refundCreate = (req, res) => {
         if (vendorErr) {
             console.log('There is no vendor for this.')
         } else {
+            res.status(200).send()
             getConnectorInfo(vendorInfo, 'order', (connectorErr, connectorInfo) => {
                 if (connectorErr) {
                     console.log('There is no connector for this.')
                 } else {
+                    // res.status(200).send()
                     // const hookOrderId = req.headers['x-shopify-order-id']
                     // Order.find({
                     //     vendorId: vendorInfo._id
