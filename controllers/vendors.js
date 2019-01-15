@@ -220,21 +220,23 @@ exports.enableVendor = (req, res, next) => {
                 webhookPromises.push(shopify.webhook.create(productDeleteWebhook))
                 webhookPromises.push(shopify.webhook.create(orderFulfillWebhook))
 
-                // shopify.webhook.list().then(webhooks => {
-                //     console.log('webhook list: ', webhooks)
-                //     res.redirect('/vendors')
-                // })
+                /*
+                shopify.webhook.list().then(webhooks => {
+                    console.log('webhook list: ', webhooks)
+                    res.redirect('/vendors')
+                })
 
-                // shopify.webhook.delete(472132419695).then(
-                //     shopify.webhook.delete(472134877295).then(
-                //         shopify.webhook.delete(472135499887).then(
-                //             shopify.webhook.delete(472136679535).then(
-                //                 console.log('success')
-                //             )
-                //         )
-                //     )
-                // )
-
+                shopify.webhook.delete(472132419695).then(
+                    shopify.webhook.delete(472134877295).then(
+                        shopify.webhook.delete(472135499887).then(
+                            shopify.webhook.delete(472136679535).then(
+                                console.log('success')
+                            )
+                        )
+                    )
+                )
+                */
+                
                 Promise.all(webhookPromises).then(webhookCreateResponse => {
                     console.log('product create webhook response: ', webhookCreateResponse)
                     vendor.active = 'yes'

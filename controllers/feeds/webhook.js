@@ -87,23 +87,23 @@ exports.refundCreate = (req, res) => {
                 if (connectorErr) {
                     console.log('There is no connector for this.')
                 } else {
-                    // res.status(200).send()
-                    // const hookOrderId = req.headers['x-shopify-order-id']
-                    // Order.find({
-                    //     vendorId: vendorInfo._id
-                    // }).then(orders => {
-                    //     orders.forEach(orderItem => {
-                    //         if (orderItem.orderId == hookOrderId) {
-                    //             orderFeedHelper.orderFeedInCreate(vendorInfo, connectorInfo, req.body, orderItem.outgoingOrderNumbers, (orderFeedErr) => {
-                    //                 if (orderFeedErr) {
-                    //                     console.log(orderFeedErr)
-                    //                 } else {
-                    //                     console.log('order inFeed success in vendor: ', vendorName)
-                    //                 }
-                    //             })
-                    //         }
-                    //     })
-                    // })
+                    res.status(200).send()
+                    const hookOrderId = req.headers['x-shopify-order-id']
+                    Order.find({
+                        vendorId: vendorInfo._id
+                    }).then(orders => {
+                        orders.forEach(orderItem => {
+                            if (orderItem.orderId == hookOrderId) {
+                                orderFeedHelper.orderFeedInCreate(vendorInfo, connectorInfo, req.body, orderItem.outgoingOrderNumbers, (orderFeedErr) => {
+                                    if (orderFeedErr) {
+                                        console.log(orderFeedErr)
+                                    } else {
+                                        console.log('order inFeed success in vendor: ', vendorName)
+                                    }
+                                })
+                            }
+                        })
+                    })
                 }
             })
         }
