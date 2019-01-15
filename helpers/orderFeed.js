@@ -187,7 +187,7 @@ module.exports = {
         commonHelper.deleteAndInitialize(orderFileName)
 
         await delay(2000)
-
+console.log('************************ item length ***********************: ', order.line_items.length)
         order.line_items.forEach((item, index) => {
             var orderData = {}
             // orderData.order_number = order.order_number
