@@ -187,7 +187,7 @@ module.exports = {
         commonHelper.deleteAndInitialize(orderFileName)
 
         await delay(2000)
-console.log('************************ item length ***********************: ', order.line_items.length)
+
         order.line_items.forEach((item, index) => {
             var orderData = {}
             // orderData.order_number = order.order_number
@@ -315,20 +315,19 @@ console.log('************************ item length ***********************: ', or
             }
             if (fulfillmentId > 0) {
                 shopify.fulfillmentEvent.list(order.id, fulfillmentId)
-                    .then((events) => {
-                        if (events.length > 0) {
-                            events.forEach((event) => {
-                                if (event.status == 'in_transit')
-                                    orderData.delivery_date = event.estimated_delivery_at
-                                else
-                                    orderData.delivery_date = event.delivery_date
-                            })
-                        } else {
-                            orderData.delivery_date = 'Not Sure'
-                        }
-                        orderDataList.push(orderData)
-                    })
-                    .catch(err => console.log('fulfillmentEvent error: ', err))
+                .then((events) => {
+                    if (events.length > 0) {
+                        events.forEach((event) => {
+                            if (event.status == 'in_transit')
+                                orderData.delivery_date = event.estimated_delivery_at
+                            else
+                                orderData.delivery_date = event.delivery_date
+                        })
+                    } else {
+                        orderData.delivery_date = 'Not Sure'
+                    }
+                })
+                .catch(err => console.log('fulfillmentEvent error: ', err))
             } else {
                 orderData.delivery_date = 'Not Sure'
             }
