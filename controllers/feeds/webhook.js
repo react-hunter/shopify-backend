@@ -1,6 +1,9 @@
+const commonHelper = require('../../helpers/common')
+
 const Vendor = require('../../models/Vendor')
 const Connector = require('../../models/Connector')
 const Order = require('../../models/Order')
+const Webhook = require('../../models/Webhook')
 
 const productFeedHelper = require('../../helpers/productFeed')
 const inventoryFeedHelper = require('../../helpers/inventoryFeed')
@@ -26,6 +29,7 @@ exports.productChange = async (req, res) => {
                     console.log('There is no connector for this.')
                 } else {
                     res.status(200).send()
+                    /*
                     productFeedHelper.productFeedInCreate(vendorInfo, connectorInfo, (productFeedErr) => {
                         if (productFeedErr) {
                             console.log(productFeedErr)
@@ -33,6 +37,13 @@ exports.productChange = async (req, res) => {
                             console.log('product feed success in vendor: ', vendorName)
                         }
                     })
+                    */
+                    var webhookData = new Webhook()
+                    webhookData.vendorId = vendorInfo._id
+                    webhookData.connector = connectorInfo.kwiLocation
+                    webhookData.requestId = req.headers['x-shopify-product-id']
+                    
+                    webhookData.save()
                 }
             })
         }
@@ -120,6 +131,46 @@ exports.kwiOrderCreate = (req, res) => {
 exports.kwiRefundCreate = (req, res) => {
     res.status(200).send()
     console.log('refund data from kwi: ', req.body)
+}
+
+exports.productTimer = () => {
+    console.log('here is product timer !!!')
+    // Get and loop vendor list
+    Vendor.find({
+        active: 'yes',
+        colorSynched: 'yes'
+    }, (vendorErr, vendorList) => {
+        vendorList.forEach(vendorItem => {
+            Webhook.find({
+                vendorId: vendorItem._id,
+                connector: 'product'
+            }, (productWebhookError, productWebhookList) => {
+                if (productWebhookList.length > 0) {
+                    getConnectorInfo(vendorItem, 'product', (connectorErr, connectorInfo) => {
+                        if (connectorErr) {
+                            console.log('There is no connector for this.')
+                        } else {
+                            // Execute productFeedIn a time and delete all rows for this vendor && connector
+                            productFeedHelper.productFeedInCreate(vendorItem, connectorInfo, (productFeedErr) => {
+                                if (productFeedErr) {
+                                    console.log(productFeedErr)
+                                } else {
+                                    Webhook.deleteMany({
+                                        vendorId: vendorItem._id,
+                                        connector: 'product'
+                                    }, () => {
+                                        console.log('product feed success in vendor: ', vendorItem.api.apiShop)
+                                    })
+                                }
+                            })
+                        }
+                    })
+                }
+            })
+        })
+    })
+    // Search product webhooks per vendor
+    // Execute product webhook and delete request rows and add this to history.
 }
 
 // get information of vendor and connector by using vendorName
