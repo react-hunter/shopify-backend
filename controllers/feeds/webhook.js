@@ -134,18 +134,17 @@ exports.kwiRefundCreate = (req, res) => {
 }
 
 exports.productTimer = () => {
-    console.log('here is product timer !!!')
     // Get and loop vendor list
     Vendor.find({
         active: 'yes',
         colorSynched: 'yes'
     }, (vendorErr, vendorList) => {
         vendorList.forEach(vendorItem => {
-            Webhook.find({
+            Webhook.findOne({
                 vendorId: vendorItem._id,
                 connector: 'product'
             }, (productWebhookError, productWebhookList) => {
-                if (productWebhookList.length > 0) {
+                if (!productWebhookError && productWebhookList) {
                     getConnectorInfo(vendorItem, 'product', (connectorErr, connectorInfo) => {
                         if (connectorErr) {
                             console.log('There is no connector for this.')
