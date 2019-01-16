@@ -82,7 +82,7 @@ exports.index = async (req, res, next) => {
                     orderPost.order.line_items = []
                     orderPost.order.billing_address = {}
                     orderPost.order.shipping_address = {}
-                    outgoingOrderNumbers = []
+                    var outgoingOrderNumbers = []
 
                     let dataFromSFTP = TSV.parse(fileData._readableState.buffer.head.data)
                     // console.log('data from sftp', dataFromSFTP)
@@ -138,6 +138,7 @@ exports.index = async (req, res, next) => {
                         name: orderData['bill_firstname'] + ' ' + orderData['bill_lastname'],
                         email: orderData['customer_email']
                     }
+                    
                     orderPost.order.email = 'shopsatnbcu+orders@balanceagent.com'
                     orderPost.order.buyer_accepts_marketing = false
                     orderPost.order.send_receipt = false
@@ -152,7 +153,7 @@ exports.index = async (req, res, next) => {
                     const ship_price = orderData['total_total'] - orderData['subtotal'] - orderData['tax_total']
                     orderPost.order.shipping_lines = [{
                         code: "INT.TP",
-                        price: ship_price,
+                        price: ship_price.toFixed(2).toString(),
                         discount_price: 1,
                         source: "usps",
                         title: "Small Packet International Air",
@@ -194,6 +195,8 @@ exports.index = async (req, res, next) => {
                                     }
                                 })
                             })
+                        }).catch(createNextError => {
+                            console.log('Creating Next Order Error: ', createNextError)
                         })
                     }).catch(createError => {
                         addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
