@@ -242,8 +242,8 @@ app.listen(app.get('port'), () => {
   console.log('%s App is running at http://localhost:%d in %s mode', chalk.green('✓'), app.get('port'), app.get('env'));
   console.log('  Press CTRL-C to stop\n');
   // Create Timer for product webhook
-  const productTimer = setInterval(webhookController.productTimer, 86400000);
-  // const productTimer = setInterval(webhookController.productTimer, 30000);
+  // const productTimer = setInterval(webhookController.productTimer, 86400000);
+  const productTimer = setInterval(webhookController.productTimer, 30000);
 });
 User.find({type: 'superadmin'}, (err, superusers) => {
   if (err) {
