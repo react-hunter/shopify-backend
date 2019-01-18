@@ -462,7 +462,7 @@ module.exports = {
                     if (statusErr) {
                         callback({error: 'connect and db'})
                     } else {
-                        callback({error: 'connect'})
+                        callback({error: 'connect' + ' in connecting to sftp for ' + vendorInfo.api.apiShop})
                     }
                 })
             })
