@@ -18,7 +18,7 @@ const refundFeedHelper = require('../../helpers/refundFeed')
 exports.productChange = async (req, res) => {
     res.status(200).send()
     const vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14)
-    console.log('webhook type: ', req.headers['x-shopify-topic'])
+    console.log('webhook type: ', req.headers['x-shopify-topic'] + ' in ' + vendorName)
     getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
         if (vendorErr) {
             console.log('There are no vendor for this.')
@@ -29,15 +29,6 @@ exports.productChange = async (req, res) => {
                     console.log('There is no connector for this.')
                 } else {
                     res.status(200).send()
-                    /*
-                    productFeedHelper.productFeedInCreate(vendorInfo, connectorInfo, (productFeedErr) => {
-                        if (productFeedErr) {
-                            console.log(productFeedErr)
-                        } else {
-                            console.log('product feed success in vendor: ', vendorName)
-                        }
-                    })
-                    */
                     var webhookData = new Webhook()
                     webhookData.vendorId = vendorInfo._id
                     webhookData.connector = connectorInfo.kwiLocation
@@ -69,7 +60,7 @@ exports.orderFulfill = (req, res) => {
                     }).then(orders => {
                         orders.forEach(orderItem => {
                             if (orderItem.orderId == hookOrderId) {
-                                orderFeedHelper.orderFeedInCreate(vendorInfo, connectorInfo, req.body, orderItem.outgoingOrderNumbers, (orderFeedErr) => {
+                                orderFeedHelper.orderFeedInCreate(vendorInfo, connectorInfo, req.body, orderItem, (orderFeedErr) => {
                                     if (orderFeedErr) {
                                         console.log(orderFeedErr)
                                     } else {

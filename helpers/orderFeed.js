@@ -62,7 +62,7 @@ module.exports = {
                         zip: orderData['bill_postal_code'],
                         province: orderData['bill_state'],
                         country: 'United States',
-                        address2: orderData['bill_street2'],
+                        address2: orderData['bill_street_2'],
                         company: '',
                         latitude: '',
                         longitude: '',
@@ -80,7 +80,7 @@ module.exports = {
                         zip: orderData['ship_postal_code'],
                         province: orderData['ship_state'],
                         country: 'United States',
-                        address2: orderData['ship_street2'],
+                        address2: orderData['ship_street_2'],
                         company: '',
                         latitude: '',
                         longitude: '',
@@ -166,7 +166,7 @@ module.exports = {
         })
     },
 
-    orderFeedInCreate: async (vendorInfo, connectorInfo, fulfilledOrder, outgoingOrderNumbers, callback) => {
+    orderFeedInCreate: async (vendorInfo, connectorInfo, fulfilledOrder, orderRow, callback) => {
         const order = fulfilledOrder
         const orderFileName = 'uploads/shipment-' + vendorInfo.api.apiShop + '.txt'
         const sftp = new Client()
@@ -191,10 +191,10 @@ module.exports = {
         order.line_items.forEach((item, index) => {
             var orderData = {}
             // orderData.order_number = order.order_number
-            orderData.order_number = outgoingOrderNumbers[index]
+            orderData.order_number = orderRow.outgoingOrderNumbers[index]
             orderData.order_date = order.created_at.substr(5, 2) + '/' + order.created_at.substr(8, 2) + '/' + order.created_at.substr(0, 4)
-            orderData.order_payment_method = order.gateway
-            orderData.transaction_id = order.checkout_id
+            orderData.order_payment_method = orderRow.orderPaymentMethod
+            orderData.transaction_id = orderRow.transactionId
             if (order.shipping_lines.length > 0) {
                 orderData.ship_method = order.shipping_lines[0].source
             } else {
@@ -203,7 +203,8 @@ module.exports = {
             orderData.subtotal = order.subtotal_price
             orderData.tax_total = order.total_tax
             orderData.discount_total = order.total_discounts
-            orderData.total_total = parseFloat(order.subtotal_price) + parseFloat(order.total_tax) - parseFloat(order.total_discounts)
+            // orderData.total_total = parseFloat(order.subtotal_price) + parseFloat(order.total_tax) - parseFloat(order.total_discounts)
+            orderData.total_total = order.total_price
 
             orderData.customer_email = ''
             if (order.customer) {
@@ -217,7 +218,7 @@ module.exports = {
                 orderData.ship_street2 = order.shipping_address.address2
                 orderData.ship_postal_code = order.shipping_address.zip
                 orderData.ship_city = order.shipping_address.city
-                orderData.ship_state = order.shipping_address.province
+                orderData.ship_state = orderRow.shipState
                 orderData.ship_country = order.shipping_address.country
                 orderData.ship_phone = order.shipping_address.phone
             }
@@ -229,7 +230,7 @@ module.exports = {
                 orderData.bill_street2 = order.billing_address.address2
                 orderData.bill_postal_code = order.billing_address.zip
                 orderData.bill_city = order.billing_address.city
-                orderData.bill_state = order.billing_address.province
+                orderData.bill_state = orderRow.billState
                 orderData.bill_country = order.billing_address.country
                 orderData.bill_phone = order.billing_address.phone
             }
@@ -276,12 +277,12 @@ module.exports = {
             orderData.item_discount = discounts
             orderData.item_total = (parseFloat(item.price) + taxes - discounts) * item.quantity
 
+            orderData.final_sale = false
             orderData.order_gift_sender = ''
             orderData.order_gift_recepient = ''
             orderData.order_gift_message = ''
 
             orderData.auth_code = order.checkout_token
-            orderData.final_sale = false
             orderData.tracking_number = ''
             if (order.shipping_lines.length > 0) {
                 orderData.ship_carrier = order.shipping_lines[0].source
@@ -331,9 +332,6 @@ module.exports = {
             } else {
                 orderData.delivery_date = 'Not Sure'
             }
-            orderData.order_id = order.id
-            orderData.line_item_id = item.id
-            
             orderDataList.push(orderData)
         })
 

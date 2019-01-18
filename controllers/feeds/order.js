@@ -107,7 +107,7 @@ exports.index = async (req, res, next) => {
                         zip: orderData['bill_postal_code'],
                         province: orderData['bill_state'],
                         country: 'United States',
-                        address2: orderData['bill_street2'],
+                        address2: orderData['bill_street_2'],
                         company: '',
                         latitude: '',
                         longitude: '',
@@ -125,7 +125,7 @@ exports.index = async (req, res, next) => {
                         zip: orderData['ship_postal_code'],
                         province: orderData['ship_state'],
                         country: 'United States',
-                        address2: orderData['ship_street2'],
+                        address2: orderData['ship_street_2'],
                         company: '',
                         latitude: '',
                         longitude: '',
@@ -185,7 +185,11 @@ exports.index = async (req, res, next) => {
                                             orderDataDB.vendorId = vendor._id
                                             orderDataDB.orderId = createNextOrder.id
                                             orderDataDB.outgoingOrderNumbers = outgoingOrderNumbers
-
+                                            orderDataDB.orderPaymentMethod = orderData['order_payment_method']
+                                            orderDataDB.transactionId = orderData['transaction_id']
+                                            orderDataDB.shipState = orderData['ship_state']
+                                            orderDataDB.billState = orderData['bill_state']
+                                            
                                             orderDataDB.save().then(() => {
                                                 console.log('Add order data into DB')
                                             })
