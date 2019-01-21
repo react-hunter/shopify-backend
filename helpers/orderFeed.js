@@ -288,7 +288,7 @@ module.exports = {
                 orderData.ship_carrier = order.shipping_lines[0].source
             }
             orderData.invoice_amount = order.total_price
-            orderData.retailer_order_number = order.number + ' | ' + order.id + ' | ' + item.id
+            orderData.retailer_order_number = order.order_number + ' | ' + order.id + ' | ' + item.id
 
             var fulfillmentId = 0
             if (order.fulfillments.length > 0) {
