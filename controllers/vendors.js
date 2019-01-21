@@ -198,18 +198,24 @@ exports.enableVendor = (req, res, next) => {
                     'address': 'https://content-commerce.herokuapp.com/webhook/productChange',
                     'format': 'json'
                 }
-                var productUpdateWebhook = {
+                const productUpdateWebhook = {
                     'topic': 'products/update',
                     'address': 'https://content-commerce.herokuapp.com/webhook/productChange',
                     'format': 'json'
                 }
-                var productDeleteWebhook = {
+                const productDeleteWebhook = {
                     'topic': 'products/delete',
                     'address': 'https://content-commerce.herokuapp.com/webhook/productChange',
                     'format': 'json'
                 }
-                var orderFulfillWebhook = {
+                const orderFulfillWebhook = {
                     'topic': 'orders/fulfilled',
+                    'address': 'https://content-commerce.herokuapp.com/webhook/fulfill',
+                    'format': 'json'
+                }
+
+                const orderPartialFulfillWebhook = {
+                    'topic': 'orders/partially_fulfilled',
                     'address': 'https://content-commerce.herokuapp.com/webhook/fulfill',
                     'format': 'json'
                 }
@@ -226,6 +232,7 @@ exports.enableVendor = (req, res, next) => {
                     webhookPromises.push(shopify.webhook.create(productUpdateWebhook))
                     webhookPromises.push(shopify.webhook.create(productDeleteWebhook))
                     webhookPromises.push(shopify.webhook.create(orderFulfillWebhook))
+                    webhookPromises.push(shopify.webhook.create(orderPartialFulfillWebhook))
                 }).then(() => {
                     Promise.all(webhookPromises).then(webhookCreateResponse => {
                         console.log('product create webhook response: ', webhookCreateResponse)
