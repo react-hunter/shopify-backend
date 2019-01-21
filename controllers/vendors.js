@@ -291,7 +291,9 @@ exports.disableVendor = (req, res, next) => {
         shopify.webhook.list().then(webhookList => {
             var webhookPromises = []
             webhookList.forEach(webhookItem => {
-                webhookPromises.push(shopify.webhook.delete(webhookItem.id))
+                if (webhookItem.address.indexOf('content-commerce') != -1) {
+                    webhookPromises.push(shopify.webhook.delete(webhookItem.id))
+                }
             })
             Promise.all(webhookPromises).then(webhookDeleteResponse => {
                 vendor.active = 'no'
@@ -342,7 +344,9 @@ exports.deleteVendor = (req, res, next) => {
             shopify.webhook.list().then(webhookList => {
                 var webhookPromises = []
                 webhookList.forEach(webhookItem => {
-                    webhookPromises.push(shopify.webhook.delete(webhookItem.id))
+                    if (webhookItem.address.indexOf('content-commerce') != -1) {
+                        webhookPromises.push(shopify.webhook.delete(webhookItem.id))
+                    }
                 })
                 Promise.all(webhookPromises).then(webhookDeleteResponse => {
                     Vendor.deleteOne({
@@ -416,9 +420,9 @@ exports.synchronizeColors = (req, res, next) => {
             limit: 250
         }).then(products => {
             products.forEach(pro => {
-                pro.options.forEach(opt => {
-                    if (opt.name.toLowerCase() === 'color') {
-                        opt.values.forEach(colorItem => {
+                pro.options.forEach(optionItem => {
+                    if (optionItem.name.toLowerCase() === 'color') {
+                        optionItem.values.forEach(colorItem => {
                             if (proColorList.indexOf(colorItem.toLowerCase()) == -1 && dbColorList.indexOf(colorItem.toLowerCase()) == -1) {
                                 proColorList.push(colorItem.toLowerCase())
                             }
