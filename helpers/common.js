@@ -187,4 +187,22 @@ module.exports = {
         }
     },
 
+    dateStringForName: () => {
+        var currentDate = new Date()
+        var isoDate = currentDate.toLocaleString("en-US", {
+            hour12: false
+        }).split(', ')
+        var month = isoDate[0].split('/')[0]
+        var day = isoDate[0].split('/')[1]
+        var year = isoDate[0].split('/')[2]
+        if (month < 10) {
+            month = '0' + month
+        }
+        if (day < 10) {
+            day = '0' + day
+        }
+        
+        return year + month + day + isoDate[1].replace(/\:/g, '')
+    },
+
 }

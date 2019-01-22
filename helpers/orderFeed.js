@@ -371,22 +371,7 @@ module.exports = {
                     console.log('Writing File Error: ', err)
                     callback({error: 'file'})
                 } else {
-                    var currentDate = new Date()
-                    var isoDate = currentDate.toLocaleString("en-US", {
-                        hour12: false
-                    }).split(', ')
-                    var month = isoDate[0].split('/')[0]
-                    var day = isoDate[0].split('/')[1]
-                    var year = isoDate[0].split('/')[2]
-                    if (month < 10) {
-                        month = '0' + month
-                    }
-                    if (day < 10) {
-                        day = '0' + day
-                    }
-                    
-                    var newDateString = year + month + day + isoDate[1].replace(/\:/g, '')
-                    var remotePath = '/incoming/orders/orderext_' + newDateString
+                    var remotePath = '/incoming/orders/orderext_' + commonHelper.dateStringForName()
                     sftp.put(orderFileName, remotePath).then(response => {
                         commonHelper.addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
                             if (statusErr) {
