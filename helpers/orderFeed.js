@@ -258,11 +258,8 @@ module.exports = {
                 orderData.item_price = item.price
                 orderData.item_qty_ordered = item.quantity
                 orderData.item_qty_shipped = item.quantity - item.fulfillable_quantity
-                if (item.fulfillment_status == null) {
-                    orderData.item_qty_cancelled = 0
-                } else {
-                    orderData.item_qty_cancelled = item.fulfillable_quantity
-                }
+                orderData.item_qty_cancelled = item.fulfillable_quantity
+                
                 var taxes = 0.0
                 if (item.tax_lines.length > 0) {
                     item.tax_lines.forEach((tax) => {

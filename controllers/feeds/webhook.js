@@ -142,7 +142,7 @@ exports.productTimer = () => {
                         if (connectorErr) {
                             console.log('There is no connector for this.')
                         } else {
-                            // Execute productFeedIn a time and delete all rows for this vendor && connector
+                            // Execute productFeedIn a time and delete all rows related with this vendor && connector
                             productFeedHelper.productFeedInCreate(vendorItem, connectorInfo, (productFeedErr) => {
                                 if (productFeedErr) {
                                     console.log(productFeedErr)
@@ -161,8 +161,6 @@ exports.productTimer = () => {
             })
         })
     })
-    // Search product webhooks per vendor
-    // Execute product webhook and delete request rows and add this to history.
 }
 
 // get information of vendor and connector by using vendorName
