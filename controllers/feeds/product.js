@@ -12,6 +12,7 @@ const Connector = require('../../models/Connector')
 const Color = require('../../models/Color')
 const History = require('../../models/History')
 const Status = require('../../models/Status')
+const commonHelper = require('../../helpers/common')
 
 var colorList = []
 
@@ -116,7 +117,7 @@ exports.index = async (req, res, next) => {
     var BreakException = {}
 
     // Initialize product feed file with empty
-    deleteAndInitialize(productFileName)
+    commonHelper.deleteAndInitialize(productFileName)
 
     // Check user's active/inactive status.
     if (req.user.active !== 'yes') {
@@ -225,7 +226,7 @@ exports.index = async (req, res, next) => {
                             }
                             if (option.name.toLowerCase() == 'color') {
                                 var color = variant['option' + keyIndex]
-                                ColorName = jsUcfirst(color)
+                                ColorName = commonHelper.jsUcfirst(color)
                                 if (isFirstVariant) {
                                     firstVariantColor = color
                                     firstVariantSku = variant.sku
@@ -244,8 +245,8 @@ exports.index = async (req, res, next) => {
                         firstVariantId = variant.id
                         isFirstVariant = false
                     }
-                    var shortColorName = getShortenColorName(ColorName)
-                    var shortFirstColorName = getShortenColorName(firstVariantColor)
+                    var shortColorName = commonHelper.getShortenColorName(ColorName)
+                    var shortFirstColorName = commonHelper.getShortenColorName(firstVariantColor)
                     if (ProductCodeOption == '') {
                         productData.ProductCode = shortColorName==''?variant.product_id.toString() : variant.product_id.toString() + '_' + shortColorName
                         productData.ParentCode = shortFirstColorName==''?variant.product_id.toString() : variant.product_id.toString() + '_' + shortFirstColorName
@@ -388,7 +389,7 @@ exports.index = async (req, res, next) => {
                         productData.ZoomImage1 = ''
                         productData.ProductVideo = ProductVideo
                         if (variant.sku != '') {
-                            // productData.SKU = variant.sku + getShortenColorName(ColorName) + Size
+                            // productData.SKU = variant.sku + commonHelper.getShortenColorName(ColorName) + Size
                             productData.SKU = variant.id
                         } else {
                             // productData.SKU = productData.ProductCode
@@ -482,7 +483,7 @@ exports.index = async (req, res, next) => {
                         productData.ZoomImage1 = ''
                         productData.ProductVideo = ''
                         if (variant.sku != '') {
-                            // productData.SKU = variant.sku + getShortenColorName(ColorName) + Size
+                            // productData.SKU = variant.sku + commonHelper.getShortenColorName(ColorName) + Size
                             productData.SKU = variant.id
                         } else {
                             // productData.SKU = productData.ProductCode
@@ -520,7 +521,7 @@ exports.index = async (req, res, next) => {
 
                     // productData.ColorSwatchImage = ""
                     if (variant.image_id) {
-                        var variant_image = getVariantImage(product.images, variant.image_id)
+                        var variant_image = commonHelper.getVariantImage(product.images, variant.image_id)
                         var splittedByDot = variant_image.split('.')
                         var lastBlock = '.' + splittedByDot[splittedByDot.length - 1]
                         var splittedByExtend = variant_image.split(lastBlock)
@@ -561,7 +562,7 @@ exports.index = async (req, res, next) => {
                     } else {
                         sftp.put(productFileName, '/incoming/products/products01.txt')
                         .then(response => {
-                            addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
+                            commonHelper.addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
                                 if (statusErr) {
                                     return next(statusErr)
                                 } else {
@@ -576,7 +577,7 @@ exports.index = async (req, res, next) => {
                             sftp.end()
                         })
                         .catch(error => {
-                            addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
+                            commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                                 if (statusErr) {
                                     return next(statusErr)
                                 } else {
@@ -592,7 +593,7 @@ exports.index = async (req, res, next) => {
 
             })
             .catch(error => {
-                addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
+                commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                     if (statusErr) {
                         return next(statusErr)
                     } else {
@@ -605,7 +606,7 @@ exports.index = async (req, res, next) => {
             })
         })
         .catch(err => {
-            addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
+            commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                 if (statusErr) {
                     return next(statusErr)
                 } else {
@@ -618,167 +619,3 @@ exports.index = async (req, res, next) => {
         })
     }
 }
-
-const getVariantImage = function (images, image_id) {
-    var image_url = ''
-    images.forEach(image => {
-        if (image.id == image_id) {
-            image_url = image.src
-        }
-    })
-
-    return image_url
-}
-
-const jsUcfirst = function (string) {
-    return string.charAt(0).toUpperCase() + string.slice(1)
-}
-const getShortenColorName = function (str) {
-    var returnColor = ''
-    colorList.forEach(colorItem => {
-        if (colorItem.colorName == str.toLowerCase()) {
-            returnColor = colorItem.shortName
-        }
-    })
-    return returnColor
-}
-const deleteAndInitialize = function (filePath) {
-    if (fs.existsSync(filePath)) {
-        fs.unlink(filePath, (err) => {
-            if (err) throw err
-            console.log('product file has been deleted')
-            fs.writeFile(filePath, '', function (initErr) {
-                if (initErr) {
-                    console.log(initErr)
-                }
-                console.log('Made product file and initialized with empty')
-            })
-        })
-    }
-}
-
-const addStatus = (vendor, connector, statusFlag, callback) => {
-    Status.find({
-        vendorId: vendor._id,
-        connectorId: connector._id
-    }, (err, statuses) => {
-        if (err) {
-            callback(err)
-        } else {
-            if (statuses.length == 0) {
-                var status = new Status()
-                status.vendorId = vendor._id
-                status.vendorName = vendor.api.apiShop
-                status.connectorId = connector._id
-                status.connectorType = connector.kwiLocation
-                status.success = 0
-                status.pending = 0
-                status.error = 0
-                switch (statusFlag) {
-                    case 0:
-                        status.error = 1
-                        break
-                    case 1:
-                        status.pending = 1
-                        break
-                    default:
-                        status.success = 1
-                }
-                status.save().then(() => {
-                    addHistory(vendor, connector, statusFlag, (historyErr) => {
-                        if (historyErr) {
-                            callback(historyErr)
-                        } else {
-                            callback(null)
-                        }
-                    })
-                })
-            } else {
-                var status = statuses[0]
-                let statusQuery = ''
-                switch (statusFlag) {
-                    case 0:
-                        statusQuery = {error: 1}
-                        break
-                    case 1:
-                        statusQuery = {pending: 1}
-                        break
-                    default:
-                        statusQuery = {success: 1}
-                }
-                status.updateOne({ $inc: statusQuery},() => {
-                    addHistory(vendor, connector, statusFlag, (historyErr) => {
-                        if (historyErr) {
-                            callback(historyErr)
-                        } else {
-                            callback(null)
-                        }
-                    })
-                })
-            }
-        }
-    })
-}
-
-const addHistory = (vendor, connector, flag, callback) => {
-    var history = new History()
-    history.vendorId = vendor._id
-    history.vendorName = vendor.api.apiShop
-    history.connectorId = connector._id
-    history.connectorType = connector.kwiLocation
-    history.status = flag
-
-    history.save().then(() => {
-        callback(null)
-    }).catch(err => {
-        callback(err)
-    })
-}
-
-/*
-const writeProductFile = function (data, isFirst, callback) {
-    if (isFirst == 1) {
-        fs.appendFile("uploads/product-original-hedge.txt", data, function (err) {
-            if (err) {
-                callback(err)
-            }
-        });
-        callback(null, 'success')
-    } else {
-        fs.appendFile("uploads/product-original.txt", ', ' + data, function (err) {
-            if (err) {
-                callback(err)
-            }
-        });
-        callback(null, 'success')
-    }
-}
-const daysBetween = function (publishDate) {
-    var one_day = 1000 * 60 * 60 * 24
-    var publishDateTime = new Date(publishDate)
-    var date_ms1 = publishDateTime.getTime()
-    var currentDateTime = new Date()
-    var date_ms2 = currentDateTime.getTime()
-
-    var difference_ms = date_ms2 - date_ms1
-
-    return Math.round(difference_ms / one_day)
-}
-const downloadImage = function (uri, filename, callback) {
-    request.head(uri, function (err, res, body) {
-        request(uri).pipe(fs.createWriteStream(filename)).on('close', callback)
-    })
-}
-const deleteImageList = function (fileList, callback) {
-    if (fileList.length > 0) {
-        fileList.forEach(file => {
-            if (fs.existsSync(file[1])) {
-                fs.unlink(file[1], (err) => {
-                    if (err) throw err
-                })
-            }
-        })
-    }
-    callback(null)
-}
-*/

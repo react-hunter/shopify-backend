@@ -6,9 +6,14 @@ const TSV = require('tsv')
 
 const Vendor = require('../../models/Vendor')
 const Connector = require('../../models/Connector')
-const History = require('../../models/History')
-const Status = require('../../models/Status')
 
+const callback = (err, res) => {
+    if (err) {
+        console.log('Error: ', err)
+    } else {
+        console.log('success: ', res)
+    }
+}
 /**
  * GET /
  * Refund page.
@@ -117,104 +122,47 @@ exports.index = async (req, res, next) => {
                         console.log('refund data: ', refundPost)
                     }).catch(calculateError => {
                         console.log('Error in calculating refund: ', calculateError)
+                        commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
+                            if (statusErr) {
+                                req.flash('errors', {
+                                    msg: 'calculate and db'
+                                })
+                            } else {
+                                req.flash('errors', {
+                                    msg: 'Calculating refund: ' + calculateError
+                                })
+                            }
+                            res.redirect('/')
+                        })
                     })
-                }).then(sftpError => {
-                    console.log('Error in getting refund data from sftp: ', sftpError)
+                }).catch(sftpError => {
+                    commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
+                        if (statusErr) {
+                            req.flash('errors', {
+                                msg: 'connect and db'
+                            })
+                        } else {
+                            req.flash('errors', {
+                                msg: 'Getting file - /incoming/returns/' + fileName
+                            })
+                        }
+                        res.redirect('/')
+                    })
                 })
             })
-        })
-    })
-}
-
-const deleteAndInitialize = function (filePath) {
-    if (fs.existsSync(filePath)) {
-        fs.unlink(filePath, (err) => {
-            if (err) throw err
-            console.log(filePath + ' file has been deleted')
-            fs.writeFile(filePath, '', function (initErr) {
-                if (initErr) {
-                    console.log(initErr)
+        }).catch(sftpError => {
+            commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
+                if (statusErr) {
+                    req.flash('errors', {
+                        msg: 'connect and db'
+                    })
+                } else {
+                    req.flash('errors', {
+                        msg: 'connect in connecting to sftp for ' + vendorInfo.api.apiShop
+                    })
                 }
-                console.log('Made return file and initialized with empty')
+                res.redirect('/')
             })
         })
-    }
-}
-
-const addStatus = (vendor, connector, statusFlag, callback) => {
-    Status.find({
-        vendorId: vendor._id,
-        connectorId: connector._id
-    }, (err, statuses) => {
-        if (err) {
-            callback(err)
-        } else {
-            if (statuses.length == 0) {
-                var status = new Status()
-                status.vendorId = vendor._id
-                status.vendorName = vendor.api.apiShop
-                status.connectorId = connector._id
-                status.connectorType = connector.kwiLocation
-                status.success = 0
-                status.pending = 0
-                status.error = 0
-                switch (statusFlag) {
-                    case 0:
-                        status.error = 1
-                        break
-                    case 1:
-                        status.pending = 1
-                        break
-                    default:
-                        status.success = 1
-                }
-                status.save().then(() => {
-                    addHistory(vendor, connector, statusFlag, (historyErr) => {
-                        if (historyErr) {
-                            callback(historyErr)
-                        } else {
-                            callback(null)
-                        }
-                    })
-                })
-            } else {
-                var status = statuses[0]
-                let statusQuery = ''
-                switch (statusFlag) {
-                    case 0:
-                        statusQuery = {error: 1}
-                        break
-                    case 1:
-                        statusQuery = {pending: 1}
-                        break
-                    default:
-                        statusQuery = {success: 1}
-                }
-                status.updateOne({ $inc: statusQuery},() => {
-                    addHistory(vendor, connector, statusFlag, (historyErr) => {
-                        if (historyErr) {
-                            callback(historyErr)
-                        } else {
-                            callback(null)
-                        }
-                    })
-                })
-            }
-        }
-    })
-}
-
-const addHistory = (vendor, connector, flag, callback) => {
-    var history = new History()
-    history.vendorId = vendor._id
-    history.vendorName = vendor.api.apiShop
-    history.connectorId = connector._id
-    history.connectorType = connector.kwiLocation
-    history.status = flag
-
-    history.save().then(() => {
-        callback(null)
-    }).catch(err => {
-        callback(err)
     })
 }

@@ -347,12 +347,12 @@ module.exports = {
                                     orderData.delivery_date = event.delivery_date
                             })
                         } else {
-                            orderData.delivery_date = 'Not Sure'
+                            orderData.delivery_date = ''
                         }
                     })
                     .catch(err => console.log('fulfillmentEvent error: ', err))
                 } else {
-                    orderData.delivery_date = 'Not Sure'
+                    orderData.delivery_date = ''
                 }
                 orderDataList.push(orderData)
             }

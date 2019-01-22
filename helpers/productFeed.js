@@ -478,7 +478,4 @@ module.exports = {
         })
     },
     
-    bar: () => {
-        console.log('arrive bar')
-    }
 }
