@@ -167,7 +167,6 @@ module.exports = {
     },
 
     orderFeedInCreate: async (vendorInfo, connectorInfo, fulfilledOrder, orderRow, callback) => {
-        console.log('fulfillment return value: ', fulfilledOrder)
         const order = fulfilledOrder
         const orderFileName = 'uploads/shipment-' + vendorInfo.api.apiShop + '.txt'
         const sftp = new Client()
@@ -189,6 +188,18 @@ module.exports = {
 
         await delay(2000)
 
+        // Calculate subTotal, totalTotal, totalDiscount
+        var subTotal = 0; totalTotal = 0; totalDiscount = 0;
+        totalDiscount = order.total_price - order.subtotal_price
+
+        order.line_items.forEach((item, index) => {
+            if (item.fulfillment_status == 'fulfilled' || item.fulfillment_status == 'partial') {
+                subTotal += (parseFloat(item.price) + taxes - discounts) * ( item.quantity - item.fulfillable_quantity )
+            }
+        })
+        totalTotal = subTotal - totalDiscount
+
+        // Make feed file
         order.line_items.forEach((item, index) => {
             if (item.fulfillment_status == 'fulfilled' || item.fulfillment_status == 'partial') {
                 var orderData = {}
@@ -202,11 +213,11 @@ module.exports = {
                 } else {
                     orderData.ship_method = ''
                 }
-                orderData.subtotal = order.subtotal_price
+                orderData.subtotal = subTotal
                 orderData.tax_total = order.total_tax
                 orderData.discount_total = order.total_discounts
                 // orderData.total_total = parseFloat(order.subtotal_price) + parseFloat(order.total_tax) - parseFloat(order.total_discounts)
-                orderData.total_total = order.total_price
+                orderData.total_total = totalTotal
 
                 orderData.customer_email = ''
                 if (order.customer) {
@@ -274,7 +285,7 @@ module.exports = {
                     })
                 }
                 orderData.item_discount = discounts
-                orderData.item_total = (parseFloat(item.price) + taxes - discounts) * item.quantity
+                orderData.item_total = (parseFloat(item.price) + taxes - discounts) * orderData.item_qty_shipped
 
                 orderData.final_sale = false
                 orderData.order_gift_sender = ''
