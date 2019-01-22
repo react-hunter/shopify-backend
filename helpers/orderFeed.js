@@ -374,8 +374,19 @@ module.exports = {
                     var currentDate = new Date()
                     var isoDate = currentDate.toLocaleString("en-US", {
                         hour12: false
-                    }).split('.')
-                    var remotePath = '/incoming/orders/order' + isoDate[0].replace(' ', '').replace(/\-/g, '').replace(/\//g, '').replace(',', '').replace(/\:/g, '') + '.txt'
+                    }).split(', ')
+                    var month = isoDate[0].split('/')[0]
+                    var day = isoDate[0].split('/')[1]
+                    var year = isoDate[0].split('/')[2]
+                    if (month < 10) {
+                        month = '0' + month
+                    }
+                    if (day < 10) {
+                        day = '0' + day
+                    }
+                    
+                    var newDateString = year + month + day + isoDate[1].replace(/\:/g, '')
+                    var remotePath = '/incoming/orders/orderext_' + newDateString
                     sftp.put(orderFileName, remotePath).then(response => {
                         commonHelper.addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
                             if (statusErr) {

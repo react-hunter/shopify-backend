@@ -7,28 +7,45 @@ const fs = require('fs')
  */
 exports.index = (req, res) => {
     
-    var sftp = new Client()
-    sftp.connect({
-        host: process.env.SFTP_HOST,
-        port: process.env.SFTP_PORT,
-        username: process.env.SFTP_USERNAME,
-        password: process.env.SFTP_PASSWORD
-    })
-    .then( () => {
-        var stream;
-        download('https://cdn.shopify.com/s/files/1/0058/8706/6223/products/Ultraboost_Shoes_Black_CM8110_01_standard_360x.jpg', 'google.jpg', () => {
-            sftp.put('google.jpg', '/productimages/product1.jpg')
-            .then(response => {
-                console.log('image uploaded')
-            })
-            .catch( error => {
-                console.log('upload error: ', error)
-            })
-        })
-    })
-    .catch( error => {
-        console.log('connect error: ', error)
-    })
+    // var sftp = new Client()
+    // sftp.connect({
+    //     host: process.env.SFTP_HOST,
+    //     port: process.env.SFTP_PORT,
+    //     username: process.env.SFTP_USERNAME,
+    //     password: process.env.SFTP_PASSWORD
+    // })
+    // .then( () => {
+    //     var stream;
+    //     download('https://cdn.shopify.com/s/files/1/0058/8706/6223/products/Ultraboost_Shoes_Black_CM8110_01_standard_360x.jpg', 'google.jpg', () => {
+    //         sftp.put('google.jpg', '/productimages/product1.jpg')
+    //         .then(response => {
+    //             console.log('image uploaded')
+    //         })
+    //         .catch( error => {
+    //             console.log('upload error: ', error)
+    //         })
+    //     })
+    // })
+    // .catch( error => {
+    //     console.log('connect error: ', error)
+    // })
+
+    var currentDate = new Date()
+    var isoDate = currentDate.toLocaleString("en-US", {
+        hour12: false
+    }).split(', ')
+    var month = isoDate[0].split('/')[0]
+    var day = isoDate[0].split('/')[1]
+    var year = isoDate[0].split('/')[2]
+    if (month < 10) {
+        month = '0' + month
+    }
+    if (day < 10) {
+        day = '0' + day
+    }
+    
+    var newDateString = year + month + day + isoDate[1].replace(/\:/g, '')
+    console.log('result: ', newDateString)
 }
 
 exports.uploadImages = (req, res) => {
