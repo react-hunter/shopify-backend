@@ -189,27 +189,27 @@ module.exports = {
         await delay(2000)
 
         // Calculate subTotal, totalTotal, totalDiscount
-        var subTotal = 0; totalTotal = 0; totalDiscount = 0;
-        totalDiscount = order.total_price - order.subtotal_price
+        var subTotal = 0; totalTotal = 0; totalTax = 0;
+        totalTax = order.total_price - order.subtotal_price
 
         order.line_items.forEach((item, index) => {
-            var taxes = 0.0
-            if (item.tax_lines.length > 0) {
-                item.tax_lines.forEach((tax) => {
-                    taxes += parseFloat(tax.price)
-                })
-            }
-            var discounts = 0.0
-            if (item.discount_allocations.length > 0) {
-                item.discount_allocations.forEach((dis) => {
-                    discounts += parseFloat(dis.amount)
-                })
-            }
             if (item.fulfillment_status == 'fulfilled' || item.fulfillment_status == 'partial') {
+                var taxes = 0.0
+                if (item.tax_lines.length > 0) {
+                    item.tax_lines.forEach((tax) => {
+                        taxes += parseFloat(tax.price)
+                    })
+                }
+                var discounts = 0.0
+                if (item.discount_allocations.length > 0) {
+                    item.discount_allocations.forEach((dis) => {
+                        discounts += parseFloat(dis.amount)
+                    })
+                }
                 subTotal += (parseFloat(item.price) + taxes - discounts) * ( item.quantity - item.fulfillable_quantity )
             }
         })
-        totalTotal = subTotal - totalDiscount
+        totalTotal = subTotal + totalTax
 
         // Make feed file
         order.line_items.forEach((item, index) => {
@@ -309,7 +309,7 @@ module.exports = {
                 if (order.shipping_lines.length > 0) {
                     orderData.ship_carrier = order.shipping_lines[0].source
                 }
-                orderData.invoice_amount = order.total_price
+                orderData.invoice_amount = totalTotal
                 orderData.retailer_order_number = order.order_number + ' | ' + order.id + ' | ' + item.id
 
                 var fulfillmentId = 0
