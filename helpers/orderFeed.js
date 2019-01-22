@@ -371,7 +371,7 @@ module.exports = {
                     console.log('Writing File Error: ', err)
                     callback({error: 'file'})
                 } else {
-                    var remotePath = '/incoming/orders/orderext_' + commonHelper.dateStringForName()
+                    var remotePath = '/incoming/orders/orderext_' + commonHelper.dateStringForName() + '.txt'
                     sftp.put(orderFileName, remotePath).then(response => {
                         commonHelper.addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
                             if (statusErr) {

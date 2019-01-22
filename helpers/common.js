@@ -3,10 +3,6 @@ const Status = require('../models/Status')
 const fs = require('fs')
 
 module.exports = {
-    test: () => {
-        console.log('arrive test')
-    },
-
     getVariantImage: (images, imageId) => {
         var imageUrl = ''
         images.forEach(image => {
