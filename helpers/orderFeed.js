@@ -190,7 +190,7 @@ module.exports = {
         await delay(2000)
 
         order.line_items.forEach((item, index) => {
-            if (item.fulfillment_status !== null) {
+            if (item.fulfillment_status == 'fulfilled' || item.fulfillment_status == 'partial') {
                 var orderData = {}
                 // orderData.order_number = order.order_number
                 orderData.order_number = orderRow.outgoingOrderNumbers[index]
