@@ -193,6 +193,18 @@ module.exports = {
         totalDiscount = order.total_price - order.subtotal_price
 
         order.line_items.forEach((item, index) => {
+            var taxes = 0.0
+            if (item.tax_lines.length > 0) {
+                item.tax_lines.forEach((tax) => {
+                    taxes += parseFloat(tax.price)
+                })
+            }
+            var discounts = 0.0
+            if (item.discount_allocations.length > 0) {
+                item.discount_allocations.forEach((dis) => {
+                    discounts += parseFloat(dis.amount)
+                })
+            }
             if (item.fulfillment_status == 'fulfilled' || item.fulfillment_status == 'partial') {
                 subTotal += (parseFloat(item.price) + taxes - discounts) * ( item.quantity - item.fulfillable_quantity )
             }
