@@ -313,29 +313,26 @@ module.exports = {
                 orderData.retailer_order_number = order.order_number + ' | ' + order.id + ' | ' + item.id
 
                 var fulfillmentId = 0
-                if (order.fulfillments.length > 0) {
-                    order.fulfillments.forEach((fulfillment) => {
-                        if (fulfillment.status == 'success') {
-                            fulfillmentId = parseInt(fulfillment.id)
-                            let fulfillmentCreateDate = new Date(fulfillment.created_at)
-                            orderData.ship_date = (fulfillmentCreateDate.getMonth() + 1) + '/' + fulfillmentCreateDate.getDate() + '/' + fulfillmentCreateDate.getFullYear()
-                            if (fulfillment.line_items.length > 0) {
-                                try {
-                                    fulfillment.line_items.forEach(fulfillmentItem => {
-                                        if (fulfillmentItem.id == item.id) {
-                                            orderData.tracking_number = fulfillment.tracking_number
-                                            throw BreakException
-                                        }
-                                    })
-                                } catch (e) {
-                                    if (e !== BreakException) throw e
-                                }
+                order.fulfillments.forEach((fulfillment) => {
+                    if (fulfillment.status == 'success') {
+                        fulfillmentId = parseInt(fulfillment.id)
+                        let fulfillmentCreateDate = new Date(fulfillment.created_at)
+                        orderData.ship_date = (fulfillmentCreateDate.getMonth() + 1) + '/' + fulfillmentCreateDate.getDate() + '/' + fulfillmentCreateDate.getFullYear()
+                        if (fulfillment.line_items.length > 0) {
+                            try {
+                                fulfillment.line_items.forEach(fulfillmentItem => {
+                                    if (fulfillmentItem.id == item.id) {
+                                        orderData.tracking_number = fulfillment.tracking_number
+                                        throw BreakException
+                                    }
+                                })
+                            } catch (e) {
+                                if (e !== BreakException) throw e
                             }
                         }
-                    })
-                } else {
-                    orderData.ship_date = 'No Ship yet'
-                }
+                    }
+                })
+                
                 if (fulfillmentId > 0) {
                     shopify.fulfillmentEvent.list(order.id, fulfillmentId)
                     .then((events) => {

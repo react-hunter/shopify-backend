@@ -89,7 +89,7 @@ exports.index = async (req, res, next) => {
                     var orderData = dataFromSFTP[1]
                     
                     dataFromSFTP.forEach(dataFromSFTPRow => {
-                        if (dataFromSFTPRow.order_number != '') {
+                        if (dataFromSFTPRow.order_number != '' && dataFromSFTPRow['item_sku'].toLowerCase() != 'shipping') {
                             orderPost.order.line_items.push({
                                 variant_id: dataFromSFTPRow['item_sku'],
                                 quantity: dataFromSFTPRow['item_qty_ordered']
