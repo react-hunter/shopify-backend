@@ -7,6 +7,8 @@ const TSV = require('tsv')
 const Vendor = require('../../models/Vendor')
 const Connector = require('../../models/Connector')
 
+const commonHelper = require('../../helpers/common')
+
 const callback = (err, res) => {
     if (err) {
         console.log('Error: ', err)
@@ -82,7 +84,7 @@ exports.index = async (req, res, next) => {
                     var refundPost = {}, refundCalculate = {}
                     refundPost.refund_line_items = [], refundCalculate.refund_line_items = []
                     var dataFromSFTP = TSV.parse(fileData._readableState.buffer.head.data)
-                    var refundData = dataFromSFTPRow[1]
+                    var refundData = dataFromSFTP[1], orderNumber = refundData['retailer_order_number'].split(' | ')[1]
 
                     // Calculate refund
                     refundCalculate.currency = 'USD'
@@ -92,13 +94,14 @@ exports.index = async (req, res, next) => {
                     dataFromSFTP.forEach(dataFromSFTPRow => {
                         if (dataFromSFTPRow.original_order_number != '') {
                             refundCalculate.refund_line_items.push({
-                                // line_item_id: dataFromSFTPRow['line_item_id'],
+                                line_item_id: dataFromSFTPRow['retailer_order_number'].split(' | ')[2],
                                 quantity: dataFromSFTPRow['qty_requested'],
                                 restock_type: 'return'
                             })
                         }
                     })
-                    shopify.refund.calculate(refundData['original_order_number'], refundCalculate).then(calculateResponse => {
+                    shopify.refund.calculate(orderNumber, refundCalculate).then(calculateResponse => {
+                        console.log('calculate refund response: ', calculateResponse)
                         // Create refund
                         refundPost.currency = 'USD'
                         refundPost.notify = true
@@ -106,20 +109,21 @@ exports.index = async (req, res, next) => {
                             full_refund: true
                         }
     
-                        dataFromSFTP.forEach((dataFromSFTPRow, index) => {
-                            if (dataFromSFTPRow.original_order_number != '') {
-                                refundPost.refund_line_items.push({
-                                    // line_item_id: dataFromSFTPRow['line_item_id'],
-                                    restock_type: 'return',
-                                    // location_id: dataFromSFTPRow['refund_line_items'][index]['location_id'],
-                                    quantity: dataFromSFTPRow['qty_requested']
-                                })
-                            }
+                        calculateResponse.refund_line_items.forEach(calRow => {
+                            refundPost.refund_line_items.push({
+                                line_item_id: calRow['line_item_id'],
+                                restock_type: 'return',
+                                location_id: calRow['location_id'],
+                                quantity: calRow['quantity']
+                            })
                         })
 
                         refundPost.transactions = calculateResponse.transactions
+
+                        shopify.refund.create(orderNumber, refundPost).then(createResponse => {
+                            console.log('create response: ', createResponse)
+                        })
                         
-                        console.log('refund data: ', refundPost)
                     }).catch(calculateError => {
                         console.log('Error in calculating refund: ', calculateError)
                         commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {

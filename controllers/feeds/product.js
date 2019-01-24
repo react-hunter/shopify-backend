@@ -14,7 +14,6 @@ const History = require('../../models/History')
 const Status = require('../../models/Status')
 const commonHelper = require('../../helpers/common')
 
-var colorList = []
 
 /**
  * GET /
@@ -28,14 +27,6 @@ exports.index = async (req, res, next) => {
     var shopify = null
     var metaList
     var errorExist = false
-    // Get color list from db
-    Color.findOne({}, (colorError, color) => {
-        if (colorError) {
-            return next(colorError)
-        } else {
-            colorList = color.colorList
-        }
-    })
     
     Vendor.findOne({
         _id: req.user.vendorId
@@ -254,11 +245,9 @@ exports.index = async (req, res, next) => {
                         productData.ProductCode = shortColorName==''?variant[ProductCodeOption] : variant[ProductCodeOption] + '_' + shortColorName
                         productData.ParentCode = shortFirstColorName==''?variant[ProductCodeOption] : variant[ProductCodeOption] + '_' + shortFirstColorName
                     }
-
                     var ProductDescription2 = ''
                     var ProductOverview = ''
                     var ProductType = 'Apparel'
-
                     try {
                         ProductTypeList.forEach(ProductTypeItem => {
                             if (ProductTypeItem.toLowerCase() == product.product_type.toLowerCase()) {
@@ -269,7 +258,6 @@ exports.index = async (req, res, next) => {
                     } catch (e) {
                         if (e !== BreakException) throw e
                     }
-
                     // Regenerate the `Category` field by `ProductType`
                     try {
                         taxonomyKeys.forEach(taxoKey => {
@@ -284,7 +272,6 @@ exports.index = async (req, res, next) => {
                     } catch (e) {
                         if (e !== BreakException) throw e
                     }
-
                     var ProductVideo = ''
                     var MaterialContent = ''
                     var VendorModelNumber = ''
@@ -416,7 +403,6 @@ exports.index = async (req, res, next) => {
                         } catch (e) {
                             if (e !== BreakException) throw e
                         }
-                        
                         if (!productData.TaxCode) {
                             productData.TaxCode = ''
                         }
@@ -510,7 +496,6 @@ exports.index = async (req, res, next) => {
                         } catch (e) {
                             if (e !== BreakException) throw e
                         }
-                        
                         if (!productData.TaxCode) {
                             productData.TaxCode = ''
                         }
@@ -534,7 +519,6 @@ exports.index = async (req, res, next) => {
                             productView.img1 = splittedByExtend[0] + '_1024x' + extendOfFile
                         }
                     }
-
                     productData.ZoomImage1 = productView.img1
                     productData.FreeShip = true
                     productData.Action = 'Activate'

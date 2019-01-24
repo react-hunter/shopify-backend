@@ -7,7 +7,6 @@ const ProductTypeList = require('../config/constants').ProductTypeList
 const TaxonomyList = require('../config/constants').TaxonomyList
 const delay = require('delay')
 const TSV = require('tsv')
-const Color = require('../models/Color')
 
 module.exports = {
     productFeedInCreate: async (vendorInfo, connectorInfo, callback) => {
@@ -30,14 +29,6 @@ module.exports = {
                 calls: 2,
                 interval: 1000,
                 bucketSize: 35
-            }
-        })
-        // Get color list from db
-        Color.findOne({}, (colorError, color) => {
-            if (colorError) {
-                return next(colorError)
-            } else {
-                colorList = color.colorList
             }
         })
         

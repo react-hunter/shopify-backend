@@ -1,7 +1,16 @@
 const History = require('../models/History')
 const Status = require('../models/Status')
 const fs = require('fs')
+const Color = require('../models/Color')
 
+var colorList = []
+Color.findOne({}, (colorError, color) => {
+    if (colorError) {
+        return next(colorError)
+    } else {
+        colorList = color.colorList
+    }
+})
 module.exports = {
     getVariantImage: (images, imageId) => {
         var imageUrl = ''
@@ -24,7 +33,7 @@ module.exports = {
             if (colorItem.colorName == str.toLowerCase()) {
                 returnColor = colorItem.shortName
             }
-        });
+        })
         return returnColor
     },
     

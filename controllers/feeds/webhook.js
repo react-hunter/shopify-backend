@@ -18,7 +18,7 @@ const refundFeedHelper = require('../../helpers/refundFeed')
 exports.productChange = async (req, res) => {
     res.status(200).send()
     const vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14)
-    console.log('webhook type: ', req.headers['x-shopify-topic'] + ' in ' + vendorName)
+    
     getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
         if (vendorErr) {
             console.log('There are no vendor for this.')
@@ -34,7 +34,15 @@ exports.productChange = async (req, res) => {
                     webhookData.connector = connectorInfo.kwiLocation
                     webhookData.requestId = req.headers['x-shopify-product-id']
                     
-                    webhookData.save()
+                    Webhook.find({
+                        vendorId: vendorInfo._id,
+                        connector: connectorInfo.kwiLocation
+                    }).then(webhookList => {
+                        if (!webhookList) {
+                            console.log('webhook type: ', req.headers['x-shopify-topic'] + ' in ' + vendorName)
+                            webhookData.save()
+                        }
+                    })
                 }
             })
         }

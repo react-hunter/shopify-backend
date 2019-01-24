@@ -133,7 +133,7 @@ module.exports = {
                     var refundPost = {}, refundCalculate = {}
                     refundPost.refund_line_items = [], refundCalculate.refund_line_items = []
                     var dataFromSFTP = TSV.parse(fileData._readableState.buffer.head.data)
-                    var refundData = dataFromSFTPRow[1]
+                    var refundData = dataFromSFTP[1], orderNumber = refundData['retailer_order_number'].split(' | ')[1]
 
                     // Calculate refund
                     refundCalculate.currency = 'USD'
@@ -143,13 +143,14 @@ module.exports = {
                     dataFromSFTP.forEach(dataFromSFTPRow => {
                         if (dataFromSFTPRow.original_order_number != '') {
                             refundCalculate.refund_line_items.push({
-                                // line_item_id: dataFromSFTPRow['line_item_id'],
+                                line_item_id: dataFromSFTPRow['retailer_order_number'].split(' | ')[2],
                                 quantity: dataFromSFTPRow['qty_requested'],
                                 restock_type: 'return'
                             })
                         }
                     })
-                    shopify.refund.calculate(refundData['original_order_number'], refundCalculate).then(calculateResponse => {
+                    shopify.refund.calculate(orderNumber, refundCalculate).then(calculateResponse => {
+                        console.log('calculate refund response: ', calculateResponse)
                         // Create refund
                         refundPost.currency = 'USD'
                         refundPost.notify = true
@@ -157,15 +158,13 @@ module.exports = {
                             full_refund: true
                         }
     
-                        dataFromSFTP.forEach((dataFromSFTPRow, index) => {
-                            if (dataFromSFTPRow.original_order_number != '') {
-                                refundPost.refund_line_items.push({
-                                    // line_item_id: dataFromSFTPRow['line_item_id'],
-                                    restock_type: 'return',
-                                    // location_id: dataFromSFTPRow['refund_line_items'][index]['location_id'],
-                                    quantity: dataFromSFTPRow['qty_requested']
-                                })
-                            }
+                        calculateResponse.refund_line_items.forEach(calRow => {
+                            refundPost.refund_line_items.push({
+                                line_item_id: calRow['line_item_id'],
+                                restock_type: 'return',
+                                location_id: calRow['location_id'],
+                                quantity: calRow['quantity']
+                            })
                         })
 
                         refundPost.transactions = calculateResponse.transactions
