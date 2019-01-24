@@ -35,11 +35,12 @@ exports.index = async (req, res, next) => {
             return next(err)
         }
         if (connectors.length == 0) {
-            req.flash('errors', {
-                msg: 'Your vendor does not include refund connector or it is inactive. Please contact with Administrator or Admin User.'
-            })
-            res.redirect('/')
-            return next()
+            // req.flash('errors', {
+            //     msg: 'Your vendor does not include refund connector or it is inactive. Please contact with Administrator or Admin User.'
+            // })
+            // res.redirect('/')
+            // return next()
+            callback('Your vendor does not include refund connector or it is inactive. Please contact with Administrator or Admin User.')
         }
         connectorInfo = connectors[0]
     })
@@ -48,7 +49,8 @@ exports.index = async (req, res, next) => {
         active: 'yes'
     }, (vendorError, vendor) => {
         if (vendorError) {
-            return next(vendorError)
+            // return next(vendorError)
+            callback(vendorError)
         }
         vendorInfo = vendor
         shopify = new Shopify({
@@ -128,44 +130,50 @@ exports.index = async (req, res, next) => {
                         console.log('Error in calculating refund: ', calculateError)
                         commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                             if (statusErr) {
-                                req.flash('errors', {
-                                    msg: 'calculate and db'
-                                })
+                                // req.flash('errors', {
+                                //     msg: 'calculate and db'
+                                // })
+                                callback('calculate and db')
                             } else {
-                                req.flash('errors', {
-                                    msg: 'Calculating refund: ' + calculateError
-                                })
+                                // req.flash('errors', {
+                                //     msg: 'Calculating refund: ' + calculateError
+                                // })
+                                callback('Calculating refund: ' + calculateError)
                             }
-                            res.redirect('/')
+                            // res.redirect('/')
                         })
                     })
                 }).catch(sftpError => {
                     commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                         if (statusErr) {
-                            req.flash('errors', {
-                                msg: 'connect and db'
-                            })
+                            // req.flash('errors', {
+                            //     msg: 'connect and db'
+                            // })
+                            callback('connect and db')
                         } else {
-                            req.flash('errors', {
-                                msg: 'Getting file - /incoming/returns/' + fileName
-                            })
+                            // req.flash('errors', {
+                            //     msg: 'Getting file - /incoming/returns/' + fileName
+                            // })
+                            callback('Getting file - /incoming/returns/' + fileName)
                         }
-                        res.redirect('/')
+                        // res.redirect('/')
                     })
                 })
             })
         }).catch(sftpError => {
             commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                 if (statusErr) {
-                    req.flash('errors', {
-                        msg: 'connect and db'
-                    })
+                    // req.flash('errors', {
+                    //     msg: 'connect and db'
+                    // })
+                    callback('connect and db')
                 } else {
-                    req.flash('errors', {
-                        msg: 'connect in connecting to sftp for ' + vendorInfo.api.apiShop
-                    })
+                    // req.flash('errors', {
+                    //     msg: 'connect in connecting to sftp for ' + vendorInfo.api.apiShop
+                    // })
+                    callback('connect in connecting to sftp for ' + vendorInfo.api.apiShop)
                 }
-                res.redirect('/')
+                // res.redirect('/')
             })
         })
     })
