@@ -37,7 +37,7 @@ exports.productChange = async (req, res) => {
                     Webhook.find({
                         vendorId: vendorInfo._id,
                         connector: connectorInfo.kwiLocation
-                    }).then(webhookList => {
+                    }, (webhookError, webhookList) => {
                         if (!webhookList) {
                             console.log('webhook type: ', req.headers['x-shopify-topic'] + ' in ' + vendorName)
                             webhookData.save()
