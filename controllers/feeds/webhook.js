@@ -42,7 +42,7 @@ exports.productChange = async (req, res) => {
                             console.log('webhook Error')
                             webhookData.save()
                         }
-                        if (!webhookError && !webhookList) {
+                        if (!webhookError && webhookList.length == 0) {
                             console.log('There are no data in webhook')
                             webhookData.save()
                         }
