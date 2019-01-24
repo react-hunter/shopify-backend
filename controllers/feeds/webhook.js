@@ -38,7 +38,10 @@ exports.productChange = async (req, res) => {
                         vendorId: vendorInfo._id,
                         connector: connectorInfo.kwiLocation
                     }, (webhookError, webhookList) => {
-                        if (!webhookList) {
+                        if (webhookError) {
+                            webhookData.save()
+                        }
+                        if (!webhookError && !webhookList) {
                             console.log('webhook type: ', req.headers['x-shopify-topic'] + ' in ' + vendorName)
                             webhookData.save()
                         }
