@@ -136,7 +136,8 @@ exports.index = async (req, res, next) => {
                         first_name: orderData['bill_firstname'],
                         last_name: orderData['bill_lastname'],
                         name: orderData['bill_firstname'] + ' ' + orderData['bill_lastname'],
-                        email: orderData['customer_email']
+                        // email: orderData['customer_email']
+                        email: 'shopsatnbcu+orders@balanceagent.com'
                     }
                     
                     orderPost.order.email = 'shopsatnbcu+orders@balanceagent.com'
@@ -169,8 +170,8 @@ exports.index = async (req, res, next) => {
                         let originalOrderId = createResult.id
                         let nextOrderNumber = createResult.order_number + 1
                         orderPost.order.name = "NBCU-" + nextOrderNumber
-                        // orderPost.order.send_receipt = true
-                        // orderPost.order.send_fulfillment_receipt = true
+                        orderPost.order.send_receipt = true
+                        orderPost.order.send_fulfillment_receipt = true
 
                         shopify.order.create(orderPost.order).then(createNextOrder => {
                             shopify.order.delete(originalOrderId).then(deleteResult => {
