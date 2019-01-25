@@ -169,8 +169,8 @@ exports.index = async (req, res, next) => {
                         let originalOrderId = createResult.id
                         let nextOrderNumber = createResult.order_number + 1
                         orderPost.order.name = "NBCU-" + nextOrderNumber
-                        orderPost.order.send_receipt = true
-                        orderPost.order.send_fulfillment_receipt = true
+                        // orderPost.order.send_receipt = true
+                        // orderPost.order.send_fulfillment_receipt = true
 
                         shopify.order.create(orderPost.order).then(createNextOrder => {
                             shopify.order.delete(originalOrderId).then(deleteResult => {
