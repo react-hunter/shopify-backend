@@ -18,7 +18,7 @@ const refundFeedHelper = require('../../helpers/refundFeed')
 exports.productChange = async (req, res) => {
     res.status(200).send()
     const vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14)
-    console.log('topic: ', req.headers['x-shopify-topic'])
+    console.log('topic: ', req.headers['x-shopify-topic'] + ' : ' + vendorName)
     
     getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
         if (vendorErr) {
