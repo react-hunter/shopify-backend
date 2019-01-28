@@ -87,7 +87,8 @@ exports.index = async (req, res, next) => {
                     refundPost.refund_line_items = [], refundCalculate.refund_line_items = []
                     var dataFromSFTP = TSV.parse(fileData._readableState.buffer.head.data)
                     var refundData = dataFromSFTP[1], orderNumber = refundData['retailer_order_number'].split(' | ')[1]
-
+                    var retailerOrderNumber = refundData['retailer_order_number'].split(' | ')[0]
+                    var retailerRMANumber = refundData['retailer_rma_number']
                     // Calculate refund
                     refundCalculate.currency = 'USD'
                     refundCalculate.shipping = {
@@ -124,6 +125,24 @@ exports.index = async (req, res, next) => {
 
                         shopify.refund.create(orderNumber, refundPost).then(createResponse => {
                             console.log('create response: ', createResponse)
+                            var refundInDataList = []
+                            createResponse.refund_line_items.forEach((refundItem, refundIndex) => {
+                                var refundInData = {}
+                                refundInData.original_order_number = refundData.original_order_number
+                                refundInData.rma_number = refundData.rma_number
+                                refundInData.item_sku = ''
+                                refundInData.date_requested = createResponse.created_at
+                                refundInData.qty_requested = refundItem.quantity
+                                refundInData.date_received = createResponse.processed_at
+                                refundInData.qty_received = refundItem.quantity
+                                refundInData.reason = createResponse.order_adjustments[refundIndex].reason
+                                refundInData.retailer_order_number = retailerOrderNumber
+                                refundInData.retailer_rma_number = retailerRMANumber
+                                item_status = 'Approved'
+
+                                refundInDataList.push(refundInData)
+                            })
+                            
                         })
                         
                     }).catch(calculateError => {
