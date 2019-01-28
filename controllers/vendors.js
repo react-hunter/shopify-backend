@@ -229,7 +229,7 @@ exports.enableVendor = (req, res, next) => {
                     })
                 }).then(() => {
                     webhookPromises.push(shopify.webhook.create(productCreateWebhook))
-                    webhookPromises.push(shopify.webhook.create(productUpdateWebhook))
+                    // webhookPromises.push(shopify.webhook.create(productUpdateWebhook))
                     webhookPromises.push(shopify.webhook.create(productDeleteWebhook))
                     webhookPromises.push(shopify.webhook.create(orderFulfillWebhook))
                     webhookPromises.push(shopify.webhook.create(orderPartialFulfillWebhook))
