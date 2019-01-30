@@ -10,6 +10,7 @@ const History = require('../../models/History')
 const Status = require('../../models/Status')
 const Order = require('../../models/Order')
 
+const ProvinceList = require('../../config/constants').ProvinceList
 /**
  * GET /
  * Order page.
@@ -92,7 +93,8 @@ exports.index = async (req, res, next) => {
                         if (dataFromSFTPRow.order_number != '' && dataFromSFTPRow['item_sku'] != 'SHIPPING') {
                             orderPost.order.line_items.push({
                                 variant_id: dataFromSFTPRow['item_sku'],
-                                quantity: dataFromSFTPRow['item_qty_ordered']
+                                quantity: dataFromSFTPRow['item_qty_ordered'],
+                                price: dataFromSFTPRow['item_price']
                             })
                             outgoingOrderNumbers.push(dataFromSFTPRow.order_number)
                         }
@@ -105,14 +107,14 @@ exports.index = async (req, res, next) => {
                         phone: orderData['bill_phone'],
                         city: orderData['bill_city'],
                         zip: orderData['bill_postal_code'],
-                        province: orderData['bill_state'],
+                        province: ProvinceList[orderData['bill_state']],
                         country: 'United States',
                         address2: orderData['bill_street_2'],
                         company: '',
                         latitude: '',
                         longitude: '',
                         country_code: 'US',
-                        province_code: orderData['ship_postal_code']
+                        province_code: orderData['bill_state']
                     }
 
                     orderPost.order.shipping_address = {
@@ -123,14 +125,14 @@ exports.index = async (req, res, next) => {
                         phone: orderData['ship_phone'],
                         city: orderData['ship_city'],
                         zip: orderData['ship_postal_code'],
-                        province: orderData['ship_state'],
+                        province: ProvinceList[orderData['ship_state']],
                         country: 'United States',
                         address2: orderData['ship_street_2'],
                         company: '',
                         latitude: '',
                         longitude: '',
                         country_code: 'US',
-                        province_code: orderData['bill_postal_code']
+                        province_code: orderData['ship_state']
                     }
                     orderPost.order.customer = {
                         first_name: orderData['bill_firstname'],
@@ -173,13 +175,14 @@ exports.index = async (req, res, next) => {
                         orderPost.order.send_receipt = true
                         orderPost.order.send_fulfillment_receipt = true
 
+                        console.log('order post data: ', orderPost.order)
                         shopify.order.create(orderPost.order).then(createNextOrder => {
                             shopify.order.delete(originalOrderId).then(deleteResult => {
                                 addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
                                     if (statusErr) {
                                         return next(statusErr)
                                     } else {
-                                        console.log('added new order into shopify store')
+                                        console.log('Added new order into shopify store.')
                                         sftp.delete('/outgoing/orders/' + fileName).then(result => {
                                             console.log('App deleted ' + fileName)
                                             var orderDataDB = new Order()
@@ -192,7 +195,7 @@ exports.index = async (req, res, next) => {
                                             orderDataDB.billState = orderData['bill_state']
                                             
                                             orderDataDB.save().then(() => {
-                                                console.log('Add order data into DB')
+                                                console.log('Add order data into DB.')
                                             })
                                         }).catch(deleteError => {
                                             console.log('Error in deleting order file of sftp: ', deleteError)

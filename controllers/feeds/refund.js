@@ -9,11 +9,11 @@ const Connector = require('../../models/Connector')
 
 const commonHelper = require('../../helpers/common')
 
-const callback = (err, res) => {
+const callback = (err, responseData) => {
     if (err) {
         console.log('Error: ', err)
     } else {
-        console.log('success: ', res)
+        console.log('success: ', responseData)
     }
 }
 /**
@@ -26,6 +26,7 @@ exports.index = async (req, res, next) => {
         title: 'refund'
     })
     var vendorInfo, connectorInfo
+    
     Connector.find({
         vendorId: req.user.vendorId,
         kwiLocation: 'refund',
@@ -35,11 +36,6 @@ exports.index = async (req, res, next) => {
             return next(err)
         }
         if (connectors.length == 0) {
-            // req.flash('errors', {
-            //     msg: 'Your vendor does not include refund connector or it is inactive. Please contact with Administrator or Admin User.'
-            // })
-            // res.redirect('/')
-            // return next()
             callback('Your vendor does not include refund connector or it is inactive. Please contact with Administrator or Admin User.')
         }
         connectorInfo = connectors[0]
@@ -89,6 +85,7 @@ exports.index = async (req, res, next) => {
                     var refundData = dataFromSFTP[1], orderNumber = refundData['retailer_order_number'].split(' | ')[1]
                     var retailerOrderNumber = refundData['retailer_order_number'].split(' | ')[0]
                     var retailerRMANumber = refundData['retailer_rma_number']
+                    var returnFileName = 'uploads/returns-' + vendorInfo.api.apiShop + '-' + retailerOrderNumber + '.txt'
                     // Calculate refund
                     refundCalculate.currency = 'USD'
                     refundCalculate.shipping = {
@@ -104,7 +101,6 @@ exports.index = async (req, res, next) => {
                         }
                     })
                     shopify.refund.calculate(orderNumber, refundCalculate).then(calculateResponse => {
-                        console.log('calculate refund response: ', calculateResponse)
                         // Create refund
                         refundPost.currency = 'USD'
                         refundPost.notify = true
@@ -124,75 +120,81 @@ exports.index = async (req, res, next) => {
                         refundPost.transactions = calculateResponse.transactions
 
                         shopify.refund.create(orderNumber, refundPost).then(createResponse => {
-                            console.log('create response: ', createResponse)
                             var refundInDataList = []
                             createResponse.refund_line_items.forEach((refundItem, refundIndex) => {
                                 var refundInData = {}
                                 refundInData.original_order_number = refundData.original_order_number
                                 refundInData.rma_number = refundData.rma_number
-                                refundInData.item_sku = ''
-                                refundInData.date_requested = createResponse.created_at
+                                refundInData.item_sku = refundItem.line_item.variant_id
+                                refundInData.date_requested = commonHelper.dateStringFromString(createResponse.created_at)
                                 refundInData.qty_requested = refundItem.quantity
-                                refundInData.date_received = createResponse.processed_at
+                                refundInData.date_received = commonHelper.dateStringFromString(createResponse.processed_at)
                                 refundInData.qty_received = refundItem.quantity
-                                refundInData.reason = createResponse.order_adjustments[refundIndex].reason
+                                var refundReason = ''
+                                createResponse.order_adjustments.forEach(orderAdjustment => {
+                                    if (orderAdjustment.kind == 'refund_discrepancy') {
+                                        refundReason = orderAdjustment.reason
+                                    }
+                                })
+                                refundInData.reason = refundReason
                                 refundInData.retailer_order_number = retailerOrderNumber
                                 refundInData.retailer_rma_number = retailerRMANumber
                                 item_status = 'Approved'
 
                                 refundInDataList.push(refundInData)
                             })
-                            
+
+                            fs.writeFile(returnFileName, TSV.stringify(refundInDataList), function (fileWriteError) {
+                                if (fileWriteError) {
+                                    console.log('Writing File Error: ', fileWriteError)
+                                    callback({error: 'file'})
+                                } else {
+                                    var remotePath = '/incoming/returns/returns_' + commonHelper.dateStringForName() + '.txt'
+                                    sftp.put(returnFileName, remotePath).then(response => {
+                                        commonHelper.addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
+                                            if (statusErr) {
+                                                callback({error: 'status'})
+                                            } else {
+                                                callback(null, vendorInfo.name)
+                                            }
+                                        })
+                                    }).catch(sftpUploadError => {
+                                        console.log('Upload error: ', sftpUploadError)
+                                        callback({error: 'upload'})
+                                    })
+                                }
+                            })
+                        }).catch(createRefundError => {
+                            console.log('There is a problem in creating refund: ', createRefundError)
                         })
                         
                     }).catch(calculateError => {
                         console.log('Error in calculating refund: ', calculateError)
                         commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                             if (statusErr) {
-                                // req.flash('errors', {
-                                //     msg: 'calculate and db'
-                                // })
                                 callback('calculate and db')
                             } else {
-                                // req.flash('errors', {
-                                //     msg: 'Calculating refund: ' + calculateError
-                                // })
                                 callback('Calculating refund: ' + calculateError)
                             }
-                            // res.redirect('/')
                         })
                     })
                 }).catch(sftpError => {
                     commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                         if (statusErr) {
-                            // req.flash('errors', {
-                            //     msg: 'connect and db'
-                            // })
                             callback('connect and db')
                         } else {
-                            // req.flash('errors', {
-                            //     msg: 'Getting file - /incoming/returns/' + fileName
-                            // })
                             callback('Getting file - /incoming/returns/' + fileName)
                         }
-                        // res.redirect('/')
                     })
                 })
             })
         }).catch(sftpError => {
             commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                 if (statusErr) {
-                    // req.flash('errors', {
-                    //     msg: 'connect and db'
-                    // })
                     callback('connect and db')
                 } else {
-                    // req.flash('errors', {
-                    //     msg: 'connect in connecting to sftp for ' + vendorInfo.api.apiShop
-                    // })
                     callback('connect in connecting to sftp for ' + vendorInfo.api.apiShop)
                 }
-                // res.redirect('/')
             })
         })
     })

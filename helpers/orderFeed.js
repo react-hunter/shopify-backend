@@ -363,9 +363,9 @@ module.exports = {
             username: vendorInfo.sftp.sftpUsername,
             password: vendorInfo.sftp.sftpPassword
         }).then(() => {
-            fs.writeFile(orderFileName, TSV.stringify(orderDataList), function (err) {
-                if (err) {
-                    console.log('Writing File Error: ', err)
+            fs.writeFile(orderFileName, TSV.stringify(orderDataList), function (fileWriteError) {
+                if (fileWriteError) {
+                    console.log('Writing File Error: ', fileWriteError)
                     callback({error: 'file'})
                 } else {
                     var remotePath = '/incoming/orders/orderext_' + commonHelper.dateStringForName() + '.txt'

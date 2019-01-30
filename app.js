@@ -100,8 +100,8 @@ app.use(logger('dev'));
 //     }
 //   })
 // );
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(expressValidator());
 app.use(session({
   resave: true,
@@ -217,7 +217,7 @@ app.get('/vendors/synchronizeColors/:vendorId', passportConfig.isSuper, vendorsC
 
 app.post('/webhook/productChange', /*passportConfig.verifyWebHook, */webhookController.productChange);
 app.post('/webhook/fulfill', webhookController.orderFulfill);
-app.post('/webhook/refund', webhookController.refundCreate);
+// app.post('/webhook/refund', webhookController.refundCreate);
 
 // From KWI
 app.post('/kwi/orderCreate', webhookController.kwiOrderCreate);

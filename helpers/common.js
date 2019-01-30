@@ -210,4 +210,22 @@ module.exports = {
         return year + month + day + isoDate[1].replace(/\:/g, '')
     },
 
+    dateStringFromString: (dateString) => {
+        var dateFromString = new Date(dateString)
+        var isoDate = dateFromString.toLocaleString("en-US", {
+            hour12: false
+        }).split(', ')
+        var month = isoDate[0].split('/')[0]
+        var day = isoDate[0].split('/')[1]
+        var year = isoDate[0].split('/')[2]
+        if (month < 10) {
+            month = '0' + month
+        }
+        if (day < 10) {
+            day = '0' + day
+        }
+        
+        return month + '/' + day + '/' + year
+    }
+
 }
