@@ -91,6 +91,13 @@ exports.orderFulfill = (req, res) => {
     })
 }
 
+exports.orderFulfillmentUpdate = (req, res) => {
+    res.status(200).send()
+
+    console.log('headers: ', req.headers)
+    console.log('body: ', req.body)
+}
+
 exports.refundCreate = (req, res) => {
     res.status(200).send()
     console.log('refund headers: ', req.headers)

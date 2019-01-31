@@ -217,6 +217,7 @@ app.get('/vendors/synchronizeColors/:vendorId', passportConfig.isSuper, vendorsC
 
 app.post('/webhook/productChange', /*passportConfig.verifyWebHook, */webhookController.productChange);
 app.post('/webhook/fulfill', webhookController.orderFulfill);
+app.post('/webhook/fulfillUpdate', webhookController.orderFulfillmentUpdate);
 // app.post('/webhook/refund', webhookController.refundCreate);
 
 // From KWI
