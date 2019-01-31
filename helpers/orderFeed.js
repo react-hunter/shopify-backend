@@ -212,11 +212,11 @@ module.exports = {
         totalTotal = subTotal + totalTax
 
         // Make feed file
-        order.line_items.forEach((item, index) => {
+        order.line_items.forEach((item, lineIndex) => {
             if (item.fulfillment_status == 'fulfilled' || item.fulfillment_status == 'partial') {
                 var orderData = {}
                 // orderData.order_number = order.order_number
-                orderData.order_number = orderRow.outgoingOrderNumbers[index]
+                orderData.order_number = orderRow.outgoingOrderNumbers[lineIndex]
                 orderData.order_date = order.created_at.substr(5, 2) + '/' + order.created_at.substr(8, 2) + '/' + order.created_at.substr(0, 4)
                 orderData.order_payment_method = orderRow.orderPaymentMethod
                 orderData.transaction_id = orderRow.transactionId

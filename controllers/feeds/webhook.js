@@ -56,8 +56,8 @@ exports.productChange = async (req, res) => {
 
 exports.orderFulfill = (req, res) => {
     res.status(200).send()
-    const vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14)
-    console.log('topic: ', req.headers['x-shopify-topic'])
+    var vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14)
+    console.log('topic: ', req.headers['x-shopify-topic'] + ' , order index: ', req.headers['x-shopify-order-id'])
     getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
         if (vendorErr) {
             console.log('There are no vendor for this.')
@@ -68,7 +68,7 @@ exports.orderFulfill = (req, res) => {
                     console.log('There is no connector for this.')
                 } else {
                     res.status(200).send()
-                    const hookOrderId = req.headers['x-shopify-order-id']
+                    var hookOrderId = req.headers['x-shopify-order-id']
                     // const hookOrderId = req.body['order_id']
                     Order.find({
                         vendorId: vendorInfo._id
