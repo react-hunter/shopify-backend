@@ -244,6 +244,7 @@ app.listen(app.get('port'), () => {
   console.log('  Press CTRL-C to stop\n');
   // Create Timer for product webhook
   const productTimer = setInterval(webhookController.productTimer, 86400000);
+  const refundTimer = setInterval(webhookController.refundCreateTimer, 1800000);
   // const productTimer = setInterval(webhookController.productTimer, 30000);
 });
 User.find({type: 'superadmin'}, (err, superusers) => {

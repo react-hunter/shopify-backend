@@ -115,13 +115,13 @@ module.exports = {
         })
     },
     
-    addHistory: (vendor, connector, flag, callback) => {
+    addHistory: (vendor, connector, statusFlag, callback) => {
         var history = new History()
         history.vendorId = vendor._id
         history.vendorName = vendor.api.apiShop
         history.connectorId = connector._id
         history.connectorType = connector.kwiLocation
-        history.status = flag
+        history.status = statusFlag
     
         history.save().then(() => {
             callback(null)

@@ -160,7 +160,6 @@ exports.index = async (req, res, next) => {
                         discount_price: 1,
                         source: "usps",
                         title: "Small Packet International Air",
-                        // tax_lines: ,
                         carrier_identifier: "third_party_carrier_identifier"
                     }]
                     orderPost.order.tags = 'NBCU'
@@ -175,7 +174,6 @@ exports.index = async (req, res, next) => {
                         orderPost.order.send_receipt = true
                         orderPost.order.send_fulfillment_receipt = true
 
-                        // console.log('order post data: ', orderPost.order)
                         shopify.order.create(orderPost.order).then(createNextOrder => {
                             shopify.order.delete(originalOrderId).then(deleteResult => {
                                 addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {

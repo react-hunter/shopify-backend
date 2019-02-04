@@ -1,7 +1,6 @@
 const Shopify = require('shopify-api-node')
 const fs = require('fs')
 const Client = require('ssh2-sftp-client')
-const delay = require('delay')
 const TSV = require('tsv')
 
 const Vendor = require('../../models/Vendor')
@@ -31,9 +30,9 @@ exports.index = async (req, res, next) => {
         vendorId: req.user.vendorId,
         kwiLocation: 'refund',
         active: 'yes'
-    }, (err, connectors) => {
-        if (err) {
-            return next(err)
+    }, (connectorErr, connectors) => {
+        if (connectorErr) {
+            callback('Error in getting proper connector for this Vendor: ', connectorErr)
         }
         if (connectors.length == 0) {
             callback('Your vendor does not include refund connector or it is inactive. Please contact with Administrator or Admin User.')
@@ -45,7 +44,6 @@ exports.index = async (req, res, next) => {
         active: 'yes'
     }, (vendorError, vendor) => {
         if (vendorError) {
-            // return next(vendorError)
             callback(vendorError)
         }
         vendorInfo = vendor

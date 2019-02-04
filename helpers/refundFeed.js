@@ -6,101 +6,7 @@ const delay = require('delay')
 const TSV = require('tsv')
 
 module.exports = {
-    refundFeedInCreate: async (vendorInfo, connectorInfo, callback) => {
-        const returnFileName = 'uploads/return-' + vendor.api.apiShop + '.txt'
-        const sftp = new Client()
-        const shopify = new Shopify({
-            shopName: vendorInfo.api.apiShop,
-            apiKey: vendorInfo.api.apiKey,
-            password: vendorInfo.api.apiPassword,
-            timeout: 50000,
-            autoLimit: {
-                calls: 2,
-                interval: 1000,
-                bucketSize: 35
-            }
-        })
-        
-        var refundDataList = new Array()
-        
-        commonHelper.deleteAndInitialize(returnFileName)
-
-        await delay(2000)
-        
-        shopify.order.list().then(orders => {
-            orders.forEach(order => {
-                shopify.refund.list(order.id).then(refunds => {
-                    refunds.forEach(refund => {
-                        if (refund.refund_line_items.length > 0) {
-                            refund.refund_line_items.forEach(refundItem => {
-                                var refundData = {}
-                                refundData.original_order_number = refund.order_id
-                                // refundData.rma_number = 
-                                refundData.item_sku = refundItem.sku
-                                refundData.date_requested = refund.created_at
-                                refundData.qty_requested = refundItem.quantity
-                                refundData.date_received = refund.processed_at
-                                // refundData.qty_received = 
-                                refundData.reason = refund.order_adjustments[0].reason
-                                refundData.retailer_order_number = order.number
-                                // refundData.retailer_rma_number = 
-                                refundData.item_status = refundItem.line_item.fulfillment_status
-
-                                refundDataList.push(refundData)
-                            })
-                        }
-                    })
-                }).catch(err => console.log(err))
-            })
-        }).then(() => {
-            sftp.connect({
-                host: vendorInfo.sftp.sftpHost,
-                port: process.env.SFTP_PORT,
-                username: vendorInfo.sftp.sftpUsername,
-                password: vendorInfo.sftp.sftpPassword
-            }).then(() => {
-                fs.writeFile(returnFileName, TSV.stringify(refundDataList), function (err) {
-                    if (err) {
-                        callback('file')
-                    } else {
-                        var currentDate = new Date()
-                        var splittedISODateByDot = currentDate.toLocaleString("en-US", {hour12: false}).split('.')
-                        var remotePath = '/incoming/returns/return' + splittedISODateByDot[0].replace(' ', '').replace(',', '').replace(/\-/g, '').replace(/\//g, '').replace(/\:/g, '') + '.txt'
-                        sftp.put(returnFileName, remotePath).then(response => {
-                            commonHelper.addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
-                                if (statusErr) {
-                                    callback({error: 'status'})
-                                } else {
-                                    callback(null)
-                                }
-                            })
-                            
-                            sftp.end()
-                        }).catch(error => {
-                            commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
-                                if (statusErr) {
-                                    callback({error: 'status'})
-                                } else {
-                                    callback({error: 'upload'})
-                                }
-                            })
-                        })
-                    }
-                })
-            })
-        })
-        .catch(err => {
-            commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
-                if (statusErr) {
-                    callback({error: 'status'})
-                } else {
-                    callback({error: 'store'})
-                }
-            })
-        })
-    },
-
-    refundFeedOutCreate: async (vendorInfo, connectorInfo, callback) => {
+    refundFeedInOutCreate: async (vendorInfo, connectorInfo, callback) => {
         const sftp = new Client()
         const shopify = new Shopify({
             shopName: vendorInfo.api.apiShop,
@@ -134,12 +40,16 @@ module.exports = {
                     refundPost.refund_line_items = [], refundCalculate.refund_line_items = []
                     var dataFromSFTP = TSV.parse(fileData._readableState.buffer.head.data)
                     var refundData = dataFromSFTP[1], orderNumber = refundData['retailer_order_number'].split(' | ')[1]
-
+                    var retailerOrderNumber = refundData['retailer_order_number'].split(' | ')[0]
+                    var retailerRMANumber = refundData['retailer_rma_number']
+                    var returnFileName = 'uploads/returns-' + vendorInfo.api.apiShop + '-' + retailerOrderNumber + '.txt'
+                    
                     // Calculate refund
                     refundCalculate.currency = 'USD'
                     refundCalculate.shipping = {
                         full_refund: true
                     }
+                    
                     dataFromSFTP.forEach(dataFromSFTPRow => {
                         if (dataFromSFTPRow.original_order_number != '') {
                             refundCalculate.refund_line_items.push({
@@ -149,9 +59,9 @@ module.exports = {
                             })
                         }
                     })
+                    
                     shopify.refund.calculate(orderNumber, refundCalculate).then(calculateResponse => {
-                        console.log('calculate refund response: ', calculateResponse)
-                        // Create refund
+                        // Make refund data
                         refundPost.currency = 'USD'
                         refundPost.notify = true
                         refundPost.shipping = {
@@ -168,24 +78,73 @@ module.exports = {
                         })
 
                         refundPost.transactions = calculateResponse.transactions
+
+                        // Create refund
+                        shopify.refund.create(orderNumber, refundPost).then(createResponse => {
+                            var refundInDataList = []
+                            createResponse.refund_line_items.forEach((refundItem, refundIndex) => {
+                                var refundInData = {}
+                                refundInData.original_order_number = refundData.original_order_number
+                                refundInData.rma_number = refundData.rma_number
+                                refundInData.item_sku = refundItem.line_item.variant_id
+                                refundInData.date_requested = commonHelper.dateStringFromString(createResponse.created_at)
+                                refundInData.qty_requested = refundItem.quantity
+                                refundInData.date_received = commonHelper.dateStringFromString(createResponse.processed_at)
+                                refundInData.qty_received = refundItem.quantity
+                                var refundReason = ''
+                                createResponse.order_adjustments.forEach(orderAdjustment => {
+                                    if (orderAdjustment.kind == 'refund_discrepancy') {
+                                        refundReason = orderAdjustment.reason
+                                    }
+                                })
+                                refundInData.reason = refundReason
+                                refundInData.retailer_order_number = retailerOrderNumber
+                                refundInData.retailer_rma_number = retailerRMANumber
+                                item_status = 'Approved'
+
+                                refundInDataList.push(refundInData)
+                            })
+
+                            fs.writeFile(returnFileName, TSV.stringify(refundInDataList), function (fileWriteError) {
+                                if (fileWriteError) {
+                                    console.log('Writing File Error: ', fileWriteError)
+                                    callback({error: 'file'})
+                                } else {
+                                    var remotePath = '/incoming/returns/returns_' + commonHelper.dateStringForName() + '.txt'
+                                    sftp.put(returnFileName, remotePath).then(response => {
+                                        commonHelper.addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
+                                            if (statusErr) {
+                                                callback({error: 'status'})
+                                            } else {
+                                                callback(null, vendorInfo.name)
+                                            }
+                                        })
+                                    }).catch(sftpUploadError => {
+                                        console.log('Upload error: ', sftpUploadError)
+                                        callback({error: 'upload'})
+                                    })
+                                }
+                            })
+                        }).catch(createRefundError => {
+                            console.log('There is a problem in creating refund: ', createRefundError)
+                        })
                         
-                        console.log('refund data: ', refundPost)
                     }).catch(calculateError => {
                         console.log('Error in calculating refund: ', calculateError)
                         commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                             if (statusErr) {
-                                callback({error: 'calculate and db'})
+                                callback('calculate and db')
                             } else {
-                                callback({error: 'Calculating refund: ' + calculateError})
+                                callback('Calculating refund: ' + calculateError)
                             }
                         })
                     })
                 }).catch(sftpError => {
                     commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                         if (statusErr) {
-                            callback({error: 'connect and db'})
+                            callback('connect and db')
                         } else {
-                            callback({error: 'Getting file - /incoming/returns/' + fileName})
+                            callback('Getting file - /incoming/returns/' + fileName)
                         }
                     })
                 })

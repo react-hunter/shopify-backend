@@ -361,7 +361,8 @@ exports.index = async (req, res, next) => {
                         productData.Title = '"' + product.title.replace(/\r?\n|\r/g, '').replace(/\"/g, '""') + '"'
                         productData.MinQty = MinQty
                         productData.MaxQty = MaxQty
-                        productData.IsBestSeller = collect.collection_id == bestSellCollectionId ? true : false
+                        // productData.IsBestSeller = collect.collection_id == bestSellCollectionId ? true : false
+                        productData.IsBestSeller = false
                         // if (daysDifference > 30) {
                         //     productData.IsNew = false
                         // } else {
@@ -375,13 +376,12 @@ exports.index = async (req, res, next) => {
 
                         productData.ZoomImage1 = ''
                         productData.ProductVideo = ProductVideo
-                        if (variant.sku != '') {
-                            // productData.SKU = variant.sku + commonHelper.getShortenColorName(ColorName) + Size
-                            productData.SKU = variant.id
-                        } else {
-                            // productData.SKU = productData.ProductCode
-                            productData.SKU = variant.id
-                        }
+                        productData.SKU = variant.id
+                        // if (variant.sku != '') {
+                        //     productData.SKU = variant.sku + commonHelper.getShortenColorName(ColorName) + Size
+                        // } else {
+                        //     productData.SKU = productData.ProductCode
+                        // }
                         productData.SkuPrice = variant.price
                         if (variant.compare_at_price && variant.compare_at_price > 0) {
                             productData.IsSale = true
