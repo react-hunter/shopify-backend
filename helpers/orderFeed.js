@@ -4,6 +4,8 @@ const fs = require('fs')
 const Client = require('ssh2-sftp-client')
 const delay = require('delay')
 const TSV = require('tsv')
+const Order = require('../models/Order')
+const ProvinceList = require('../config/constants').ProvinceList
 
 module.exports = {
     orderFeedOutCreate: (vendorInfo, connectorInfo, callback) => {
@@ -44,13 +46,20 @@ module.exports = {
                     orderPost.order.line_items = []
                     orderPost.order.billing_address = {}
                     orderPost.order.shipping_address = {}
+                    var outgoingOrderNumbers = []
 
                     let dataFromSFTP = TSV.parse(fileData._readableState.buffer.head.data)
                     var orderData = dataFromSFTP[1]
                     
-                    orderPost.order.line_items.push({
-                        variant_id: orderData['item_sku'],
-                        quantity: orderData['item_qty_ordered']
+                    dataFromSFTP.forEach(dataFromSFTPRow => {
+                        if (dataFromSFTPRow.order_number != '' && dataFromSFTPRow['item_sku'] != 'SHIPPING') {
+                            orderPost.order.line_items.push({
+                                variant_id: dataFromSFTPRow['item_sku'],
+                                quantity: dataFromSFTPRow['item_qty_ordered'],
+                                price: dataFromSFTPRow['item_price']
+                            })
+                            outgoingOrderNumbers.push(dataFromSFTPRow.order_number)
+                        }
                     })
                     orderPost.order.billing_address = {
                         first_name: orderData['bill_firstname'],
@@ -60,14 +69,14 @@ module.exports = {
                         phone: orderData['bill_phone'],
                         city: orderData['bill_city'],
                         zip: orderData['bill_postal_code'],
-                        province: orderData['bill_state'],
+                        province: ProvinceList[orderData['bill_state']],
                         country: 'United States',
                         address2: orderData['bill_street_2'],
                         company: '',
                         latitude: '',
                         longitude: '',
                         country_code: 'US',
-                        province_code: orderData['ship_postal_code']
+                        province_code: orderData['bill_state']
                     }
 
                     orderPost.order.shipping_address = {
@@ -78,21 +87,23 @@ module.exports = {
                         phone: orderData['ship_phone'],
                         city: orderData['ship_city'],
                         zip: orderData['ship_postal_code'],
-                        province: orderData['ship_state'],
+                        province: ProvinceList[orderData['ship_state']],
                         country: 'United States',
                         address2: orderData['ship_street_2'],
                         company: '',
                         latitude: '',
                         longitude: '',
                         country_code: 'US',
-                        province_code: orderData['bill_postal_code']
+                        province_code: orderData['ship_state']
                     }
                     orderPost.order.customer = {
                         first_name: orderData['bill_firstname'],
                         last_name: orderData['bill_lastname'],
                         name: orderData['bill_firstname'] + ' ' + orderData['bill_lastname'],
-                        email: orderData['customer_email']
+                        // email: orderData['customer_email']
+                        email: 'shopsatnbcu+orders@balanceagent.com'
                     }
+                    
                     orderPost.order.email = 'shopsatnbcu+orders@balanceagent.com'
                     orderPost.order.buyer_accepts_marketing = false
                     orderPost.order.send_receipt = false
@@ -101,12 +112,13 @@ module.exports = {
                     orderPost.order.total_tax = orderData['tax_total']
                     orderPost.order.total_price = orderData['total_total']
                     orderPost.order.currency = 'USD'
-                    orderPost.order.financial_status = 'paid'
+                    orderPost.order.financial_status = 'paid' // need to check later, again. There is 'paid' value, too.
                     orderPost.order.fulfillment_status = null
                     orderPost.order.source = orderData['ship_method']
+                    const ship_price = orderData['total_total'] - orderData['subtotal'] - orderData['tax_total']
                     orderPost.order.shipping_lines = [{
                         code: "INT.TP",
-                        price: 4,
+                        price: ship_price.toFixed(2).toString(),
                         discount_price: 1,
                         source: "usps",
                         title: "Small Packet International Air",
@@ -130,31 +142,49 @@ module.exports = {
                                     if (statusErr) {
                                         callback({error: 'status'})
                                     } else {
-                                        console.log('added new order into shopify store')
+                                        console.log('Added new order into shopify store.')
                                         sftp.delete('/outgoing/orders/' + fileName).then(result => {
                                             console.log('App deleted ' + fileName)
+                                            var orderDataDB = new Order()
+                                            orderDataDB.vendorId = vendorInfo._id
+                                            orderDataDB.orderId = createNextOrder.id
+                                            orderDataDB.outgoingOrderNumbers = outgoingOrderNumbers
+                                            orderDataDB.orderPaymentMethod = orderData['order_payment_method']
+                                            orderDataDB.transactionId = orderData['transaction_id']
+                                            orderDataDB.shipState = orderData['ship_state']
+                                            orderDataDB.billState = orderData['bill_state']
+                                            
+                                            orderDataDB.save().then(() => {
+                                                console.log('Add order data into DB.')
+                                                callback(null)
+                                            })
                                         }).catch(deleteError => {
                                             console.log('Error in deleting order file of sftp: ', deleteError)
+                                            callback({error: 'delete'})
                                         })
                                     }
                                 })
                             })
+                        }).catch(createNextError => {
+                            console.log('Creating Next Order Error: ', createNextError)
+                            callback({error: 'create new order'})
                         })
                     }).catch(createError => {
                         commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                             if (statusErr) {
-                                callback({error: 'status'})
+                                callback({error: 'add status'})
                             } else {
-                                callback({error: 'orderOut'})
+                                console.log('Creating Error: ', createError)
+                                callback({error: 'create order'})
                             }
                         })
                     })
                 }).catch(getDataError => {
                     commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                         if (statusErr) {
-                            callback({error: 'status'})
+                            callback({error: 'add status'})
                         } else {
-                            callback({error: 'store'})
+                            callback({error: 'get data'})
                         }
                     })
                 })

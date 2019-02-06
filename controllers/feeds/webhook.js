@@ -57,7 +57,7 @@ exports.productChange = async (req, res) => {
 exports.orderFulfill = (req, res) => {
     res.status(200).send()
     var vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14)
-    console.log('topic: ', req.headers['x-shopify-topic'] + ' , order index: ', req.headers['x-shopify-order-id'] + ' fulfilled')
+    console.log('topic: ', req.headers['x-shopify-topic'] + ' , order index: ', req.headers['x-shopify-order-id'] + ' fulfilled from ', vendorName)
     getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
         if (vendorErr) {
             console.log('There are no vendor for this request.')
