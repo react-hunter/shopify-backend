@@ -206,7 +206,7 @@ app.get('/vendors/:vendorId/connectors/inactivate/:connectorId', passportConfig.
 // Call to feeds
 app.get('/product', passportConfig.isAuthenticated, productController.index);
 app.get('/inventory', passportConfig.isAuthenticated, inventoryController.index);
-app.get('/shipment', passportConfig.isAuthenticated, orderController.shipment);
+// app.get('/shipment', passportConfig.isAuthenticated, orderController.shipment);
 app.get('/order', passportConfig.isAuthenticated, orderController.index);
 app.get('/refund', passportConfig.isAuthenticated, refundController.index);
 // Utilities
@@ -218,11 +218,6 @@ app.get('/vendors/synchronizeColors/:vendorId', passportConfig.isSuper, vendorsC
 app.post('/webhook/productChange', /*passportConfig.verifyWebHook, */webhookController.productChange);
 app.post('/webhook/fulfill', webhookController.orderFulfill);
 app.post('/webhook/fulfillUpdate', webhookController.orderFulfillmentUpdate);
-// app.post('/webhook/refund', webhookController.refundCreate);
-
-// From KWI
-app.post('/kwi/orderCreate', webhookController.kwiOrderCreate);
-app.post('/kwi/refundCreate', webhookController.kwiRefundCreate)
 
 // To test some code.
 app.get('/testcode', testcodeController.index);
@@ -243,9 +238,10 @@ app.listen(app.get('port'), () => {
   console.log('%s App is running at http://localhost:%d in %s mode', chalk.green('✓'), app.get('port'), app.get('env'));
   console.log('  Press CTRL-C to stop\n');
   // Create Timer for product webhook
-  const productTimer = setInterval(webhookController.productTimer, 86400000);
+  // const productTimer = setInterval(webhookController.productTimer, 86400000);
   const refundTimer = setInterval(webhookController.refundCreateTimer, 1800000);
-  // const productTimer = setInterval(webhookController.productTimer, 30000);
+  // const refundTimer = setInterval(webhookController.refundCreateTimer, 5000);
+  const productTimer = setInterval(webhookController.productTimer, 1800000);
 });
 User.find({type: 'superadmin'}, (err, superusers) => {
   if (err) {

@@ -34,6 +34,7 @@ module.exports = {
                     fileList.push(sftpFile.name)
                 }
             })
+            console.log('file list: ', fileList)
             fileList.forEach(fileName => {
                 sftp.get('/outgoing/returns/' + fileName).then(fileData => {
                     var refundPost = {}, refundCalculate = {}
@@ -44,6 +45,7 @@ module.exports = {
                     var retailerRMANumber = refundData['retailer_rma_number']
                     var returnFileName = 'uploads/returns-' + vendorInfo.api.apiShop + '-' + retailerOrderNumber + '.txt'
                     
+                    console.log('order number: ', refundData['retailer_order_number'])
                     // Calculate refund
                     refundCalculate.currency = 'USD'
                     refundCalculate.shipping = {
@@ -144,7 +146,7 @@ module.exports = {
                         if (statusErr) {
                             callback('connect and db')
                         } else {
-                            callback('Getting file - /incoming/returns/' + fileName)
+                            callback('Error in getting file - /outgoing/returns/' + fileName)
                         }
                     })
                 })

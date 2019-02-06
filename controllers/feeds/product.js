@@ -9,9 +9,6 @@ const TSV = require('tsv')
 
 const Vendor = require('../../models/Vendor')
 const Connector = require('../../models/Connector')
-const Color = require('../../models/Color')
-const History = require('../../models/History')
-const Status = require('../../models/Status')
 const commonHelper = require('../../helpers/common')
 
 

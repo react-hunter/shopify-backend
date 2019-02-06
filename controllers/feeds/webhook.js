@@ -57,10 +57,10 @@ exports.productChange = async (req, res) => {
 exports.orderFulfill = (req, res) => {
     res.status(200).send()
     var vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14)
-    console.log('topic: ', req.headers['x-shopify-topic'] + ' , order index: ', req.headers['x-shopify-order-id'])
+    console.log('topic: ', req.headers['x-shopify-topic'] + ' , order index: ', req.headers['x-shopify-order-id'] + ' fulfilled')
     getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
         if (vendorErr) {
-            console.log('There are no vendor for this.')
+            console.log('There are no vendor for this request.')
         } else {
             res.status(200).send()
             getConnectorInfo(vendorInfo, 'order', (connectorErr, connectorInfo) => {
@@ -98,40 +98,6 @@ exports.orderFulfillmentUpdate = (req, res) => {
     console.log('body: ', req.body)
 }
 
-exports.refundCreateTimer = () => {
-    Vendor.find({
-        active: 'yes',
-        colorSynched: 'yes'
-    }, (vendorErr, vendorList) => {
-        vendorList.forEach(vendorItem => {
-            getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
-                if (connectorErr) {
-                    console.log('There is no connector for this.')
-                } else {
-                    refundFeedHelper.refundFeedInOutCreate(vendorItem, connectorInfo, (refundErr) => {
-                        if (refundErr) {
-                            console.log(refundErr)
-                        } else {
-                            console.log('refund success in vendor: ', vendorItem.name)
-                        }
-                    })
-                }
-            })
-        })
-    })
-}
-
-// receive request whenever kwi creates order file
-exports.kwiOrderCreate = (req, res) => {
-    res.status(200).send()
-    console.log('order data from kwi: ', req.body)
-}
-
-exports.kwiRefundCreate = (req, res) => {
-    res.status(200).send()
-    console.log('refund data from kwi: ', req.body)
-}
-
 exports.productTimer = () => {
     // Get and loop vendor list
     Vendor.find({
@@ -166,6 +132,61 @@ exports.productTimer = () => {
                 }
             })
         })
+    })
+}
+
+exports.orderOutTimer = () => {
+    Vendor.find({
+        active: 'yes',
+        colorSynched: 'yes'
+    }, (vendorErr, vendorList) => {
+        if (vendorErr) {
+            console.log('There are problems in getting vendor list.')
+        } else {
+            vendorList.forEach(vendorItem => {
+                getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
+                    if (connectorErr) {
+                        console.log('There is no connector for this.')
+                    } else {
+                        orderFeedHelper.orderFeedOutCreate(vendorItem, connectorInfo, (orderErr) => {
+                            if (orderErr) {
+                                console.log(orderErr)
+                            } else {
+                                console.log('Creating order is success in vendor -> ', vendorItem.name)
+                            }
+                        })
+                    }
+                })
+            })
+        }
+    })
+}
+
+exports.refundCreateTimer = () => {
+    Vendor.find({
+        active: 'yes',
+        colorSynched: 'yes'
+    }, (vendorErr, vendorList) => {
+        if (vendorErr) {
+            console.log('There are problems in getting vendor list.')
+        } else {
+            vendorList.forEach(vendorItem => {
+                if (vendorItem.api.apiShop == 'badidas') {
+                getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
+                    if (connectorErr) {
+                        console.log('There is no connector for this.')
+                    } else {
+                        refundFeedHelper.refundFeedInOutCreate(vendorItem, connectorInfo, (refundErr) => {
+                            if (refundErr) {
+                                console.log(refundErr)
+                            } else {
+                                console.log('refund success in vendor: ', vendorItem.name)
+                            }
+                        })
+                    }
+                })}
+            })
+        }
     })
 }
 
