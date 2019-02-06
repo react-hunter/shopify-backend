@@ -191,7 +191,7 @@ exports.index = async (req, res, next) => {
                                             orderDataDB.billState = orderData['bill_state']
                                             
                                             orderDataDB.save().then(() => {
-                                                console.log('Add order data into DB.')
+                                                console.log('Added order data into DB.')
                                             })
                                         }).catch(deleteError => {
                                             console.log('Error in deleting order file of sftp: ', deleteError)
