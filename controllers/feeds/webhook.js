@@ -176,21 +176,19 @@ exports.refundCreateTimer = () => {
             console.log('There are problems in getting vendor list.')
         } else {
             vendorList.forEach(vendorItem => {
-                // if (vendorItem.api.apiShop == 'badidas') {
-                    getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
-                        if (connectorErr) {
-                            console.log('There is no connector for this.')
-                        } else {
-                            refundFeedHelper.refundFeedInOutCreate(vendorItem, connectorInfo, (refundErr) => {
-                                if (refundErr) {
-                                    console.log(refundErr)
-                                } else {
-                                    console.log('refund success in vendor: ', vendorItem.name)
-                                }
-                            })
-                        }
-                    })
-                // }
+                getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
+                    if (connectorErr) {
+                        console.log('There is no connector for this.')
+                    } else {
+                        refundFeedHelper.refundFeedInOutCreate(vendorItem, connectorInfo, (refundErr) => {
+                            if (refundErr) {
+                                console.log(refundErr)
+                            } else {
+                                console.log('refund success in vendor: ', vendorItem.name)
+                            }
+                        })
+                    }
+                })
             })
         }
     })
