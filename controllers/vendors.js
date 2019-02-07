@@ -1,6 +1,7 @@
 const Vendor = require('../models/Vendor')
 const Color = require('../models/Color')
 const Shopify = require('shopify-api-node')
+const Client = require('ssh2-sftp-client')
 const url = require('url')
 
 /**
@@ -185,7 +186,7 @@ exports.enableVendor = (req, res, next) => {
         shopify.product.list({
             limit: 2,
             published_status: 'published'
-        }).then(products => {
+        }).then(products => {  // check if the information of shopify app is correct
             if (products.length < 1) {
                 req.flash('errors', {
                     msg: 'This vendor does not have any published products.'
@@ -193,72 +194,89 @@ exports.enableVendor = (req, res, next) => {
                 res.redirect('/vendors')
                 return next()
             } else {
-                const productCreateWebhook = {
-                    'topic': 'products/create',
-                    'address': 'https://content-commerce.herokuapp.com/webhook/productChange',
-                    'format': 'json'
-                }
-                const productUpdateWebhook = {
-                    'topic': 'products/update',
-                    'address': 'https://content-commerce.herokuapp.com/webhook/productChange',
-                    'format': 'json'
-                }
-                const productDeleteWebhook = {
-                    'topic': 'products/delete',
-                    'address': 'https://content-commerce.herokuapp.com/webhook/productChange',
-                    'format': 'json'
-                }
-                const orderFulfillWebhook = {
-                    'topic': 'orders/fulfilled',
-                    'address': 'https://content-commerce.herokuapp.com/webhook/fulfill',
-                    'format': 'json'
-                }
-
-                const orderPartialFulfillWebhook = {
-                    'topic': 'orders/partially_fulfilled',
-                    'address': 'https://content-commerce.herokuapp.com/webhook/fulfill',
-                    'format': 'json'
-                }
-                
-                var webhookPromises = [];
-                
-                
-                shopify.webhook.list().then(webhooks => {
-                    webhooks.forEach(webhookItem => {
-                        webhookPromises.push(shopify.webhook.delete(webhookItem.id))
-                    })
+                const sftp = new Client()
+                sftp.connect({
+                    host: vendor.sftp.sftpHost,
+                    port: process.env.SFTP_PORT,
+                    username: vendor.sftp.sftpUsername,
+                    password: vendor.sftp.sftpPassword
                 }).then(() => {
-                    webhookPromises.push(shopify.webhook.create(productCreateWebhook))
-                    // webhookPromises.push(shopify.webhook.create(productUpdateWebhook))
-                    webhookPromises.push(shopify.webhook.create(productDeleteWebhook))
-                    webhookPromises.push(shopify.webhook.create(orderFulfillWebhook))
-                    webhookPromises.push(shopify.webhook.create(orderPartialFulfillWebhook))
-                }).then(() => {
-                    Promise.all(webhookPromises).then(webhookCreateResponse => {
-                        console.log('product create webhook response: ', webhookCreateResponse)
-                        vendor.active = 'yes'
-                        vendor.activeDate = Date()
-                        vendor.save(err => {
-                            if (err) {
-                                return next(err)
-                            }
-                            req.flash('info', {
-                                msg: 'You have enabled vendor successfully.'
+                    const productCreateWebhook = {
+                        'topic': 'products/create',
+                        'address': 'https://content-commerce.herokuapp.com/webhook/productChange',
+                        'format': 'json'
+                    }
+                    const productUpdateWebhook = {
+                        'topic': 'products/update',
+                        'address': 'https://content-commerce.herokuapp.com/webhook/productChange',
+                        'format': 'json'
+                    }
+                    const productDeleteWebhook = {
+                        'topic': 'products/delete',
+                        'address': 'https://content-commerce.herokuapp.com/webhook/productChange',
+                        'format': 'json'
+                    }
+                    const orderFulfillWebhook = {
+                        'topic': 'orders/fulfilled',
+                        'address': 'https://content-commerce.herokuapp.com/webhook/fulfill',
+                        'format': 'json'
+                    }
+    
+                    const orderPartialFulfillWebhook = {
+                        'topic': 'orders/partially_fulfilled',
+                        'address': 'https://content-commerce.herokuapp.com/webhook/fulfill',
+                        'format': 'json'
+                    }
+                    
+                    var webhookPromises = [];
+                    
+                    
+                    shopify.webhook.list().then(webhooks => {
+                        webhooks.forEach(webhookItem => {
+                            webhookPromises.push(shopify.webhook.delete(webhookItem.id))
+                        })
+                    }).then(() => {
+                        webhookPromises.push(shopify.webhook.create(productCreateWebhook))
+                        // webhookPromises.push(shopify.webhook.create(productUpdateWebhook))
+                        webhookPromises.push(shopify.webhook.create(productDeleteWebhook))
+                        webhookPromises.push(shopify.webhook.create(orderFulfillWebhook))
+                        webhookPromises.push(shopify.webhook.create(orderPartialFulfillWebhook))
+                    }).then(() => {
+                        Promise.all(webhookPromises).then(webhookCreateResponse => {
+                            console.log('product create webhook response: ', webhookCreateResponse)
+                            vendor.active = 'yes'
+                            vendor.activeDate = Date()
+                            vendor.save(err => {
+                                if (err) {
+                                    return next(err)
+                                }
+                                req.flash('info', {
+                                    msg: 'You have enabled vendor successfully.'
+                                })
+                                res.redirect('/vendors')
+                                return next()
+                            })
+                        }).catch(productWebhookError => {
+                            console.log(productWebhookError)
+                            req.flash('errors', {
+                                msg: 'Error in creating product webhook.'
                             })
                             res.redirect('/vendors')
                             return next()
                         })
-                    }).catch(productWebhookError => {
-                        console.log(productWebhookError)
-                        req.flash('errors', {
-                            msg: 'Error in creating product webhook.'
-                        })
-                        res.redirect('/vendors')
-                        return next()
+                    }).catch(webhookError => {
+                        console.log('Error in webhook: ', webhookError)
                     })
-                }).catch(webhookError => {
-                    console.log('Error in webhook: ', webhookError)
+                }).catch(sftpError => {
+                    console.log('sftp error: ', sftpError)
+                    req.flash('errors', {
+                        msg: 'SFTP information of this vendor is not correct.'
+                    })
+                    res.redirect('/vendors')
+                    return next()
                 })
+                
+                
             }
         }).catch(e => {
             req.flash('errors', {
