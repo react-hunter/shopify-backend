@@ -152,15 +152,35 @@ exports.updateVendor = (req, res, next) => {
                 if (err) {
                     return next(err)
                 }
-                if (req.user.type == 'superadmin') {
-                    res.redirect('/vendors')
-                    return next()
-                } else {
-                    req.flash('success', {
-                        msg: 'You have updated vendor data successfully.'
-                    })
-                    res.redirect('/')
-                }
+                const shopifyObj = new Shopify({
+                    shopName: vendor.api.apiShop,
+                    apiKey: vendor.api.apiKey,
+                    password: vendor.api.apiPassword,
+                    timeout: 50000,
+                    autoLimit: {
+                        calls: 2,
+                        interval: 1000,
+                        bucketSize: 35
+                    }
+                })
+                removeWebhookList(shopifyObj, (removeError) => {
+                    if (removeError) {
+                        req.flash('success', {
+                            msg: 'You have updated vendor data successfully.'
+                        })
+                        res.redirect('/')
+                    } else {
+                        if (req.user.type == 'superadmin') {
+                            res.redirect('/vendors')
+                            return next()
+                        } else {
+                            req.flash('success', {
+                                msg: 'You have updated vendor data successfully.'
+                            })
+                            res.redirect('/')
+                        }
+                    }
+                })
             })
         }
     })
@@ -233,7 +253,9 @@ exports.enableVendor = (req, res, next) => {
                     
                     shopify.webhook.list().then(webhooks => {
                         webhooks.forEach(webhookItem => {
-                            webhookPromises.push(shopify.webhook.delete(webhookItem.id))
+                            if (webhookItem.address.indexOf('content-commerce') != -1) {
+                                webhookPromises.push(shopify.webhook.delete(webhookItem.id))
+                            }
                         })
                     }).then(() => {
                         webhookPromises.push(shopify.webhook.create(productCreateWebhook))
@@ -516,4 +538,20 @@ const generateShortColor = (originalColor, flag = 0) => {
     }
 
     return shortenColor.toUpperCase()
+}
+
+const removeWebhookList = (shopifyObj, callback) => {
+    shopifyObj.webhook.list().then(webhookList => {
+        var webhookPromises = []
+        webhookList.forEach(webhookItem => {
+            if (webhookItem.address.indexOf('content-commerce') != -1) {
+                webhookPromises.push(shopifyObj.webhook.delete(webhookItem.id))
+            }
+        })
+        Promise.all(webhookPromises).then(webhookDeleteResponse => {
+            callback(null)
+        }).catch(webhookDeleteError => {
+            callback(webhookDeleteError)
+        })
+    })
 }
