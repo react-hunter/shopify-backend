@@ -57,38 +57,41 @@ exports.productChange = async (req, res) => {
 exports.orderFulfill = (req, res) => {
     res.status(200).send()
     var vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14)
-    console.log('topic: ', req.headers['x-shopify-topic'] + ' , order index: ', req.headers['x-shopify-order-id'] + ' fulfilled from ', vendorName, ' order name: ', req.body['name'])
-    getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
-        if (vendorErr) {
-            console.log('There are no vendor for this request.')
-        } else {
-            res.status(200).send()
-            getConnectorInfo(vendorInfo, 'order', (connectorErr, connectorInfo) => {
-                if (connectorErr) {
-                    console.log('There is no connector for this.')
-                } else {
-                    res.status(200).send()
-                    var hookOrderId = req.headers['x-shopify-order-id']
-                    // const hookOrderId = req.body['order_id']
-                    Order.find({
-                        vendorId: vendorInfo._id
-                    }).then(orders => {
-                        orders.forEach(orderItem => {
-                            if (orderItem.orderId == hookOrderId) {
-                                orderFeedHelper.orderFeedInCreate(vendorInfo, connectorInfo, req.body, orderItem, (orderFeedErr) => {
-                                    if (orderFeedErr) {
-                                        console.log(orderFeedErr)
-                                    } else {
-                                        console.log('order inFeed success in vendor: ', vendorName)
-                                    }
-                                })
-                            }
+    var orderName = req.body['name']
+    if (orderName.indexOf('NBCU') !== -1) {
+        console.log('topic: ', req.headers['x-shopify-topic'] + ' , order index: ', req.headers['x-shopify-order-id'] + ' fulfilled from ', vendorName, ' order name: ', orderName)
+        getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
+            if (vendorErr) {
+                console.log('There are no vendor for this request')
+            } else {
+                res.status(200).send()
+                getConnectorInfo(vendorInfo, 'order', (connectorErr, connectorInfo) => {
+                    if (connectorErr) {
+                        console.log('There is no connector for this.')
+                    } else {
+                        res.status(200).send()
+                        var hookOrderId = req.headers['x-shopify-order-id']
+                        // const hookOrderId = req.body['order_id']
+                        Order.find({
+                            vendorId: vendorInfo._id
+                        }).then(orders => {
+                            orders.forEach(orderItem => {
+                                if (orderItem.orderId == hookOrderId) {
+                                    orderFeedHelper.orderFeedInCreate(vendorInfo, connectorInfo, req.body, orderItem, (orderFeedErr) => {
+                                        if (orderFeedErr) {
+                                            console.log(orderFeedErr)
+                                        } else {
+                                            console.log('order inFeed success in vendor: ', vendorName)
+                                        }
+                                    })
+                                }
+                            })
                         })
-                    })
-                }
-            })
-        }
-    })
+                    }
+                })
+            }
+        })
+    }
 }
 
 exports.orderFulfillmentUpdate = (req, res) => {
@@ -144,7 +147,7 @@ exports.orderOutTimer = () => {
             console.log('There are problems in getting vendor list.')
         } else {
             vendorList.forEach(vendorItem => {
-                getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
+                getConnectorInfo(vendorItem, 'order', (connectorErr, connectorInfo) => {
                     if (connectorErr) {
                         console.log('There is no connector for this.')
                     } else {
