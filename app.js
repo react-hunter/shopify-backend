@@ -242,6 +242,7 @@ app.listen(app.get('port'), () => {
   const refundTimer = setInterval(webhookController.refundCreateTimer, 1800000);
   // const refundTimer = setInterval(webhookController.refundCreateTimer, 5000);
   const productTimer = setInterval(webhookController.productTimer, 1800000);
+  const orderTimer = setInterval(webhookController.orderOutTimer, 180000)
 });
 User.find({type: 'superadmin'}, (err, superusers) => {
   if (err) {

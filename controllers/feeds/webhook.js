@@ -91,6 +91,8 @@ exports.orderFulfill = (req, res) => {
                 })
             }
         })
+    } else {
+        console.log('This request is not related with KWI. From -> ', vendorName)
     }
 }
 

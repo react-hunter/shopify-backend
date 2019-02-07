@@ -21,8 +21,8 @@ module.exports = {
             }
         })
         
-        // Get order data from ftp
-        let sftp = new Client()
+        // Get order data from sftp
+        const sftp = new Client()
         sftp.connect({
             host: vendorInfo.sftp.sftpHost,
             port: process.env.SFTP_PORT,
@@ -31,7 +31,7 @@ module.exports = {
         }).then(() => {
             return sftp.list('/outgoing/orders')
         }).then(sftpFileList => {
-            let fileList = []
+            var fileList = []
             
             sftpFileList.forEach(sftpFile => {
                 if (sftpFile.type == '-') {
@@ -48,7 +48,7 @@ module.exports = {
                     orderPost.order.shipping_address = {}
                     var outgoingOrderNumbers = []
 
-                    let dataFromSFTP = TSV.parse(fileData._readableState.buffer.head.data)
+                    var dataFromSFTP = TSV.parse(fileData._readableState.buffer.head.data)
                     var orderData = dataFromSFTP[1]
                     
                     dataFromSFTP.forEach(dataFromSFTPRow => {
@@ -130,8 +130,8 @@ module.exports = {
                     orderPost.order.subtotal_price = orderData['subtotal']
                     orderPost.order.total_tax = orderData['tax_total']
                     shopify.order.create(orderPost.order).then(createResult => {
-                        let originalOrderId = createResult.id
-                        let nextOrderNumber = createResult.order_number + 1
+                        var originalOrderId = createResult.id
+                        var nextOrderNumber = createResult.order_number + 1
                         orderPost.order.name = "NBCU-" + nextOrderNumber
                         orderPost.order.send_receipt = true
                         orderPost.order.send_fulfillment_receipt = true
@@ -347,7 +347,7 @@ module.exports = {
                 order.fulfillments.forEach((fulfillment) => {
                     if (fulfillment.status == 'success') {
                         fulfillmentId = parseInt(fulfillment.id)
-                        let fulfillmentCreateDate = new Date(fulfillment.created_at)
+                        const fulfillmentCreateDate = new Date(fulfillment.created_at)
                         orderData.ship_date = (fulfillmentCreateDate.getMonth() + 1) + '/' + fulfillmentCreateDate.getDate() + '/' + fulfillmentCreateDate.getFullYear()
                         if (fulfillment.line_items.length > 0) {
                             try {
