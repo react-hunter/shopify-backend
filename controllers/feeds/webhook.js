@@ -146,7 +146,7 @@ exports.orderOutTimer = () => {
         colorSynched: 'yes'
     }, (vendorErr, vendorList) => {
         if (vendorErr) {
-            console.log('There are problems in getting vendor list.')
+            console.log('There are problems in getting vendor list')
         } else {
             vendorList.forEach(vendorItem => {
                 getConnectorInfo(vendorItem, 'order', (connectorErr, connectorInfo) => {

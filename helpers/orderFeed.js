@@ -414,12 +414,12 @@ module.exports = {
                     })
                 }
             })
-        }).catch((e) => {
+        }).catch((sftpError) => {
             commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                 if (statusErr) {
                     callback({error: 'status'})
                 } else {
-                    console.log('SFTP connection error: ', e)
+                    console.log('SFTP connection error: ', sftpError)
                     callback({error: 'connect'})
                 }
             })
