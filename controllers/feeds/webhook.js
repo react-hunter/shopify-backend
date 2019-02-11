@@ -26,8 +26,8 @@ exports.productChange = async (req, res) => {
         } else {
             res.status(200).send()
             getConnectorInfo(vendorInfo, 'product', (connectorErr, connectorInfo) => {
-                if (connectorErr) {
-                    console.log('There is no connector for this.')
+                if (connectorErr || !connectorInfo) {
+                    console.log('There is no product connector for this vendor -> ', vendorItem.name)
                 } else {
                     res.status(200).send()
                     var webhookData = new Webhook()
@@ -66,8 +66,8 @@ exports.orderFulfill = (req, res) => {
             } else {
                 res.status(200).send()
                 getConnectorInfo(vendorInfo, 'order', (connectorErr, connectorInfo) => {
-                    if (connectorErr) {
-                        console.log('There is no connector for this.')
+                    if (connectorErr || !connectorInfo) {
+                        console.log('There is no order connector for this vendor -> ', vendorItem.name)
                     } else {
                         res.status(200).send()
                         var hookOrderId = req.headers['x-shopify-order-id']
@@ -116,8 +116,8 @@ exports.productTimer = () => {
             }, (productWebhookError, productWebhookList) => {
                 if (!productWebhookError && productWebhookList) {
                     getConnectorInfo(vendorItem, 'product', (connectorErr, connectorInfo) => {
-                        if (connectorErr) {
-                            console.log('There is no connector for this.')
+                        if (connectorErr || !connectorInfo) {
+                            console.log('There is no product connector for this vendor -> ', vendorItem.name)
                         } else {
                             // Execute productFeedIn a time and delete all rows related with this vendor && connector
                             productFeedHelper.productFeedInCreate(vendorItem, connectorInfo, (productFeedErr) => {
@@ -150,8 +150,8 @@ exports.orderOutTimer = () => {
         } else {
             vendorList.forEach(vendorItem => {
                 getConnectorInfo(vendorItem, 'order', (connectorErr, connectorInfo) => {
-                    if (connectorErr) {
-                        console.log('There is no connector for this.')
+                    if (connectorErr || !connectorInfo) {
+                        console.log('There is no order connector for this vendor -> ', vendorItem.name)
                     } else {
                         orderFeedHelper.orderFeedOutCreate(vendorItem, connectorInfo, (orderErr) => {
                             if (orderErr) {
@@ -178,7 +178,7 @@ exports.refundCreateTimer = () => {
             vendorList.forEach(vendorItem => {
                 getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
                     if (connectorErr || !connectorInfo) {
-                        console.log('There is no connector for this vendor -> ', vendorItem.name)
+                        console.log('There is no refund connector for this vendor -> ', vendorItem.name)
                     } else {
                         refundFeedHelper.refundFeedInOutCreate(vendorItem, connectorInfo, (refundErr) => {
                             if (refundErr) {
@@ -205,7 +205,7 @@ exports.testConnectors = () => {
             vendorList.forEach(vendorItem => {
                 getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
                     if (connectorErr || !connectorInfo) {
-                        console.log('There is no connector for this vendor -> ', vendorItem.name)
+                        console.log('There is no refund connector for this vendor -> ', vendorItem.name)
                     } else {
                         console.log('connector data: ', connectorInfo)
                     }
