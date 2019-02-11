@@ -1,12 +1,12 @@
 const commonHelper = require('../../helpers/common')
 
 const Vendor = require('../../models/Vendor')
-const Connector = require('../../models/Connector')
+// const Connector = require('../../models/Connector')
 const Order = require('../../models/Order')
 const Webhook = require('../../models/Webhook')
 
 const productFeedHelper = require('../../helpers/productFeed')
-const inventoryFeedHelper = require('../../helpers/inventoryFeed')
+// const inventoryFeedHelper = require('../../helpers/inventoryFeed')
 const orderFeedHelper = require('../../helpers/orderFeed')
 const refundFeedHelper = require('../../helpers/refundFeed')
 
@@ -20,12 +20,12 @@ exports.productChange = async (req, res) => {
     const vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14)
     console.log('topic: ', req.headers['x-shopify-topic'] + ' : ' + vendorName)
     
-    getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
+    commonHelper.getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
         if (vendorErr) {
             console.log('There are no vendor for this.')
         } else {
             res.status(200).send()
-            getConnectorInfo(vendorInfo, 'product', (connectorErr, connectorInfo) => {
+            commonHelper.getConnectorInfo(vendorInfo, 'product', (connectorErr, connectorInfo) => {
                 if (connectorErr || !connectorInfo) {
                     console.log('There is no product connector for this vendor -> ', vendorItem.name)
                 } else {
@@ -60,12 +60,12 @@ exports.orderFulfill = (req, res) => {
     var orderName = req.body['name']
     if (orderName.indexOf('NBCU') !== -1) {
         console.log('topic: ', req.headers['x-shopify-topic'] + ' , order index: ', req.headers['x-shopify-order-id'] + ' fulfilled from ', vendorName, ' order name: ', orderName)
-        getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
+        commonHelper.getVendorInfo(vendorName, (vendorErr, vendorInfo) => {
             if (vendorErr) {
                 console.log('There are no vendor for this request')
             } else {
                 res.status(200).send()
-                getConnectorInfo(vendorInfo, 'order', (connectorErr, connectorInfo) => {
+                commonHelper.getConnectorInfo(vendorInfo, 'order', (connectorErr, connectorInfo) => {
                     if (connectorErr || !connectorInfo) {
                         console.log('There is no order connector for this vendor -> ', vendorItem.name)
                     } else {
@@ -115,7 +115,7 @@ exports.productTimer = () => {
                 connector: 'product'
             }, (productWebhookError, productWebhookList) => {
                 if (!productWebhookError && productWebhookList) {
-                    getConnectorInfo(vendorItem, 'product', (connectorErr, connectorInfo) => {
+                    commonHelper.getConnectorInfo(vendorItem, 'product', (connectorErr, connectorInfo) => {
                         if (connectorErr || !connectorInfo) {
                             console.log('There is no product connector for this vendor -> ', vendorItem.name)
                         } else {
@@ -149,7 +149,7 @@ exports.orderOutTimer = () => {
             console.log('There are problems in getting vendor list')
         } else {
             vendorList.forEach(vendorItem => {
-                getConnectorInfo(vendorItem, 'order', (connectorErr, connectorInfo) => {
+                commonHelper.getConnectorInfo(vendorItem, 'order', (connectorErr, connectorInfo) => {
                     if (connectorErr || !connectorInfo) {
                         console.log('There is no order connector for this vendor -> ', vendorItem.name)
                     } else {
@@ -176,7 +176,7 @@ exports.refundCreateTimer = () => {
             console.log('There are problems in getting vendor list.')
         } else {
             vendorList.forEach(vendorItem => {
-                getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
+                commonHelper.getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
                     if (connectorErr || !connectorInfo) {
                         console.log('There is no refund connector for this vendor -> ', vendorItem.name)
                     } else {
@@ -203,7 +203,7 @@ exports.testConnectors = () => {
             console.log('There are problems in getting vendor list.')
         } else {
             vendorList.forEach(vendorItem => {
-                getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
+                commonHelper.getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
                     if (connectorErr || !connectorInfo) {
                         console.log('There is no refund connector for this vendor -> ', vendorItem.name)
                     } else {
@@ -211,35 +211,6 @@ exports.testConnectors = () => {
                     }
                 })
             })
-        }
-    })
-}
-
-// get information of vendor and connector by using vendorName
-const getVendorInfo = (vendorName, callback) => {
-    Vendor.findOne({
-        'api.apiShop': vendorName,
-        active: 'yes',
-        colorSynched: 'yes'
-    }, (vendorError, vendor) => {
-        if (vendorError) {
-            callback(vendorError)
-        } else {
-            callback(null, vendor)
-        }
-    })
-}
-
-const getConnectorInfo = (vendor, connectorType, callback) => {
-    Connector.findOne({
-        vendorId: vendor._id,
-        active: 'yes',
-        kwiLocation: connectorType,
-    }, (connectorError, connector) => {
-        if (connectorError) {
-            callback(connectorError)
-        } else {
-            callback(null, connector)
         }
     })
 }

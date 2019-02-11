@@ -14,13 +14,13 @@ exports.listConnector = (req, res, next) => {
     }, (err, connectors) => {
         if (err) {
             return next(err)
+        } else {
+            res.render('admin/connector/connectors', {
+                title: 'Connector List',
+                connectors: connectors,
+                vendorId: req.params.vendorId
+            })
         }
-
-        res.render('admin/connector/connectors', {
-            title: 'Connector List',
-            connectors: connectors,
-            vendorId: req.params.vendorId
-        })
     })
 }
 
@@ -43,12 +43,13 @@ exports.addConnector = (req, res, next) => {
     Vendor.findById(req.params.vendorId, (err, vendor) => {
         if (err) {
             return next(err)
+        } else {
+            res.render('admin/connector/connectorAdd', {
+                title: 'Add Connector for ' + vendor.name,
+                connectorData: connector,
+                vendorId: req.params.vendorId
+            })
         }
-        res.render('admin/connector/connectorAdd', {
-            title: 'Add Connector for ' + vendor.name,
-            connectorData: connector,
-            vendorId: req.params.vendorId
-        })
     })
 }
 
@@ -61,24 +62,6 @@ exports.addConnector = (req, res, next) => {
 exports.saveConnector = (req, res, next) => {
     var connector = new Connector()
 
-    if (req.body.kwiLocation === 'product') {
-        // Get all colors of this vendor and add colors into db
-        Vendor.findById(req.body.vendorId, (vendorError, vendor) => {
-            if (vendor.colorSynched != 'yes') {
-                req.flash('errors', {
-                    msg: 'To create product connector, you should apply colors in products of this store firstly.'
-                })
-                res.redirect(url.format({
-                    pathname: '/vendors/' + req.body.vendorId + '/connectors/add',
-                    query: {
-                        name: req.body.name,
-                        kwiLocation: req.body.kwiLocation
-                    }
-                }))
-                return next()
-            }
-        })
-    }
     connector.vendorId = req.body.vendorId
     connector.name = req.body.name
     connector.kwiLocation = req.body.kwiLocation
@@ -95,16 +78,18 @@ exports.saveConnector = (req, res, next) => {
             }
         }))
         return next()
-    }
-    connector.save(err => {
-        if (err) {
-            return next(err)
-        }
-        req.flash('success', {
-            msg: 'Connector has been added successfully.'
+    } else {
+        connector.save(err => {
+            if (err) {
+                return next(err)
+            } else {
+                req.flash('success', {
+                    msg: 'Connector has been added successfully.'
+                })
+                res.redirect('/vendors/' + req.body.vendorId + '/connectors')
+            }
         })
-        res.redirect('/vendors/' + req.body.vendorId + '/connectors')
-    })
+    }
 }
 
 /**
@@ -186,11 +171,12 @@ exports.deleteConnector = (req, res, next) => {
     }, err => {
         if (err) {
             return next(err)
+        } else {
+            req.flash('success', {
+                msg: 'Connector has been deleted successfully.'
+            })
+            res.redirect('/vendors/' + req.params.vendorId + '/connectors')
         }
-        req.flash('success', {
-            msg: 'Connector has been deleted successfully.'
-        })
-        res.redirect('/vendors/' + req.params.vendorId + '/connectors')
     })
 }
 
@@ -208,27 +194,28 @@ exports.activateConnector = (req, res, next) => {
             Vendor.findById(req.params.vendorId, (vendorError, vendor) => {
                 if (vendorError) {
                     return next(vendorError)
-                }
-                if (vendor.colorSynched != 'yes') {
-                    req.flash('errors', {
-                        msg: 'To create product connector, you should apply colors in products of this store firstly.'
-                    })
-                    res.redirect('/vendors')
-                    return next()
                 } else {
-                    connector.active = 'yes'
-                    connector.activeDate = new Date()
-        
-                    connector.save(err => {
-                        if (err) {
-                            return next(err)
-                        } else {
-                            req.flash('success', {
-                                msg: 'Connector has been activated successfully.'
-                            })
-                            res.redirect('/vendors/' + req.params.vendorId + '/connectors')
-                        }
-                    })
+                    if (vendor.colorSynched != 'yes') {
+                        req.flash('errors', {
+                            msg: 'To activate product connector, you should apply colors in products of this store firstly.'
+                        })
+                        res.redirect('/vendors')
+                        return next()
+                    } else {
+                        connector.active = 'yes'
+                        connector.activeDate = new Date()
+            
+                        connector.save(err => {
+                            if (err) {
+                                return next(err)
+                            } else {
+                                req.flash('success', {
+                                    msg: 'Connector has been activated successfully.'
+                                })
+                                res.redirect('/vendors/' + req.params.vendorId + '/connectors')
+                            }
+                        })
+                    }
                 }
             })
         }

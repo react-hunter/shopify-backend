@@ -1,5 +1,7 @@
 const History = require('../models/History')
 const Status = require('../models/Status')
+const Vendor = require('../models/Vendor')
+const Connector = require('../models/Connector')
 const fs = require('fs')
 const Color = require('../models/Color')
 
@@ -226,6 +228,34 @@ module.exports = {
         }
         
         return month + '/' + day + '/' + year
-    }
+    },
+
+    getVendorInfo: (vendorName, callback) => {
+        Vendor.findOne({
+            'api.apiShop': vendorName,
+            active: 'yes',
+            colorSynched: 'yes'
+        }, (vendorError, vendor) => {
+            if (vendorError) {
+                callback(vendorError)
+            } else {
+                callback(null, vendor)
+            }
+        })
+    },
+    
+    getConnectorInfo: (vendor, connectorType, callback) => {
+        Connector.findOne({
+            vendorId: vendor._id,
+            active: 'yes',
+            kwiLocation: connectorType,
+        }, (connectorError, connector) => {
+            if (connectorError) {
+                callback(connectorError)
+            } else {
+                callback(null, connector)
+            }
+        })
+    },
 
 }
