@@ -177,8 +177,8 @@ exports.refundCreateTimer = () => {
         } else {
             vendorList.forEach(vendorItem => {
                 getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
-                    if (connectorErr) {
-                        console.log('There is no connector for this.')
+                    if (connectorErr || !connectorInfo) {
+                        console.log('There is no connector for this vendor -> ', vendorItem.name)
                     } else {
                         refundFeedHelper.refundFeedInOutCreate(vendorItem, connectorInfo, (refundErr) => {
                             if (refundErr) {
@@ -187,6 +187,27 @@ exports.refundCreateTimer = () => {
                                 console.log('refund success in vendor: ', vendorItem.name)
                             }
                         })
+                    }
+                })
+            })
+        }
+    })
+}
+
+exports.testConnectors = () => {
+    Vendor.find({
+        active: 'yes',
+        colorSynched: 'yes'
+    }, (vendorErr, vendorList) => {
+        if (vendorErr) {
+            console.log('There are problems in getting vendor list.')
+        } else {
+            vendorList.forEach(vendorItem => {
+                getConnectorInfo(vendorItem, 'refund', (connectorErr, connectorInfo) => {
+                    if (connectorErr || !connectorInfo) {
+                        console.log('There is no connector for this vendor -> ', vendorItem.name)
+                    } else {
+                        console.log('connector data: ', connectorInfo)
                     }
                 })
             })
