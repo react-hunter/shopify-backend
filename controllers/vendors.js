@@ -248,23 +248,23 @@ exports.enableVendor = (req, res, next) => {
                         'format': 'json'
                     }
                     
-                    var webhookPromises = [];
+                    var webhookPromiseList = [];
                     
                     
                     shopify.webhook.list().then(webhooks => {
                         webhooks.forEach(webhookItem => {
                             if (webhookItem.address.indexOf('content-commerce') != -1) {
-                                webhookPromises.push(shopify.webhook.delete(webhookItem.id))
+                                webhookPromiseList.push(shopify.webhook.delete(webhookItem.id))
                             }
                         })
                     }).then(() => {
-                        webhookPromises.push(shopify.webhook.create(productCreateWebhook))
-                        // webhookPromises.push(shopify.webhook.create(productUpdateWebhook))
-                        webhookPromises.push(shopify.webhook.create(productDeleteWebhook))
-                        webhookPromises.push(shopify.webhook.create(orderFulfillWebhook))
-                        webhookPromises.push(shopify.webhook.create(orderPartialFulfillWebhook))
+                        webhookPromiseList.push(shopify.webhook.create(productCreateWebhook))
+                        // webhookPromiseList.push(shopify.webhook.create(productUpdateWebhook))
+                        webhookPromiseList.push(shopify.webhook.create(productDeleteWebhook))
+                        webhookPromiseList.push(shopify.webhook.create(orderFulfillWebhook))
+                        webhookPromiseList.push(shopify.webhook.create(orderPartialFulfillWebhook))
                     }).then(() => {
-                        Promise.all(webhookPromises).then(webhookCreateResponse => {
+                        Promise.all(webhookPromiseList).then(webhookCreateResponse => {
                             console.log('product create webhook response: ', webhookCreateResponse)
                             vendor.active = 'yes'
                             vendor.activeDate = Date()
@@ -336,13 +336,13 @@ exports.disableVendor = (req, res, next) => {
         })
         
         shopify.webhook.list().then(webhookList => {
-            var webhookPromises = []
+            var webhookPromiseList = []
             webhookList.forEach(webhookItem => {
                 if (webhookItem.address.indexOf('content-commerce') != -1) {
-                    webhookPromises.push(shopify.webhook.delete(webhookItem.id))
+                    webhookPromiseList.push(shopify.webhook.delete(webhookItem.id))
                 }
             })
-            Promise.all(webhookPromises).then(webhookDeleteResponse => {
+            Promise.all(webhookPromiseList).then(webhookDeleteResponse => {
                 vendor.active = 'no'
                 vendor.save(err => {
                     if (err) {
@@ -389,13 +389,13 @@ exports.deleteVendor = (req, res, next) => {
             })
 
             shopify.webhook.list().then(webhookList => {
-                var webhookPromises = []
+                var webhookPromiseList = []
                 webhookList.forEach(webhookItem => {
                     if (webhookItem.address.indexOf('content-commerce') != -1) {
-                        webhookPromises.push(shopify.webhook.delete(webhookItem.id))
+                        webhookPromiseList.push(shopify.webhook.delete(webhookItem.id))
                     }
                 })
-                Promise.all(webhookPromises).then(webhookDeleteResponse => {
+                Promise.all(webhookPromiseList).then(webhookDeleteResponse => {
                     Vendor.deleteOne({
                         _id: req.params.vendorId
                     }, err => {
@@ -542,13 +542,13 @@ const generateShortColor = (originalColor, flag = 0) => {
 
 const removeWebhookList = (shopifyObj, callback) => {
     shopifyObj.webhook.list().then(webhookList => {
-        var webhookPromises = []
+        var webhookPromiseList = []
         webhookList.forEach(webhookItem => {
             if (webhookItem.address.indexOf('content-commerce') != -1) {
-                webhookPromises.push(shopifyObj.webhook.delete(webhookItem.id))
+                webhookPromiseList.push(shopifyObj.webhook.delete(webhookItem.id))
             }
         })
-        Promise.all(webhookPromises).then(webhookDeleteResponse => {
+        Promise.all(webhookPromiseList).then(webhookDeleteResponse => {
             callback(null)
         }).catch(webhookDeleteError => {
             callback(webhookDeleteError)

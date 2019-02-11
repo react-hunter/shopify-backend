@@ -34,7 +34,6 @@ module.exports = {
                     fileList.push(sftpFile.name)
                 }
             })
-            console.log('file list: ', fileList)
             fileList.forEach(fileName => {
                 sftp.get('/outgoing/returns/' + fileName).then(fileData => {
                     var refundPost = {}, refundCalculate = {}
@@ -45,7 +44,6 @@ module.exports = {
                     var retailerRMANumber = refundData['retailer_rma_number']
                     var returnFileName = 'uploads/returns-' + vendorInfo.api.apiShop + '-' + retailerOrderNumber + '.txt'
                     
-                    console.log('order number: ', refundData['retailer_order_number'])
                     // Calculate refund
                     refundCalculate.currency = 'USD'
                     refundCalculate.shipping = {
@@ -107,25 +105,30 @@ module.exports = {
                                 refundInDataList.push(refundInData)
                             })
 
-                            fs.writeFile(returnFileName, TSV.stringify(refundInDataList), function (fileWriteError) {
-                                if (fileWriteError) {
-                                    console.log('Writing File Error: ', fileWriteError)
-                                    callback({error: 'file'})
-                                } else {
-                                    var remotePath = '/incoming/returns/returns_' + commonHelper.dateStringForName() + '.txt'
-                                    sftp.put(returnFileName, remotePath).then(response => {
-                                        commonHelper.addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
-                                            if (statusErr) {
-                                                callback({error: 'status'})
-                                            } else {
-                                                callback(null, vendorInfo.name)
-                                            }
+                            sftp.delete('/outgoing/returns/' + fileName).then(result => {
+                                fs.writeFile(returnFileName, TSV.stringify(refundInDataList), function (fileWriteError) {
+                                    if (fileWriteError) {
+                                        console.log('Writing File Error: ', fileWriteError)
+                                        callback({error: 'file'})
+                                    } else {
+                                        var remotePath = '/incoming/returns/returns_' + commonHelper.dateStringForName() + '.txt'
+                                        sftp.put(returnFileName, remotePath).then(response => {
+                                            commonHelper.addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
+                                                if (statusErr) {
+                                                    callback({error: 'status'})
+                                                } else {
+                                                    callback(null, vendorInfo.name)
+                                                }
+                                            })
+                                        }).catch(sftpUploadError => {
+                                            console.log('Upload error: ', sftpUploadError)
+                                            callback({error: 'upload'})
                                         })
-                                    }).catch(sftpUploadError => {
-                                        console.log('Upload error: ', sftpUploadError)
-                                        callback({error: 'upload'})
-                                    })
-                                }
+                                    }
+                                })
+                            }).catch(deleteErr => {
+                                console.log('Error in deleting refund file of sftp: ', deleteErr)
+                                callback({error: 'delete'})
                             })
                         }).catch(createRefundError => {
                             console.log('There is a problem in creating refund: ', createRefundError)
