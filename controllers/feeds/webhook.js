@@ -16,7 +16,7 @@ const refundFeedHelper = require('../../helpers/refundFeed')
  */
 
 exports.productChange = async (req, res) => {
-    res.status(200).send()
+    res.status(200).send('OK')
     const vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14)
     console.log('topic: ', req.headers['x-shopify-topic'] + ' : ' + vendorName)
     
@@ -24,12 +24,10 @@ exports.productChange = async (req, res) => {
         if (vendorErr) {
             console.log('There are no vendor for this.')
         } else {
-            res.status(200).send()
             commonHelper.getConnectorInfo(vendorInfo, 'product', (connectorErr, connectorInfo) => {
                 if (connectorErr || !connectorInfo) {
                     console.log('There is no product connector for this vendor -> ', vendorItem.name)
                 } else {
-                    res.status(200).send()
                     var webhookData = new Webhook()
                     webhookData.vendorId = vendorInfo._id
                     webhookData.connector = connectorInfo.kwiLocation
@@ -55,7 +53,7 @@ exports.productChange = async (req, res) => {
 }
 
 exports.orderFulfill = (req, res) => {
-    res.status(200).send()
+    res.status(200).send('OK')
     var vendorName = req.headers['x-shopify-shop-domain'].slice(0, -14)
     var orderName = req.body['name']
     if (orderName.indexOf('NBCU') !== -1) {
@@ -64,12 +62,10 @@ exports.orderFulfill = (req, res) => {
             if (vendorErr) {
                 console.log('There are no vendor for this request')
             } else {
-                res.status(200).send()
                 commonHelper.getConnectorInfo(vendorInfo, 'order', (connectorErr, connectorInfo) => {
                     if (connectorErr || !connectorInfo) {
                         console.log('There is no order connector for this vendor -> ', vendorItem.name)
                     } else {
-                        res.status(200).send()
                         var hookOrderId = req.headers['x-shopify-order-id']
                         // const hookOrderId = req.body['order_id']
                         Order.find({
@@ -97,7 +93,7 @@ exports.orderFulfill = (req, res) => {
 }
 
 exports.orderFulfillmentUpdate = (req, res) => {
-    res.status(200).send()
+    res.status(200).send('OK')
 
     console.log('headers: ', req.headers)
     console.log('body: ', req.body)

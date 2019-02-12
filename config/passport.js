@@ -112,7 +112,7 @@ exports.isAuthorized = (req, res, next) => {
 }
 
 exports.verifyWebHook = (req, res, next) => {
-  res.status(200).send()
+  res.status(200).send('OK')
   var shopifyHmac = req.headers['x-shopify-hmac-sha256']
   req.hasher = crypto.createHmac('sha256', 'bc922453766881cb718d11582bce5f2e8cc542cc2bb6824cc55ebc11a7f6e0ff')
 
@@ -137,7 +137,7 @@ exports.verifyWebHook = (req, res, next) => {
 }
 
 // exports.verifyWebHook = (req, res, next) => {
-//   res.status(200).send()
+//   res.status(200).send('OK')
 //   const sharedSecretKey = '2c0518f1758c93a67aab653c3d9baa62'
 //   const signature = 'bc922453766881cb718d11582bce5f2e8cc542cc2bb6824cc55ebc11a7f6e0ff'
 //   var generated_hash = crypto.createHmac('sha256', signature)
