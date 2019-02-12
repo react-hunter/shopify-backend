@@ -103,13 +103,13 @@ exports.getConnector = (req, res, next) => {
         if (err) {
             return next(err)
         } else {
-            Connector.findById(req.params.connectorId, (error, connector) => {
+            Connector.findById(req.params.connectorId, (error, connectorInfo) => {
                 if (error) {
                     return next(error)
                 } else {
                     res.render('admin/connector/connectorUpdate', {
                         title: 'Edit Connector ' + vendor.name,
-                        connectorData: connector,
+                        connectorData: connectorInfo,
                         vendorId: req.params.vendorId
                     })
                 }
@@ -130,12 +130,12 @@ exports.updateConnector = (req, res, next) => {
         if (err) {
             return next(err)
         } else {
-            Connector.findById(req.body.connectorId, (getErr, connector) => {
+            Connector.findById(req.body.connectorId, (getErr, connectorInfo) => {
                 if (getErr) {
                     return next(getErr)
                 } else {
-                    connector.name = req.body.name
-                    connector.kwiLocation = req.body.kwiLocation
+                    connectorInfo.name = req.body.name
+                    connectorInfo.kwiLocation = req.body.kwiLocation
                     if (req.body.name == '') {
                         req.flash('errors', {
                             msg: 'Please insert correctly.'
@@ -143,7 +143,7 @@ exports.updateConnector = (req, res, next) => {
                         res.redirect('/vendors/' + req.body.vendorId + '/connectors/' + req.body.connectorId)
                         return next()
                     }
-                    connector.save(connectorErr => {
+                    connectorInfo.save(connectorErr => {
                         if (connectorErr) {
                             return next(connectorErr)
                         } else {
@@ -187,7 +187,7 @@ exports.deleteConnector = (req, res, next) => {
  * Input: vendorId, connectorId
  */
 exports.activateConnector = (req, res, next) => {
-    Connector.findById(req.params.connectorId, (getErr, connector) => {
+    Connector.findById(req.params.connectorId, (getErr, connectorInfo) => {
         if (getErr) {
             return next(getErr)
         } else {
@@ -202,10 +202,10 @@ exports.activateConnector = (req, res, next) => {
                         res.redirect('/vendors')
                         return next()
                     } else {
-                        connector.active = 'yes'
-                        connector.activeDate = new Date()
+                        connectorInfo.active = 'yes'
+                        connectorInfo.activeDate = new Date()
             
-                        connector.save(err => {
+                        connectorInfo.save(err => {
                             if (err) {
                                 return next(err)
                             } else {
@@ -229,13 +229,13 @@ exports.activateConnector = (req, res, next) => {
  * Input: vendorId, connectorId
  */
 exports.inactivateConnector = (req, res, next) => {
-    Connector.findById(req.params.connectorId, (getErr, connector) => {
+    Connector.findById(req.params.connectorId, (getErr, connectorInfo) => {
         if (getErr) {
             return next(getErr)
         } else {
-            connector.active = 'no'
+            connectorInfo.active = 'no'
 
-            connector.save(err => {
+            connectorInfo.save(err => {
                 if (err) {
                     return next(err)
                 } else {

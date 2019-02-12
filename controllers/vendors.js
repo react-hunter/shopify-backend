@@ -165,8 +165,8 @@ exports.updateVendor = (req, res, next) => {
                 })
                 removeWebhookList(shopifyObj, (removeError) => {
                     if (removeError) {
-                        req.flash('success', {
-                            msg: 'You have updated vendor data successfully.'
+                        req.flash('errors', {
+                            msg: 'There are problems in deleting webhooks.'
                         })
                         res.redirect('/')
                     } else {
@@ -279,12 +279,20 @@ exports.enableVendor = (req, res, next) => {
                                 return next()
                             })
                         }).catch(productWebhookError => {
-                            console.log(productWebhookError)
-                            req.flash('errors', {
-                                msg: 'Error in creating product webhook.'
+                            removeWebhookList(shopify, (removeError) => {
+                                if (removeError) {
+                                    req.flash('errors', {
+                                        msg: 'There are problems in deleting webhooks.'
+                                    })
+                                    res.redirect('/')
+                                } else {
+                                    req.flash('errors', {
+                                        msg: 'Error in creating product webhook. Please try again.'
+                                    })
+                                    res.redirect('/vendors')
+                                    return next()
+                                }
                             })
-                            res.redirect('/vendors')
-                            return next()
                         })
                     }).catch(webhookError => {
                         console.log('Error in webhook: ', webhookError)

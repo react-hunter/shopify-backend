@@ -184,7 +184,7 @@ exports.refundCreateTimer = () => {
                             if (refundErr) {
                                 console.log(refundErr)
                             } else {
-                                console.log('refund success in vendor: ', vendorItem.name)
+                                console.log('refund success in vendor -> ', vendorItem.name)
                             }
                         })
                     }
