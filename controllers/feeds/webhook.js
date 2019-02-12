@@ -88,7 +88,7 @@ exports.orderFulfill = (req, res) => {
             }
         })
     } else {
-        console.log('This request is not related with KWI. From -> ', vendorName, ', topic: ', req.headers['x-shopify-topic'])
+        console.log('This request is not related with KWI. From -> ', vendorName, ', topic: ', req.headers['x-shopify-topic'], 'order index: ', req.headers['x-shopify-order-id'])
     }
 }
 
