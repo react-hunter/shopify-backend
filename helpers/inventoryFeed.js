@@ -77,10 +77,10 @@ module.exports = {
                                     } else {
                                         callback({error: 'upload'})
                                     }
-                                });
-                            });
+                                })
+                            })
                         }
-                    });
+                    })
                 })
                 .catch(error => {
                     commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
@@ -89,8 +89,8 @@ module.exports = {
                         } else {
                             callback({error: 'connect'})
                         }
-                    });
-                });
+                    })
+                })
         })
         .catch(err => {
             commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
@@ -99,7 +99,7 @@ module.exports = {
                 } else {
                     callback({error: 'store'})
                 }
-            });
-        });
+            })
+        })
     }
-};
+}
