@@ -41,8 +41,11 @@ module.exports = {
     
     deleteAndInitialize: (filePath) => {
         if (fs.existsSync(filePath)) {
-            fs.unlink(filePath, (err) => {
-                if (err) throw err
+            fs.unlink(filePath, (deleteErr) => {
+                if (deleteErr) {
+                    console.log('Error in deleting original file: ', deleteErr)
+                    throw deleteErr
+                }
                 console.log(filePath + ' file has been deleted')
                 fs.writeFile(filePath, '', function (initErr) {
                     if (initErr) {
@@ -137,16 +140,18 @@ module.exports = {
             fs.appendFile("uploads/product-original-hedge.txt", data, function (err) {
                 if (err) {
                     callback(err)
+                } else {
+                    callback(null, 'success')
                 }
             })
-            callback(null, 'success')
         } else {
             fs.appendFile("uploads/product-original.txt", ', ' + data, function (err) {
                 if (err) {
                     callback(err)
+                } else {
+                    callback(null, 'success')
                 }
             })
-            callback(null, 'success')
         }
     },
 

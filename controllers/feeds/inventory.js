@@ -9,6 +9,8 @@ const Connector = require('../../models/Connector')
 const History = require('../../models/History')
 const Status = require('../../models/Status')
 
+const commonHelper = require('../../helpers/common')
+
 /**
  * GET /
  * Inventory page.
@@ -92,7 +94,7 @@ exports.index = async (req, res, next) => {
     var inventoryDataList = []
 
     // Initialize product feed file with empty
-    deleteAndInitialize(inventoryFileName)
+    commonHelper.deleteAndInitialize(inventoryFileName)
 
     // Check user's active/inactive status.
     if (req.user.active !== 'yes') {
@@ -139,34 +141,34 @@ exports.index = async (req, res, next) => {
                                 }).split('.')
                                 var remotePath = '/incoming/inventory/inventory' + isoDate[0].replace(' ', '').replace(/\-/g, '').replace(/\:/g, '').replace(/\//g, '').replace(',', '') + '.txt'
                                 sftp.put(inventoryFileName, remotePath)
-                                .then(response => {
-                                    addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
-                                        if (statusErr) {
-                                            return next(statusErr)
-                                        } else {
-                                            res.render('feeds/inventory', {
-                                                title: 'Inventory',
-                                                inventoryList: inventoryDataList
-                                            })
-                                        }
+                                    .then(response => {
+                                        commonHelper.addStatus(vendorInfo, connectorInfo, 2, (statusErr) => {
+                                            if (statusErr) {
+                                                return next(statusErr)
+                                            } else {
+                                                res.render('feeds/inventory', {
+                                                    title: 'Inventory',
+                                                    inventoryList: inventoryDataList
+                                                })
+                                            }
+                                        })
+
+                                        sftp.end()
                                     })
-                                    
-                                    sftp.end()
-                                })
-                                .catch(error => {
-                                    addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
-                                        if (statusErr) {
-                                            return next(statusErr)
-                                        } else {
-                                            console.log('upload error: ', error)
-                                        }
+                                    .catch(error => {
+                                        commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
+                                            if (statusErr) {
+                                                return next(statusErr)
+                                            } else {
+                                                console.log('upload error: ', error)
+                                            }
+                                        })
                                     })
-                                })
                             }
                         })
                     })
                     .catch(error => {
-                        addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
+                        commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                             if (statusErr) {
                                 return next(statusErr)
                             } else {
@@ -176,7 +178,7 @@ exports.index = async (req, res, next) => {
                     })
             })
             .catch(err => {
-                addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
+                commonHelper.addStatus(vendorInfo, connectorInfo, 0, (statusErr) => {
                     if (statusErr) {
                         return next(statusErr)
                     } else {
@@ -185,98 +187,4 @@ exports.index = async (req, res, next) => {
                 })
             })
     }
-
-}
-
-const deleteAndInitialize = function (filePath) {
-    if (fs.existsSync(filePath)) {
-        fs.unlink(filePath, (err) => {
-            if (err) throw err
-            console.log(filePath + ' file has been deleted')
-            fs.writeFile(filePath, '', function (initErr) {
-                if (initErr) {
-                    console.log(initErr)
-                }
-                console.log('Made inventory file and initialized with empty')
-            })
-        })
-    }
-}
-
-const addStatus = (vendor, connector, statusFlag, callback) => {
-    Status.find({
-        vendorId: vendor._id,
-        connectorId: connector._id
-    }, (err, statuses) => {
-        if (err) {
-            callback(err)
-        } else {
-            if (statuses.length == 0) {
-                var status = new Status()
-                status.vendorId = vendor._id
-                status.vendorName = vendor.api.apiShop
-                status.connectorId = connector._id
-                status.connectorType = connector.kwiLocation
-                status.success = 0
-                status.pending = 0
-                status.error = 0
-                switch (statusFlag) {
-                    case 0:
-                        status.error = 1
-                        break;
-                    case 1:
-                        status.pending = 1
-                        break;
-                    default:
-                        status.success = 1
-                }
-                status.save().then(() => {
-                    addHistory(vendor, connector, statusFlag, (historyErr) => {
-                        if (historyErr) {
-                            callback(historyErr)
-                        } else {
-                            callback(null)
-                        }
-                    })
-                })
-            } else {
-                var status = statuses[0]
-                let statusQuery = ''
-                switch (statusFlag) {
-                    case 0:
-                        statusQuery = {error: 1}
-                        break
-                    case 1:
-                        statusQuery = {pending: 1}
-                        break
-                    default:
-                        statusQuery = {success: 1}
-                }
-                status.updateOne({ $inc: statusQuery},() => {
-                    addHistory(vendor, connector, statusFlag, (historyErr) => {
-                        if (historyErr) {
-                            callback(historyErr)
-                        } else {
-                            callback(null)
-                        }
-                    })
-                })
-            }
-        }
-    })
-}
-
-const addHistory = (vendor, connector, flag, callback) => {
-    var history = new History()
-    history.vendorId = vendor._id
-    history.vendorName = vendor.api.apiShop
-    history.connectorId = connector._id
-    history.connectorType = connector.kwiLocation
-    history.status = flag
-
-    history.save().then(() => {
-        callback(null)
-    }).catch(err => {
-        callback(err)
-    })
 }

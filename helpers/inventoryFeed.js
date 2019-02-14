@@ -66,7 +66,7 @@ module.exports = {
                                     } else {
                                         callback(null)
                                     }
-                                });
+                                })
                                 
                                 sftp.end()
                             })
